@@ -1,6 +1,6 @@
 
-NUM_PEOPLE = 100000; // Number of people
-NUM_DAYS = 20; //Number of days
+NUM_PEOPLE = 10000; // Number of people
+NUM_DAYS = 50; //Number of days
 SIM_STEPS_PER_DAY = 4; //Number of simulation steps per day
 NUM_TIMESTEPS = NUM_DAYS*SIM_STEPS_PER_DAY; //
 
@@ -64,6 +64,7 @@ function init_nodes() {
 			'workplace_type': Math.floor(Math.random() * 2), //either school or office
 	    };
 	    node['infective'] = node['infection_status']==2?1:0; //initialise all infected individuals as infective 
+	    node['time_of_infection'] = node['infection_status']==2?(-5+Math.random()/2.0):0;
 	    nodes.push(node)
 	}
 	return nodes;
@@ -299,7 +300,7 @@ function update_infection(node,cur_time){
             node['infective'] = 0;
     	}
 	}
-	else if(node['infection_status']==5 && (cur_time - node['time_of_infection'] > 20*SIM_STEPS_PER_DAY)){
+	else if(node['infection_status']==6 && (cur_time - node['time_of_infection'] > 20*SIM_STEPS_PER_DAY)){
     	if(Math.random() < STATE_TRAN[age_index][2]){
             	node['infection_status'] = 7;//move to dead
             	node['infective'] = 0;
@@ -377,10 +378,15 @@ function run_simulation() {
 	var workplaces = init_workplaces(nodes);
 	var communities = init_community(nodes);
 	var days_num_infected = [];
+	var days_num_exposed = [];
+	var days_num_hospitalised = [];
+	var days_num_critical = [];
+	var days_num_fatalities = [];
+	var days_num_recovered = [];
+	var days_num_affected = [];
+	
 	for(var i = 0; i < NUM_TIMESTEPS; i++) {
-		var n_infected = nodes.reduce(function(partial_sum, node) {return partial_sum + ((node['infection_status']==2||node['infection_status']==3||node['infection_status']==5||node['infection_status']==6) ? 1 : 0);}, 0);
-		days_num_infected.push([i, n_infected]);
-
+		
 		for (var j=0; j<NUM_PEOPLE; j++){
 			update_infection(nodes[j],i);
 			update_kappa(nodes[j], i);
@@ -398,41 +404,70 @@ function run_simulation() {
 		for (var j=0; j<NUM_PEOPLE; j++){
 			update_lambdas(nodes[j],homes,workplaces,communities);
 		}
+		
+		var n_infected = nodes.reduce(function(partial_sum, node) {return partial_sum + ((node['infection_status']==2||node['infection_status']==3||node['infection_status']==5||node['infection_status']==6) ? 1 : 0);}, 0);
+		days_num_infected.push([i/SIM_STEPS_PER_DAY, n_infected]);
+        
+        var n_exposed = nodes.reduce(function(partial_sum, node) {return partial_sum + ((node['infection_status']==1) ? 1 : 0);}, 0);
+		days_num_exposed.push([i/SIM_STEPS_PER_DAY, n_exposed]);
+		
+		var n_hospitalised = nodes.reduce(function(partial_sum, node) {return partial_sum + ((node['infection_status']==5) ? 1 : 0);}, 0);
+		days_num_hospitalised.push([i/SIM_STEPS_PER_DAY, n_hospitalised]);
+		
+		var n_critical = nodes.reduce(function(partial_sum, node) {return partial_sum + ((node['infection_status']==6) ? 1 : 0);}, 0);
+		days_num_critical.push([i/SIM_STEPS_PER_DAY, n_critical]);
+		
+		var n_fatalities = nodes.reduce(function(partial_sum, node) {return partial_sum + ((node['infection_status']==7) ? 1 : 0);}, 0);
+		days_num_fatalities.push([i/SIM_STEPS_PER_DAY, n_fatalities]);
+		
+		var n_recovered = nodes.reduce(function(partial_sum, node) {return partial_sum + ((node['infection_status']==4) ? 1 : 0);}, 0);
+		days_num_recovered.push([i/SIM_STEPS_PER_DAY, n_recovered]);
+		
+		var n_affected = nodes.reduce(function(partial_sum, node) {return partial_sum + ((node['infection_status']) ? 1 : 0);}, 0);
+		days_num_affected.push([i/SIM_STEPS_PER_DAY, n_affected]);
 
 	}
-	return days_num_infected;
+	return [days_num_infected,days_num_exposed,days_num_hospitalised,days_num_critical,days_num_fatalities,days_num_recovered,days_num_affected];
 }
 
-function plot_simulation(days_num_infected) {
+function plot_simulation(days_num_infected,plot_element,title_1,title_2) {
 	google.charts.load('current', {packages: ['corechart', 'line']});
 	google.charts.setOnLoadCallback(drawBasic);
 
 	function drawBasic() {
 	    var data = new google.visualization.DataTable();
 	    data.addColumn('number', 'X');
-	    data.addColumn('number', 'Number infected');
+	    data.addColumn('number', title_1);
 
 	    data.addRows(days_num_infected);
 
 	    var options = {
 	        hAxis: {
-	            title: 'Timesteps'
+	            title: 'Days'
 	        },
 	        vAxis: {
-	            title: 'Number infected'
+	            title: title_1
 	        },
-			title: 'Infection curve for people_velocity = ' + PEOPLE_VELOCITY,
+			title: title_2
 	    };
 
-	    var chart = new google.visualization.LineChart(document.getElementById('num_infected_plot'));
+	    var chart = new google.visualization.LineChart(document.getElementById(plot_element));
 
 	    chart.draw(data, options);
 	}
 }
 
 function run_and_plot() {
-	days_num_infected = run_simulation();
-	plot_simulation(days_num_infected);
+    var returned_values 
+	returned_values = run_simulation();
+	plot_simulation(returned_values[6],'num_affected_plot','Number Affected','Evolution of Affected Population');
+	plot_simulation(returned_values[0],'num_infected_plot','Number Infected','Evolution of Infected Population');
+	plot_simulation(returned_values[1],'num_exposed_plot','Number Exposed','Evolution of Exposed Population');
+	plot_simulation(returned_values[2],'num_hospitalised_plot','Number Hospitalised','Evolution of Hospitalised Population');
+	plot_simulation(returned_values[3],'num_critical_plot','Number Crtitical','Evolution of Crtitical Population');
+	plot_simulation(returned_values[4],'num_fatalities_plot','Number Fatalities','Evolution of Fatalities Population');
+	plot_simulation(returned_values[5],'num_recovered_plot','Number Recovered','Evolution of Recovered Population');
+	
 }
 function clamp_block_id(id) {
 	if(id < 0) id = 0;
