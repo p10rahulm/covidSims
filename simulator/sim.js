@@ -1,4 +1,5 @@
 NUM_PEOPLE = 10000; // Number of people
+NUM_DAYS = 100 //Number of days
 INIT_NUM_INFECTED = 100; // Initial number of people infected
 VIRUS_TRANSMISSION_DIST = 100; // Cut off distance (in meters) below which virus transmission might occur
 VIRUS_TRANSMISSION_PROB = 0.5; // If within the cut-off distance, transmission probability
@@ -51,7 +52,17 @@ function init_nodes() {
 }
 
 function kappa_T(node, cur_time){
-	return 1; // Add kappa function... 1) less than 4.5, 0 2) 4.5 to 5, 1 3) 5 to 10, 1.5  4) 0 afterwards
+	if(node["infection_status"]==0){
+		return 0;
+	}
+	else {
+		var time_since_infection = cur_time - node["time_of_infection"];
+		if(time_since_infection < 4.5) { return 0;}
+		else if(time_since_infection < 5) {return 1;}
+		else if(time_since_infection < 10) {return 1.5;}
+		else return 0;
+	}	
+	////return 1; // Add kappa function... 1) less than 4.5, 0 2) 4.5 to 5, 1 3) 5 to 10, 1.5  4) 0 afterwards
 }
 
 function psi_T(node, cur_time){
@@ -178,11 +189,12 @@ function update_psi(node, cur_time){
 
 function update_lambda_h(nodes, home){
 	var sum_value = 0
+	
 	for (var i=0; i<home['individuals'].length; i++){
-		var temp = nodes.filter( function(node) {
-			return node['index']==home['individuals'][i];
-		});
-		sum_value += temp[0]['lambda_h'];
+	//	var temp = nodes.filter( function(node) {
+	//		return node['index']==home['individuals'][i];
+	//	});
+		sum_value += nodes[home['individuals'][i]]['lambda_h'];
 	}
 	return home['scale']*sum_value;
 	// Populate it afterwards...
@@ -191,10 +203,10 @@ function update_lambda_h(nodes, home){
 function update_lambda_w(nodes, workplace){
 	var sum_value = 0
 	for (var i=0; i<workplace['individuals'].length; i++){
-		var temp = nodes.filter( function(node) {
-			return node['index']==workplace['individuals'][i];
-		});
-		sum_value += temp[0]['lambda_w'];
+	//	var temp = nodes.filter( function(node) {
+	///		return node['index']==workplace['individuals'][i];
+	//	});
+		sum_value += nodes[workplace['individuals'][i]]['lambda_w'];
 	}
 	return workplace['scale']*sum_value;
 	// Populate it afterwards...
@@ -203,10 +215,10 @@ function update_lambda_w(nodes, workplace){
 function update_lambda_c(nodes, community){
 	var sum_value = 0
 	for (var i=0; i<community['individuals'].length; i++){
-		var temp = nodes.filter( function(node) {
-			return node['index']==community['individuals'][i];
-		});
-		sum_value += temp[0]['lambda_c'];
+	//	var temp = nodes.filter( function(node) {
+	//		return node['index']==community['individuals'][i];
+	//	});
+		sum_value += nodes[community['individuals'][i]]['lambda_c'];
 	}
 	return community['scale']*sum_value;
 	// Populate it afterwards...
@@ -277,7 +289,7 @@ function run_simulation() {
 	var workplaces = init_workplaces(nodes);
 	var communities = init_community(nodes);
 	var days_num_infected = [];
-	for(var i = 0; i < 1; i++) {
+	for(var i = 0; i < NUM_DAYS; i++) {
 		var n_infected = nodes.reduce(function(partial_sum, node) {return partial_sum + (node['infection_status'] ? 1 : 0);}, 0);
 		days_num_infected.push([i, n_infected]);
 
