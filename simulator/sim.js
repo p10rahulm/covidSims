@@ -44,7 +44,8 @@ function init_nodes() {
 			'lambda': 0,
 			'kappa_T': 0,
 			'psi_T': 0,
-			'funct_d_ck': Math.random() // function of distance from community...
+			'funct_d_ck': Math.random(), // function of distance from community...
+			'workplace_type': Math.floor(Math.random() * 2) //either school or office
 	    };
 	    nodes.push(node)
 	}
@@ -52,21 +53,38 @@ function init_nodes() {
 }
 
 function kappa_T(node, cur_time){
-	if(node["infection_status"]==0){
+
+	//Need to compute thresholds based on simulation timesteps
+	var threshold1 = 4.5 //TODO: Need to compute appropriate thresholds.
+	var threshold2 = 5
+	var threshold3 = 10	
+	if(node["infection_status"]!=1){
 		return 0;
 	}
 	else {
 		var time_since_infection = cur_time - node["time_of_infection"];
-		if(time_since_infection < 4.5) { return 0;}
-		else if(time_since_infection < 5) {return 1;}
-		else if(time_since_infection < 10) {return 1.5;}
+		if(time_since_infection < threshold1 || time_since_infection > threshold3) { return 0;}
+		else if(time_since_infection < threshold2) {return 1;}
+		else if(time_since_infection < threshold3) {return 1.5;}
 		else return 0;
 	}	
 	////return 1; // Add kappa function... 1) less than 4.5, 0 2) 4.5 to 5, 1 3) 5 to 10, 1.5  4) 0 afterwards
 }
 
 function psi_T(node, cur_time){
-	return 0; // Add psi function... 1) if infected, 0 then constant based on school or workplace... 
+	if(node["infection_status"]!=1){ //check if not infectious
+		return 0;
+	}
+	var PSI_THRESHOLD = 1; //TODO: Need to be computed as a function of simulation time step	
+	var time_since_infection = cur_time - node["time_of_infection"];
+	var scale_factor = 0.5; 
+	if(node['workplace_type']==0) {scale_factor = 0.1} //school
+	else if(node['workplace_type']==1) {scale_factor = 0.5} //office
+	if(time_since_infection < PSI_THRESHOLD){ return 0;}
+	else {return scale_factor;}	
+	
+	
+	return 0.5; // Add psi function... 1) if infected, 0 then constant based on school or workplace... 
 }
 
 function get_individuals_at_home(nodes, h){
