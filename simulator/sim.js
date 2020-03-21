@@ -1,16 +1,18 @@
+
 NUM_PEOPLE = 10000; // Number of people
 NUM_DAYS = 20; //Number of days
 SIM_STEPS_PER_DAY = 5; //Number of simulation steps per day
 NUM_TIMESTEPS = NUM_DAYS*SIM_STEPS_PER_DAY; //
+
 INIT_NUM_INFECTED = 100; // Initial number of people infected
 VIRUS_TRANSMISSION_DIST = 100; // Cut off distance (in meters) below which virus transmission might occur
 VIRUS_TRANSMISSION_PROB = 0.5; // If within the cut-off distance, transmission probability
 DAYS_TO_RECOVER = 10; // After being infected, how many days to recover (assumed infectious during this phase and that no one dies).
 PEOPLE_VELOCITY = 10; // Velocity with which people move (in meter/sec). Reduce this to show impact of social distancing.
 N_BLOCKS = 50; // Divide city into NxN blocks and look for collision only in adjacent blocks to speed up computation.
-NUM_HOMES = 2;
-NUM_WORKPLACES = 2;
-NUM_COMMUNITIES = 2;
+NUM_HOMES = 25000;
+NUM_WORKPLACES = 5000;
+NUM_COMMUNITIES = 50;
 
 // bounding box around Blore (approx)
 MIN_LAT = 12.85
@@ -28,7 +30,6 @@ function init_nodes() {
 	var nodes = [];
 	for(var i = 0; i < NUM_PEOPLE; i++) {
 	    var node = {
-			'index': i,
 			'loc': [MIN_LAT + (MAX_LAT - MIN_LAT)*Math.random(), MIN_LONG + (MAX_LONG - MIN_LONG)*Math.random()], // [lat, long]
 			'direction': [Math.random(), Math.random()],
 			'age': Math.floor(Math.random() * 100),
@@ -94,7 +95,7 @@ function get_individuals_at_home(nodes, h){
 	var individuals = []
 	for (var i=0; i<NUM_PEOPLE; i++){
 		if (nodes[i]['home']==h){
-			individuals.push(nodes[i]['index'])
+			individuals.push(i)
 		}
 	}
 	return individuals;
@@ -104,7 +105,7 @@ function get_individuals_at_workplace(nodes, w){
 	var individuals = []
 	for (var i=0; i<NUM_PEOPLE; i++){
 		if (nodes[i]['workplace']==w){
-			individuals.push(nodes[i]['index'])
+			individuals.push(i)
 		}
 	}
 	return individuals;
@@ -114,7 +115,7 @@ function get_individuals_at_community(nodes, c){
 	var individuals = []
 	for (var i=0; i<NUM_PEOPLE; i++){
 		if (nodes[i]['community']==c){
-			individuals.push(nodes[i]['index'])
+			individuals.push(i)
 		}
 	}
 	return individuals;
@@ -167,10 +168,7 @@ function init_community(nodes){
 		};
 		var sum_value = 0;
 		for (var i=0; i<community['individuals'].length; i++){
-			var temp = nodes.filter( function(node) {
-				return node['index']==community['individuals'][i];
-			});
-			sum_value += temp[0]['funct_d_ck'];
+			sum_value += nodes[community['individuals'][i]]['funct_d_ck'];
 		}
 		community['scale'] = BETA_C*community['Q_c']/sum_value;
 		communities.push(community)
