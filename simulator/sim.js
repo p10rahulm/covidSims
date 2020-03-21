@@ -1,5 +1,7 @@
 NUM_PEOPLE = 10000; // Number of people
-NUM_DAYS = 100 //Number of days
+NUM_DAYS = 20; //Number of days
+SIM_STEPS_PER_DAY = 5; //Number of simulation steps per day
+NUM_TIMESTEPS = NUM_DAYS*SIM_STEPS_PER_DAY; //
 INIT_NUM_INFECTED = 100; // Initial number of people infected
 VIRUS_TRANSMISSION_DIST = 100; // Cut off distance (in meters) below which virus transmission might occur
 VIRUS_TRANSMISSION_PROB = 0.5; // If within the cut-off distance, transmission probability
@@ -17,9 +19,9 @@ MIN_LONG = 77.45
 MAX_LONG = 77.75
 
 // Beta values
-BETA_H = 1
-BETA_W = 1
-BETA_C = 1
+BETA_H = 0.1
+BETA_W = 0.1
+BETA_C = 0.1
 ALPHA = 0.8
 
 function init_nodes() {
@@ -37,12 +39,12 @@ function init_nodes() {
 			'workplace': Math.floor(Math.random() * NUM_WORKPLACES),
 			'community': Math.floor(Math.random() * NUM_COMMUNITIES),
 			'time_of_infection': 0,
-			'infection_status': 0,
+			'infection_status': (Math.random()<0.1?1:0), //random seeding
 			'lambda_h': 0,
 			'lambda_w': 0,
 			'lambda_c': 0,
 			'lambda': 0,
-			'kappa_T': 0,
+			'kappa_T': 1,
 			'psi_T': 0,
 			'funct_d_ck': Math.random(), // function of distance from community...
 			'workplace_type': Math.floor(Math.random() * 2) //either school or office
@@ -54,15 +56,16 @@ function init_nodes() {
 
 function kappa_T(node, cur_time){
 
-	//Need to compute thresholds based on simulation timesteps
-	var threshold1 = 4.5 //TODO: Need to compute appropriate thresholds.
-	var threshold2 = 5
-	var threshold3 = 10	
+	//TODO: Need to compute thresholds based on simulation timesteps
+	var threshold1 = 4.5 * SIM_STEPS_PER_DAY; //OPTIMISE: Move this outside function call, compute only once.
+	var threshold2 = 5 * SIM_STEPS_PER_DAY;
+	var threshold3 = 10* SIM_STEPS_PER_DAY;
 	if(node["infection_status"]!=1){
 		return 0;
 	}
 	else {
 		var time_since_infection = cur_time - node["time_of_infection"];
+
 		if(time_since_infection < threshold1 || time_since_infection > threshold3) { return 0;}
 		else if(time_since_infection < threshold2) {return 1;}
 		else if(time_since_infection < threshold3) {return 1.5;}
@@ -75,7 +78,7 @@ function psi_T(node, cur_time){
 	if(node["infection_status"]!=1){ //check if not infectious
 		return 0;
 	}
-	var PSI_THRESHOLD = 1; //TODO: Need to be computed as a function of simulation time step	
+	var PSI_THRESHOLD = SIM_STEPS_PER_DAY; //TODO: Need to be computed as a function of simulation time step	
 	var time_since_infection = cur_time - node["time_of_infection"];
 	var scale_factor = 0.5; 
 	if(node['workplace_type']==0) {scale_factor = 0.1} //school
@@ -188,9 +191,13 @@ function update_individual_lambda_c(node){
 	// optimised version: return node['lambda_h] * node['funct_d_ck']; 
 }
 
-function update_infection(node){
-	if (node['infection_status']==0 && Math.random()>0.5){
-		node['infection_status'] = 1;
+function update_infection(node,cur_time){
+    //console.log(node['infection_status'], 1-Math.exp(-node['lambda']/SIM_STEPS_PER_DAY))
+	if (node['infection_status']==0 && Math.random()<(1-Math.exp(-node['lambda']/SIM_STEPS_PER_DAY))){
+    	//console.log(1-Math.exp(-node['lambda']/SIM_STEPS_PER_DAY))
+    	node['infection_status'] = 1;
+		node['time_of_infection'] = cur_time;
+		
 	}
 	node['lambda_h'] = update_individual_lambda_h(node);
 	node['lambda_w'] = update_individual_lambda_w(node);
@@ -199,10 +206,12 @@ function update_infection(node){
 
 function update_kappa(node, cur_time){
 	node['kappa_T'] = kappa_T(node, cur_time);
+	//console.log(node['kappa_T'])
 }
 
 function update_psi(node, cur_time){
 	node['psi_T'] = psi_T(node, cur_time);
+	//console.log(node['psi_T'])
 }
 
 function update_lambda_h(nodes, home){
@@ -242,64 +251,12 @@ function update_lambda_c(nodes, community){
 	// Populate it afterwards...
 }
 
-function update_lambdas(node){
-	node['lambda'] = node['lambda_h'] + node['lambda_w'] + node['zeta_a']*node['funct_d_ck']*node['lambda_c'];
+function update_lambdas(node,homes,workplaces,communities){
+	node['lambda'] = homes[node['home']]['lambda_home'] + workplaces[node['workplace']]['lambda_workplace'] + node['zeta_a']*node['funct_d_ck']*communities[node['community']]['lambda_community'];
+
+	
 }
 
-
-function update_pos(node) {
-	// update position of node for one timestep
-	var lat = node['loc'][0];
-	var long = node['loc'][1];
-	
-	// Reverse direction if node goes outside bounding box
-	if(lat > MAX_LAT || lat < MIN_LAT) {
-		node['direction'][0] *= -1;
-	}
-	if(long > MAX_LONG || long < MIN_LONG) {
-		node['direction'][1] *= -1; 
-	}
-		
-	var direction_lat = node['direction'][0];
-	var direction_long = node['direction'][1];
-	
-	var v = PEOPLE_VELOCITY * 0.001; // convert velocity in mt/sec to mt/timestep
-	var new_lat = lat + v * direction_lat;
-	var new_long = long + v * direction_long;
-	
-	node['loc'] = [new_lat, new_long]
-}
-
-function dist(n1, n2) {
-	// Approx distance using https://blog.mapbox.com/fast-geodesic-approximations-with-cheap-ruler-106f229ad016
-	// This function is good only for Bangalore (lat = 13)! Do NOT use without correction for other cities.
-	
-    var lat1 = n1['loc'][0];
-   	var long1 = n1['loc'][1];
-
-    var lat2 = n2['loc'][0];
-    var long2 = n2['loc'][1];
-	
-	var dy = (lat1 - lat2) * 111134.144;
-	var dx = (long1 - long2) * 111317.43;
-
-    var d = (dx**2 + dy**2)**0.5;
-
-    return d;
-}
-
-function clamp_block_id(id) {
-	if(id < 0) id = 0;
-	if(id >= N_BLOCKS) id = N_BLOCKS - 1;
-	return id;
-}
-
-function node_to_block_id(node) {
-	var idy = Math.floor((node['loc'][0] - MIN_LAT) * N_BLOCKS / (MAX_LAT - MIN_LAT));
-	var idx = Math.floor((node['loc'][1] - MIN_LONG) * N_BLOCKS / (MAX_LONG - MIN_LONG));
-	
-	return [clamp_block_id(idx), clamp_block_id(idy)]; // clamp because node can go just outside city limits
-}
 
 function run_simulation() {
 	var nodes = init_nodes();
@@ -307,25 +264,26 @@ function run_simulation() {
 	var workplaces = init_workplaces(nodes);
 	var communities = init_community(nodes);
 	var days_num_infected = [];
-	for(var i = 0; i < NUM_DAYS; i++) {
+	for(var i = 0; i < NUM_TIMESTEPS; i++) {
 		var n_infected = nodes.reduce(function(partial_sum, node) {return partial_sum + (node['infection_status'] ? 1 : 0);}, 0);
 		days_num_infected.push([i, n_infected]);
 
 		for (var j=0; j<NUM_PEOPLE; j++){
+			update_infection(nodes[j],i);
 			update_kappa(nodes[j], i);
-			update_infection(nodes[j]);
+			update_psi(nodes[j], i);
 		}
 		for (var h=0; h<NUM_HOMES; h++){
-			update_lambda_h(nodes, homes[h]);
+			homes[h]['lambda_home'] = update_lambda_h(nodes, homes[h]);
 		}
 		for (var w=0; w<NUM_WORKPLACES; w++){
-			update_lambda_w(nodes, workplaces[w]);
+			workplaces[w]['lambda_workplace'] = update_lambda_w(nodes, workplaces[w]);
 		}
 		for (var c=0; c<NUM_COMMUNITIES; c++){
-			update_lambda_c(nodes, communities[c]);
+			communities[c]['lambda_community'] = update_lambda_c(nodes, communities[c]);
 		}
 		for (var j=0; j<NUM_PEOPLE; j++){
-			update_lambdas(nodes[j]);
+			update_lambdas(nodes[j],homes,workplaces,communities);
 		}
 
 	}
@@ -362,6 +320,59 @@ function plot_simulation(days_num_infected) {
 function run_and_plot() {
 	days_num_infected = run_simulation();
 	plot_simulation(days_num_infected);
+}
+function clamp_block_id(id) {
+	if(id < 0) id = 0;
+	if(id >= N_BLOCKS) id = N_BLOCKS - 1;
+	return id;
+}
+
+function node_to_block_id(node) {
+	var idy = Math.floor((node['loc'][0] - MIN_LAT) * N_BLOCKS / (MAX_LAT - MIN_LAT));
+	var idx = Math.floor((node['loc'][1] - MIN_LONG) * N_BLOCKS / (MAX_LONG - MIN_LONG));
+	
+	return [clamp_block_id(idx), clamp_block_id(idy)]; // clamp because node can go just outside city limits
+}
+
+function dist(n1, n2) {
+	// Approx distance using https://blog.mapbox.com/fast-geodesic-approximations-with-cheap-ruler-106f229ad016
+	// This function is good only for Bangalore (lat = 13)! Do NOT use without correction for other cities.
+	
+    var lat1 = n1['loc'][0];
+   	var long1 = n1['loc'][1];
+
+    var lat2 = n2['loc'][0];
+    var long2 = n2['loc'][1];
+	
+	var dy = (lat1 - lat2) * 111134.144;
+	var dx = (long1 - long2) * 111317.43;
+
+    var d = (dx**2 + dy**2)**0.5;
+
+    return d;
+}
+
+function update_pos(node) {
+	// update position of node for one timestep
+	var lat = node['loc'][0];
+	var long = node['loc'][1];
+	
+	// Reverse direction if node goes outside bounding box
+	if(lat > MAX_LAT || lat < MIN_LAT) {
+		node['direction'][0] *= -1;
+	}
+	if(long > MAX_LONG || long < MIN_LONG) {
+		node['direction'][1] *= -1; 
+	}
+		
+	var direction_lat = node['direction'][0];
+	var direction_long = node['direction'][1];
+	
+	var v = PEOPLE_VELOCITY * 0.001; // convert velocity in mt/sec to mt/timestep
+	var new_lat = lat + v * direction_lat;
+	var new_long = long + v * direction_long;
+	
+	node['loc'] = [new_lat, new_long]
 }
 
 run_and_plot();
