@@ -7,8 +7,10 @@ Created on Sat Mar 21 15:44:45 2020
 """
 
 import numpy as np
+import pandas as pd
 import scipy.stats as stats
 
+# generate s sample of size of workplace 
 def gen_wp_size(count=1, a=3.26, c=0.97, m_max=2870):
     #function to generate a truncated Zipf sample
 
@@ -30,49 +32,93 @@ def gen_wp_size(count=1, a=3.26, c=0.97, m_max=2870):
     return rval
 
 
-def neighbouring_wards_ids(ward):
-    return 0
+# findout neighbours of a given ward
+def neighbouring_wards_ids(input_ward):
+    return np.array(str.split(wards.loc[wards['Ward No.']==input_ward,'Neighbors'].values[0],','),dtype=int)
     
+# compute Euclidean distance    
 def distance(lat1, long1, lat2, long2):
     return np.sqrt((lat1 - lat2)**2 + (long1-long2)**2)
     
-def possible_workplaces_ids(ward):
+# findout possible wokrplaces for an individual by looking at nearby wards
+def possible_workplaces_ids(input_ward):
+    neighbouring_wards = neighbouring_wards_ids(input_ward)
+    temp = []
+    for j in range(0,len(neighbouring_wards)):
+        temp = np.concatenate((temp,np.array(workplaces.loc[workplaces['ward']==neighbouring_wards[j]]['ID'].values) ))
+    return temp
     
 
-    
-def workplace_assignment(individuals):
-    # set number of workplaces here
-    WP = 100
-    # generate capacity according to workspace size distribution
-    capacity = []
-    for i in range(0,WP):
-        capacity.append(gen_wp_size()[0])
-    
-    # keep track of individuals already assigned
-    already_assigned = []
-    for i in range(0,len(individuals)):
-        if individual.loc[i,'age']>=22 and individual.loc[i,'age']<=55: 
-            lat = individuals.loc[i,'Lat']
-            long = individuals.loc[i,'Long']
-            possible_workplaces_ids =  possible_workplaces_ids(individuals.loc[i,'ward'])
-            distances = []
-            for j in range(0,len(possible_workplaces)):
-                distances.append(distance(lat,long,workplaces.iloc[possible_workplaces_ids[j],'Lat'],workplaces.iloc[possible_workplaces_ids[j],'Long']))
-            distances = np.array(distances)
-            add_to_workplace_id = possible_workplaces_ids[np.random.choice(len(possible_workplaces_ids),p=distances)]
-            if workplace.iloc[add_to_workplace_id, 'workforce'] <= capacity(add_to_workplace_id)
-                individual.at[i,'workplace'] = add_to_workplace_id
-                #workspaces.at[add_to_workplace_id,'flag']=1
-            already_assigned.append(i)
-    
-    
-    # randomly assig unassigned individuals
-    for i in range(0,len(individuals))
-        if individual.loc[i,'age']>=22 and individual.loc[i,'age']<=55 and (not i in already_assigned):
-            lat = individuals.loc[i,'Lat']
-            long = individuals.loc[i,'Long']
-            add_to_workplace_id = np.random.choice(W)
-            individual.at[i,'workplace'] = add_to_workplace_id
-    
-    
-            
+# read wards
+wards = pd.read_json('./wardsNeighbors.json')
+W = len(wards)
+
+# read workplaces
+workplaces = pd.read_json('./workplaces.json')
+WP = len(workplaces)
+# insert some columns for further processing
+workplaces.insert(3,"workforce", [0 for x in range(0,WP)]) 
+workplaces.insert(4,"workers", [[] for x in range(0,WP)])
+
+# read schools
+schools = pd.read_json('./schools.json')
+S = len(schools)
+schools.insert(3,"students", [[] for x in range(0,S)])
+
+# read individuals
+individuals = pd.read_json('./individualLoc.json')
+
+# generate capacity according to workspace size distribution
+capacity = []
+for i in range(0,WP):
+    capacity.append(gen_wp_size()[0])
+
+workplaces.insert(5,"capacity", capacity)
+
+# keep track of individuals already assigned
+already_assigned = []
+count = 0
+
+# assign individuals
+for i in range(0,len(individuals)):
+    print(i/len(individuals))
+    # individuals to workplaces
+    if individuals.loc[i,'age']>=22 and individuals.loc[i,'age']<=55: 
+        count = count+1
+        lat = individuals.loc[i,'lat']
+        long = individuals.loc[i,'lon']
+        possible_workplace_ids =  possible_workplaces_ids(individuals.loc[i,'ward'])
+        distances = []
+        for j in range(0,len(possible_workplace_ids)):
+            distances.append(distance(lat,long,workplaces.loc[workplaces['ID']==int(possible_workplace_ids[j]),'location'].values[0][1],workplaces.loc[workplaces['ID']==int(possible_workplace_ids[j]),'location'].values[0][0]))
+        distances = np.array(distances)
+        distances = distances/sum(distances)
+        add_to_workplace_id = int(possible_workplace_ids[np.random.choice(len(possible_workplace_ids),p=distances)])
+        if workplaces.loc[workplaces.loc[workplaces['ID']==int(add_to_workplace_id),'ID'].index[0], 'workforce'] <= workplaces.loc[workplaces.loc[workplaces['ID']==int(add_to_workplace_id),'ID'].index[0], 'capacity']:
+            individuals.at[i,'workplace'] = add_to_workplace_id
+            workplaces.at[workplaces.loc[workplaces['ID']==int(add_to_workplace_id),'ID'].index[0],'workforce'] = workplaces.loc[workplaces.loc[workplaces['ID']==int(add_to_workplace_id),'ID'].index[0],'workforce']+1
+            workplaces.at[workplaces.loc[workplaces['ID']==int(add_to_workplace_id),'ID'].index[0],'workers'].append(i)
+        already_assigned.append(i)
+    # individuals to schools - this is done randomly now, Sarath will make sure that marginals are consistent
+    elif individuals.loc[i,'age']<=21:
+        lat = individuals.loc[i,'lat']
+        long = individuals.loc[i,'lon']
+        possible_school_id = schools.loc[schools['ward']==individuals.loc[i,'ward']]['ID'].values
+        index = np.random.choice(len(possible_school_id))
+        individuals.at[i,'school'] = possible_school_id[index]
+        schools.at[schools.loc[schools['ID']==possible_school_id[index]].index[0],'students'].append(i)
+
+# randomly assign unassigned individuals
+for i in range(0,len(individuals)):
+    if individuals.loc[i,'age']>=22 and individuals.loc[i,'age']<=55 and (not i in already_assigned):
+        lat = individuals.loc[i,'Lat']
+        long = individuals.loc[i,'Long']
+        add_to_workplace_id = np.random.choice(W)
+        individuals.at[i,'workplace'] = add_to_workplace_id
+        workplaces.at[workplaces.loc[workplaces['ID']==int(add_to_workplace_id),'ID'].index[0], 'workforce'] =workplaces.loc[workplaces.loc[workplaces['ID']==int(add_to_workplace_id),'ID'].index[0], 'workforce']+1 
+        workplaces.at[workplaces.loc[workplaces['ID']==int(add_to_workplace_id),'ID'].index[0],'workers'].append(i)
+
+# save the json files after assignment
+individuals.to_json('./individuals1.json', orient = 'records', lines=True)
+workplaces.to_json('./workplaces1.json',orient='records', lines=True)
+schools.to_json('./schools1.json',orient='records', lines=True)
