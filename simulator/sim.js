@@ -1,7 +1,7 @@
 
-NUM_PEOPLE = 10000; // Number of people
+NUM_PEOPLE = 100000; // Number of people
 NUM_DAYS = 20; //Number of days
-SIM_STEPS_PER_DAY = 5; //Number of simulation steps per day
+SIM_STEPS_PER_DAY = 4; //Number of simulation steps per day
 NUM_TIMESTEPS = NUM_DAYS*SIM_STEPS_PER_DAY; //
 
 INIT_NUM_INFECTED = 100; // Initial number of people infected
@@ -13,17 +13,29 @@ N_BLOCKS = 50; // Divide city into NxN blocks and look for collision only in adj
 NUM_HOMES = 25000;
 NUM_WORKPLACES = 5000;
 NUM_COMMUNITIES = 50;
-
+NUM_DISEASE_STATES = 7; //0-S, 1-E, 2-I, 3-Symp,4-R, 5-H, 6-C, 7-D
 // bounding box around Blore (approx)
+//age related transition probabilities
+STATE_TRAN=[
+   [0.0010000,   0.0500000,   0.4000000],
+   [0.0030000,   0.0500000,   0.4000000],
+   [0.0120000,   0.0500000,   0.5000000],
+   [0.0320000,   0.0500000,   0.5000000],
+   [0.0490000,   0.0630000,   0.4859086],
+   [0.1020000,   0.1220000,   0.4821601],
+   [0.1660000,   0.2740000,   0.4836866],
+   [0.2430000,   0.4320000,   0.4858253],
+   [0.2730000,   0.7090000,   0.4804786]
+]
 MIN_LAT = 12.85
 MAX_LAT = 13.15
 MIN_LONG = 77.45
 MAX_LONG = 77.75
 
 // Beta values
-BETA_H = 0.1
-BETA_W = 0.1
-BETA_C = 0.1
+BETA_H = 0.47
+BETA_W = 0.47
+BETA_C = 0.075
 ALPHA = 0.8
 
 function init_nodes() {
@@ -40,16 +52,18 @@ function init_nodes() {
 			'workplace': Math.floor(Math.random() * NUM_WORKPLACES),
 			'community': Math.floor(Math.random() * NUM_COMMUNITIES),
 			'time_of_infection': 0,
-			'infection_status': (Math.random()<0.1?1:0), //random seeding
+			'infection_status': (Math.random() <0.1)?2:0, //random seeding
+			'infective': 0,
 			'lambda_h': 0,
 			'lambda_w': 0,
 			'lambda_c': 0,
 			'lambda': 0,
 			'kappa_T': 1,
 			'psi_T': 0,
-			'funct_d_ck': Math.random(), // function of distance from community...
-			'workplace_type': Math.floor(Math.random() * 2) //either school or office
+			'funct_d_ck': Math.random(), // TODO: need to use the kernel function. function of distance from community...
+			'workplace_type': Math.floor(Math.random() * 2), //either school or office
 	    };
+	    node['infective'] = node['infection_status']==2?1:0; //initialise all infected individuals as infective 
 	    nodes.push(node)
 	}
 	return nodes;
@@ -57,11 +71,11 @@ function init_nodes() {
 
 function kappa_T(node, cur_time){
 
-	//TODO: Need to compute thresholds based on simulation timesteps
+	
 	var threshold1 = 4.5 * SIM_STEPS_PER_DAY; //OPTIMISE: Move this outside function call, compute only once.
 	var threshold2 = 5 * SIM_STEPS_PER_DAY;
 	var threshold3 = 10* SIM_STEPS_PER_DAY;
-	if(node["infection_status"]!=1){
+	if(node["infective"]!=1){
 		return 0;
 	}
 	else {
@@ -72,14 +86,13 @@ function kappa_T(node, cur_time){
 		else if(time_since_infection < threshold3) {return 1.5;}
 		else return 0;
 	}	
-	////return 1; // Add kappa function... 1) less than 4.5, 0 2) 4.5 to 5, 1 3) 5 to 10, 1.5  4) 0 afterwards
 }
 
 function psi_T(node, cur_time){
-	if(node["infection_status"]!=1){ //check if not infectious
+	if(node["infective"]!=1){ //check if not infectious
 		return 0;
 	}
-	var PSI_THRESHOLD = SIM_STEPS_PER_DAY; //TODO: Need to be computed as a function of simulation time step	
+	var PSI_THRESHOLD = SIM_STEPS_PER_DAY;	
 	var time_since_infection = cur_time - node["time_of_infection"];
 	var scale_factor = 0.5; 
 	if(node['workplace_type']==0) {scale_factor = 0.1} //school
@@ -90,6 +103,37 @@ function psi_T(node, cur_time){
 	
 	return 0.5; // Add psi function... 1) if infected, 0 then constant based on school or workplace... 
 }
+
+function f_kernel(d){
+    var a = 4 //in kms
+    var b = 3.8 //both values are for Thailand
+	return 1/(1+Math.pow(d/a,b))
+}
+
+function zeta(age){
+    
+    
+    if(age < 5) {
+    return 0.1;
+    } else if(age < 10) {
+    return 0.25;
+    } else if(age < 15) {
+    return 0.5;
+    } else if(age < 20) {
+    return 0.75;
+    } else if(age < 65) {
+    return 1;
+    } else if(age < 70) {
+    return 0.75;
+    } else if(age < 75) {
+    return 0.5;
+    } else if(age < 85) {
+    return 0.25;
+    } else {
+    return 0.1;
+    }
+}
+
 
 function get_individuals_at_home(nodes, h){
 	var individuals = []
@@ -177,26 +221,97 @@ function init_community(nodes){
 }
 
 function update_individual_lambda_h(node){
-	return node['infection_status'] * node['kappa_T'] * node['infectiousness'] * (1 + node['severity']);
+	return node['infective'] * node['kappa_T'] * node['infectiousness'] * (1 + node['severity']);
 }
 
 function update_individual_lambda_w(node){
-	return node['infection_status'] * node['kappa_T'] * node['infectiousness'] * (1 + node['severity']*(2*node['psi_T']-1));
+	return node['infective'] * node['kappa_T'] * node['infectiousness'] * (1 + node['severity']*(2*node['psi_T']-1));
 }
 
 function update_individual_lambda_c(node){
-	return node['infection_status'] * node['kappa_T'] * node['infectiousness'] * node['funct_d_ck'] * (1 + node['severity']);
+	return node['infective'] * node['kappa_T'] * node['infectiousness'] * node['funct_d_ck'] * (1 + node['severity']);
 	// optimised version: return node['lambda_h] * node['funct_d_ck']; 
 }
 
 function update_infection(node,cur_time){
-    //console.log(node['infection_status'], 1-Math.exp(-node['lambda']/SIM_STEPS_PER_DAY))
+    
+    
+    var age_index = 0;
+    // Determine age category of individual. TODO: Could be part of individual datastructure as this is static
+    if(node['age'] < 10) {
+    age_index = 0;
+    } else if(node['age'] < 20) {
+    age_index = 1;
+    } else if(node['age'] < 30) {
+    age_index = 2;
+    } else if(node['age'] < 40) {
+    age_index = 3;
+    } else if(node['age'] < 50) {
+    age_index = 4;
+    } else if(node['age'] < 60) {
+    age_index = 5;
+    } else if(node['age'] < 70) {
+    age_index = 6;
+    } else if(node['age'] < 80) {
+    age_index = 7;
+    } else {
+    age_index = 8;
+    }
+    
+    //console.log(1-Math.exp(-node['lambda']/SIM_STEPS_PER_DAY))
 	if (node['infection_status']==0 && Math.random()<(1-Math.exp(-node['lambda']/SIM_STEPS_PER_DAY))){
-    	//console.log(1-Math.exp(-node['lambda']/SIM_STEPS_PER_DAY))
-    	node['infection_status'] = 1;
+    	node['infection_status'] = 1; //move to exposed state
 		node['time_of_infection'] = cur_time;
-		
+		node['infective'] = 0;		
 	}
+	else if(node['infection_status']==1 && (cur_time - node['time_of_infection'] > 4.5*SIM_STEPS_PER_DAY)){
+    	node['infection_status'] = 2;//move to infective state
+    	node['infective'] = 1;
+	}
+	else if(node['infection_status']==2 && (cur_time - node['time_of_infection'] > 5*SIM_STEPS_PER_DAY)){
+    	if(Math.random() < 2/3){
+            	node['infection_status'] = 3;//move to symptomatic
+            	node['infective'] = 1;
+    	}
+    	else {
+        	node['infection_status'] = 4;//move to recovered
+            node['infective'] = 0;
+    	}
+    	
+	}
+	else if(node['infection_status']==3 && (cur_time - node['time_of_infection'] > 10*SIM_STEPS_PER_DAY)){
+    	if(Math.random() < STATE_TRAN[age_index][0]){
+            	node['infection_status'] = 5;//move to hospitalisation
+            	node['infective'] = 0;
+    	}
+    	else {
+        	node['infection_status'] = 4;//move to recovered
+            node['infective'] = 0;
+    	}
+	}
+	else if(node['infection_status']==5 && (cur_time - node['time_of_infection'] > 18*SIM_STEPS_PER_DAY)){
+    	if(Math.random() < STATE_TRAN[age_index][1]){
+            	node['infection_status'] = 6;//move to critical care
+            	node['infective'] = 0;
+    	}
+    	else {
+        	node['infection_status'] = 4;//move to recovered
+            node['infective'] = 0;
+    	}
+	}
+	else if(node['infection_status']==5 && (cur_time - node['time_of_infection'] > 20*SIM_STEPS_PER_DAY)){
+    	if(Math.random() < STATE_TRAN[age_index][2]){
+            	node['infection_status'] = 7;//move to dead
+            	node['infective'] = 0;
+    	}
+    	else {
+        	node['infection_status'] = 4;//move to recovered
+            node['infective'] = 0;
+    	}
+	}
+	
+	
+	
 	node['lambda_h'] = update_individual_lambda_h(node);
 	node['lambda_w'] = update_individual_lambda_w(node);
 	node['lambda_c'] = update_individual_lambda_c(node);
@@ -263,7 +378,7 @@ function run_simulation() {
 	var communities = init_community(nodes);
 	var days_num_infected = [];
 	for(var i = 0; i < NUM_TIMESTEPS; i++) {
-		var n_infected = nodes.reduce(function(partial_sum, node) {return partial_sum + (node['infection_status'] ? 1 : 0);}, 0);
+		var n_infected = nodes.reduce(function(partial_sum, node) {return partial_sum + ((node['infection_status']==2||node['infection_status']==3||node['infection_status']==5||node['infection_status']==6) ? 1 : 0);}, 0);
 		days_num_infected.push([i, n_infected]);
 
 		for (var j=0; j<NUM_PEOPLE; j++){
@@ -373,4 +488,5 @@ function update_pos(node) {
 	node['loc'] = [new_lat, new_long]
 }
 
+//Main function
 run_and_plot();
