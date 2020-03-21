@@ -1,5 +1,5 @@
 
-NUM_PEOPLE = 10000; // Number of people
+NUM_PEOPLE = 100000; // Number of people
 NUM_DAYS = 50; //Number of days
 SIM_STEPS_PER_DAY = 4; //Number of simulation steps per day
 NUM_TIMESTEPS = NUM_DAYS*SIM_STEPS_PER_DAY; //
@@ -52,7 +52,7 @@ function init_nodes() {
 			'workplace': Math.floor(Math.random() * NUM_WORKPLACES),
 			'community': Math.floor(Math.random() * NUM_COMMUNITIES),
 			'time_of_infection': 0,
-			'infection_status': (Math.random() <0.1)?2:0, //random seeding
+			'infection_status': (Math.random() <0.1)?1:0, //random seeding
 			'infective': 0,
 			'lambda_h': 0,
 			'lambda_w': 0,
@@ -63,8 +63,10 @@ function init_nodes() {
 			'funct_d_ck': Math.random(), // TODO: need to use the kernel function. function of distance from community...
 			'workplace_type': Math.floor(Math.random() * 2), //either school or office
 	    };
+	    
+	   
 	    node['infective'] = node['infection_status']==2?1:0; //initialise all infected individuals as infective 
-	    node['time_of_infection'] = node['infection_status']==2?(-5+Math.random()/2.0):0;
+	    node['time_of_infection'] = node['infection_status']==1?(-5*SIM_STEPS_PER_DAY*Math.random()):0;
 	    nodes.push(node)
 	}
 	return nodes;
