@@ -94,13 +94,13 @@ for i in range(0,len(individuals)):
         distances = np.array(distances)
         distances = distances/sum(distances)
         add_to_workplace_id = int(possible_workplace_ids[np.random.choice(len(possible_workplace_ids),p=distances)])
-        if workplaces.loc[workplaces.loc[workplaces['ID']==int(add_to_workplace_id),'ID'].index[0], 'workforce'] <= workplaces.loc[workplaces.loc[workplaces['ID']==int(add_to_workplace_id),'ID'].index[0], 'capacity']:
+        if workplaces.loc[workplaces.loc[workplaces['ID']==int(add_to_workplace_id),'ID'].index[0], 'workforce'] < workplaces.loc[workplaces.loc[workplaces['ID']==int(add_to_workplace_id),'ID'].index[0], 'capacity']:
             individuals.at[i,'workplace'] = add_to_workplace_id
             workplaces.at[workplaces.loc[workplaces['ID']==int(add_to_workplace_id),'ID'].index[0],'workforce'] = workplaces.loc[workplaces.loc[workplaces['ID']==int(add_to_workplace_id),'ID'].index[0],'workforce']+1
             workplaces.at[workplaces.loc[workplaces['ID']==int(add_to_workplace_id),'ID'].index[0],'workers'].append(i)
-        already_assigned.append(i)
+            already_assigned.append(i)
     # individuals to schools - this is done randomly now, Sarath will make sure that marginals are consistent
-    elif individuals.loc[i,'age']<=21:
+    elif individuals.loc[i,'age']<=21 and individuals.loc[i,'age']>=5:
         lat = individuals.loc[i,'lat']
         long = individuals.loc[i,'lon']
         possible_school_id = schools.loc[schools['ward']==individuals.loc[i,'ward']]['ID'].values
@@ -111,12 +111,12 @@ for i in range(0,len(individuals)):
 # randomly assign unassigned individuals
 for i in range(0,len(individuals)):
     if individuals.loc[i,'age']>=22 and individuals.loc[i,'age']<=55 and (not i in already_assigned):
-        lat = individuals.loc[i,'Lat']
-        long = individuals.loc[i,'Long']
+        lat = individuals.loc[i,'lat']
+        long = individuals.loc[i,'lon']
         add_to_workplace_id = np.random.choice(W)
         individuals.at[i,'workplace'] = add_to_workplace_id
-        workplaces.at[workplaces.loc[workplaces['ID']==int(add_to_workplace_id),'ID'].index[0], 'workforce'] =workplaces.loc[workplaces.loc[workplaces['ID']==int(add_to_workplace_id),'ID'].index[0], 'workforce']+1 
-        workplaces.at[workplaces.loc[workplaces['ID']==int(add_to_workplace_id),'ID'].index[0],'workers'].append(i)
+        workplaces.at[int(add_to_workplace_id), 'workforce'] =workplaces.loc[int(add_to_workplace_id), 'workforce']+1 
+        workplaces.at[int(add_to_workplace_id),'workers'].append(i)
 
 # save the json files after assignment
 individuals.to_json('./individuals1.json', orient = 'records', lines=True)
