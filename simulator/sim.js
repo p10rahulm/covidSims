@@ -1,15 +1,17 @@
 
 NUM_PEOPLE = 100000; // Number of people
-NUM_DAYS = 50; //Number of days
+NUM_DAYS = 100; //Number of days
 SIM_STEPS_PER_DAY = 4; //Number of simulation steps per day
 NUM_TIMESTEPS = NUM_DAYS*SIM_STEPS_PER_DAY; //
 
-INIT_NUM_INFECTED = 100; // Initial number of people infected
-VIRUS_TRANSMISSION_DIST = 100; // Cut off distance (in meters) below which virus transmission might occur
-VIRUS_TRANSMISSION_PROB = 0.5; // If within the cut-off distance, transmission probability
-DAYS_TO_RECOVER = 10; // After being infected, how many days to recover (assumed infectious during this phase and that no one dies).
-PEOPLE_VELOCITY = 10; // Velocity with which people move (in meter/sec). Reduce this to show impact of social distancing.
-N_BLOCKS = 50; // Divide city into NxN blocks and look for collision only in adjacent blocks to speed up computation.
+INIT_NUM_INFECTED = 0.0001; // Initial number of people infected
+
+//VIRUS_TRANSMISSION_DIST = 100; // Cut off distance (in meters) below which virus transmission might occur
+//VIRUS_TRANSMISSION_PROB = 0.5; // If within the cut-off distance, transmission probability
+//DAYS_TO_RECOVER = 10; // After being infected, how many days to recover (assumed infectious during this phase and that no one dies).
+//PEOPLE_VELOCITY = 10; // Velocity with which people move (in meter/sec). Reduce this to show impact of social distancing.
+//N_BLOCKS = 50; // Divide city into NxN blocks and look for collision only in adjacent blocks to speed up computation.
+
 NUM_HOMES = 25000;
 NUM_WORKPLACES = 5000;
 NUM_COMMUNITIES = 50;
@@ -33,9 +35,9 @@ MIN_LONG = 77.45
 MAX_LONG = 77.75
 
 // Beta values
-BETA_H = 0.47
-BETA_W = 0.47
-BETA_C = 0.075
+BETA_H = 0.47 //Thailand data
+BETA_W = 0.47 //Thailand data
+BETA_C = 0.075 //Thailand data
 ALPHA = 0.8
 
 function init_nodes() {
@@ -52,7 +54,7 @@ function init_nodes() {
 			'workplace': Math.floor(Math.random() * NUM_WORKPLACES),
 			'community': Math.floor(Math.random() * NUM_COMMUNITIES),
 			'time_of_infection': 0,
-			'infection_status': (Math.random() <0.1)?1:0, //random seeding
+			'infection_status': (Math.random() <INIT_NUM_INFECTED)?1:0, //random seeding
 			'infective': 0,
 			'lambda_h': 0,
 			'lambda_w': 0,
@@ -168,48 +170,81 @@ function get_individuals_at_community(nodes, c){
 	return individuals;
 }
 
-function init_workplaces(nodes){
-	var workplaces = [];
-	for (var w=0; w < NUM_WORKPLACES; w++) {
-		var workplace = {
-			'index': w,
-			'loc': [MIN_LAT + (MAX_LAT - MIN_LAT)*Math.random(), MIN_LONG + (MAX_LONG - MIN_LONG)*Math.random()],
-			'lambda_workplace': 0, 
-			'individuals': get_individuals_at_workplace(nodes, w), // Populate with individuals in same workplace
-			'Q_w': 1,
-			'scale': 0
-		};
-		workplace['scale'] = BETA_W*workplace['Q_w']/workplace['individuals'].length;
-		workplaces.push(workplace)
-	}
-	return workplaces;
+
+function compute_scale_homes(homes){
+	
+	for (var w=0; w < homes.length; w++) {
+	
+		homes[w]['scale'] = BETA_H*homes[w]['Q_h']/(Math.pow(homes[w]['individuals'].length, ALPHA));
+		}
+	
 }
 
-function init_homes(nodes){
+function compute_scale_workplaces(workplaces){
+	
+	for (var w=0; w < workplaces.length; w++) {
+	
+		workplaces[w]['scale'] = BETA_W*workplaces[w]['Q_w']/workplaces[w]['individuals'].length;
+		}
+	
+}
+
+
+function compute_scale_communities(nodes, communities){
+	
+	for (var w=0; w < communities.length; w++) {
+	console.log(communities[w]['individuals'].length)
+    	var sum_value = 0;
+		for (var i=0; i<communities[w]['individuals'].length; i++){
+			sum_value += nodes[communities[w]['individuals'][i]]['funct_d_ck'];
+		}
+		communities[w]['scale'] = BETA_C*communities[w]['Q_c']/sum_value;
+		}
+	
+}
+
+function init_homes(num_homes){
 	var homes = [];
-	for (var h=0; h < NUM_HOMES; h++) {
+	for (var h=0; h < num_homes; h++) {
 		var home = {
 			'index': h,
 			'loc': [MIN_LAT + (MAX_LAT - MIN_LAT)*Math.random(), MIN_LONG + (MAX_LONG - MIN_LONG)*Math.random()],
 			'lambda_home': 0,
-			'individuals': get_individuals_at_home(nodes, h), // Populate with individuals in same home
+			'individuals': [], // We will populate this later
 			'Q_h': 1,
 			'scale': 0
 		};
-		home['scale'] = BETA_H*home['Q_h']/(Math.pow(home['individuals'].length, ALPHA));
+		//home['scale'] = BETA_H*home['Q_h']/(Math.pow(home['individuals'].length, ALPHA));
 		homes.push(home)
 	}
 	return homes;
 }
 
-function init_community(nodes){
+function init_workplaces(num_workplaces){
+	var workplaces = [];
+	for (var w=0; w < num_workplaces; w++) {
+		var workplace = {
+			'index': w,
+			'loc': [MIN_LAT + (MAX_LAT - MIN_LAT)*Math.random(), MIN_LONG + (MAX_LONG - MIN_LONG)*Math.random()],
+			'lambda_workplace': 0, 
+			'individuals': [], //get_individuals_at_workplace(nodes, w), // Populate with individuals in same workplace
+			'Q_w': 1,
+			'scale': 0
+		};
+		//workplace['scale'] = BETA_W*workplace['Q_w']/workplace['individuals'].length;
+		workplaces.push(workplace)
+	}
+	return workplaces;
+}
+
+function init_community(num_communities){
 	var communities = [];
-	for (var c=0; c < NUM_COMMUNITIES; c++) {
+	for (var c=0; c < num_communities; c++) {
 		var community = {
 			'index': c,
 			'loc': [MIN_LAT + (MAX_LAT - MIN_LAT)*Math.random(), MIN_LONG + (MAX_LONG - MIN_LONG)*Math.random()],
 			'lambda_community': 0, 
-			'individuals': get_individuals_at_community(nodes, c), // Populate with individuals in same community
+			'individuals': [], // We will populate this later
 			'Q_c': 1,
 			'scale': 0
 		};
@@ -217,11 +252,22 @@ function init_community(nodes){
 		for (var i=0; i<community['individuals'].length; i++){
 			sum_value += nodes[community['individuals'][i]]['funct_d_ck'];
 		}
-		community['scale'] = BETA_C*community['Q_c']/sum_value;
+		//community['scale'] = BETA_C*community['Q_c']/sum_value;
 		communities.push(community)
 	}
 	return communities;
 }
+
+function assign_individual_home_community(nodes,homes,workplaces,communities){
+	
+	for (var i=0; i < nodes.length; i++) {
+	if(nodes[i]['home']!== null) homes[nodes[i]['home']]['individuals'].push(i); //No checking for null as all individuals have a home
+	if(nodes[i]['workplace']!== null) workplaces[nodes[i]['workplace']]['individuals'].push(i);
+	if(nodes[i]['community']!== null) communities[nodes[i]['community']]['individuals'].push(i);
+	}
+
+}
+
 
 function update_individual_lambda_h(node){
 	return node['infective'] * node['kappa_T'] * node['infectiousness'] * (1 + node['severity']);
@@ -375,10 +421,17 @@ function update_lambdas(node,homes,workplaces,communities){
 
 
 function run_simulation() {
+	
+	var homes = init_homes(NUM_HOMES);
+	var workplaces = init_workplaces(NUM_WORKPLACES);
+	var communities = init_community(NUM_COMMUNITIES);
 	var nodes = init_nodes();
-	var homes = init_homes(nodes);
-	var workplaces = init_workplaces(nodes);
-	var communities = init_community(nodes);
+	
+	assign_individual_home_community(nodes,homes,workplaces,communities);
+	compute_scale_homes(homes)
+	compute_scale_workplaces(workplaces)
+	compute_scale_communities(nodes, communities)
+	
 	var days_num_infected = [];
 	var days_num_exposed = [];
 	var days_num_hospitalised = [];
