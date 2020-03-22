@@ -6,16 +6,21 @@ NUM_TIMESTEPS = NUM_DAYS*SIM_STEPS_PER_DAY; //
 
 INIT_NUM_INFECTED = 0.0001; // Initial number of people infected
 
-//VIRUS_TRANSMISSION_DIST = 100; // Cut off distance (in meters) below which virus transmission might occur
-//VIRUS_TRANSMISSION_PROB = 0.5; // If within the cut-off distance, transmission probability
-//DAYS_TO_RECOVER = 10; // After being infected, how many days to recover (assumed infectious during this phase and that no one dies).
-//PEOPLE_VELOCITY = 10; // Velocity with which people move (in meter/sec). Reduce this to show impact of social distancing.
-//N_BLOCKS = 50; // Divide city into NxN blocks and look for collision only in adjacent blocks to speed up computation.
 
 NUM_HOMES = 25000;
 NUM_WORKPLACES = 5000;
-NUM_COMMUNITIES = 50;
+NUM_COMMUNITIES = 198;
 NUM_DISEASE_STATES = 7; //0-S, 1-E, 2-I, 3-Symp,4-R, 5-H, 6-C, 7-D
+
+const SUSCEPTIBLE = 0
+const EXPOSED = 1
+const INFECTIVE = 2
+const SYMPTOMATIC = 3
+const RECOVERED = 4
+const HOSPITALISED = 5
+const CRITICAL = 6
+const DEAD = 7
+let csvContent = "data:text/csv;charset=utf-8,";
 // bounding box around Blore (approx)
 //age related transition probabilities
 STATE_TRAN=[
@@ -29,10 +34,7 @@ STATE_TRAN=[
    [0.2430000,   0.4320000,   0.4858253],
    [0.2730000,   0.7090000,   0.4804786]
 ]
-MIN_LAT = 12.85
-MAX_LAT = 13.15
-MIN_LONG = 77.45
-MAX_LONG = 77.75
+
 
 // Beta values
 BETA_H = 0.47 //Thailand data
@@ -44,8 +46,7 @@ function init_nodes() {
 	var nodes = [];
 	for(var i = 0; i < NUM_PEOPLE; i++) {
 	    var node = {
-			'loc': [MIN_LAT + (MAX_LAT - MIN_LAT)*Math.random(), MIN_LONG + (MAX_LONG - MIN_LONG)*Math.random()], // [lat, long]
-			'direction': [Math.random(), Math.random()],
+			'loc': [0,0], // [lat, long]
 			'age': Math.floor(Math.random() * 100),
 			'zeta_a': 1,
 			'infectiousness': 1, // a.k.a. rho
@@ -67,8 +68,8 @@ function init_nodes() {
 	    };
 	    
 	   
-	    node['infective'] = node['infection_status']==2?1:0; //initialise all infected individuals as infective 
-	    node['time_of_infection'] = node['infection_status']==1?(-5*SIM_STEPS_PER_DAY*Math.random()):0;
+	    node['infective'] = node['infection_status']==INFECTIVE?1:0; //initialise all infected individuals as infective 
+	    node['time_of_infection'] = node['infection_status']==EXPOSED?(-5*SIM_STEPS_PER_DAY*Math.random()):0;
 	    nodes.push(node)
 	}
 	return nodes;
@@ -105,8 +106,6 @@ function psi_T(node, cur_time){
 	if(time_since_infection < PSI_THRESHOLD){ return 0;}
 	else {return scale_factor;}	
 	
-	
-	return 0.5; // Add psi function... 1) if infected, 0 then constant based on school or workplace... 
 }
 
 function f_kernel(d){
@@ -114,6 +113,7 @@ function f_kernel(d){
     var b = 3.8 //both values are for Thailand
 	return 1/(1+Math.pow(d/a,b))
 }
+
 
 function zeta(age){
     
@@ -193,7 +193,7 @@ function compute_scale_workplaces(workplaces){
 function compute_scale_communities(nodes, communities){
 	
 	for (var w=0; w < communities.length; w++) {
-	console.log(communities[w]['individuals'].length)
+	
     	var sum_value = 0;
 		for (var i=0; i<communities[w]['individuals'].length; i++){
 			sum_value += nodes[communities[w]['individuals'][i]]['funct_d_ck'];
@@ -208,7 +208,7 @@ function init_homes(num_homes){
 	for (var h=0; h < num_homes; h++) {
 		var home = {
 			'index': h,
-			'loc': [MIN_LAT + (MAX_LAT - MIN_LAT)*Math.random(), MIN_LONG + (MAX_LONG - MIN_LONG)*Math.random()],
+			'loc': [0,0], // [lat, long],
 			'lambda_home': 0,
 			'individuals': [], // We will populate this later
 			'Q_h': 1,
@@ -225,7 +225,7 @@ function init_workplaces(num_workplaces){
 	for (var w=0; w < num_workplaces; w++) {
 		var workplace = {
 			'index': w,
-			'loc': [MIN_LAT + (MAX_LAT - MIN_LAT)*Math.random(), MIN_LONG + (MAX_LONG - MIN_LONG)*Math.random()],
+			'loc':  [0,0], // [lat, long],
 			'lambda_workplace': 0, 
 			'individuals': [], //get_individuals_at_workplace(nodes, w), // Populate with individuals in same workplace
 			'Q_w': 1,
@@ -242,7 +242,7 @@ function init_community(num_communities){
 	for (var c=0; c < num_communities; c++) {
 		var community = {
 			'index': c,
-			'loc': [MIN_LAT + (MAX_LAT - MIN_LAT)*Math.random(), MIN_LONG + (MAX_LONG - MIN_LONG)*Math.random()],
+			'loc':  [0,0], // [lat, long],
 			'lambda_community': 0, 
 			'individuals': [], // We will populate this later
 			'Q_c': 1,
@@ -308,53 +308,54 @@ function update_infection(node,cur_time){
     }
     
     //console.log(1-Math.exp(-node['lambda']/SIM_STEPS_PER_DAY))
-	if (node['infection_status']==0 && Math.random()<(1-Math.exp(-node['lambda']/SIM_STEPS_PER_DAY))){
-    	node['infection_status'] = 1; //move to exposed state
+    ///TODO: Parametrise transition times
+	if (node['infection_status']==SUSCEPTIBLE && Math.random()<(1-Math.exp(-node['lambda']/SIM_STEPS_PER_DAY))){
+    	node['infection_status'] = EXPOSED; //move to exposed state
 		node['time_of_infection'] = cur_time;
 		node['infective'] = 0;		
 	}
-	else if(node['infection_status']==1 && (cur_time - node['time_of_infection'] > 4.5*SIM_STEPS_PER_DAY)){
-    	node['infection_status'] = 2;//move to infective state
+	else if(node['infection_status']==EXPOSED && (cur_time - node['time_of_infection'] > 4.5*SIM_STEPS_PER_DAY)){
+    	node['infection_status'] = INFECTIVE;//move to infective state
     	node['infective'] = 1;
 	}
-	else if(node['infection_status']==2 && (cur_time - node['time_of_infection'] > 5*SIM_STEPS_PER_DAY)){
+	else if(node['infection_status']==INFECTIVE && (cur_time - node['time_of_infection'] > 5*SIM_STEPS_PER_DAY)){
     	if(Math.random() < 2/3){
-            	node['infection_status'] = 3;//move to symptomatic
+            	node['infection_status'] = SYMPTOMATIC;//move to symptomatic
             	node['infective'] = 1;
     	}
     	else {
-        	node['infection_status'] = 4;//move to recovered
+        	node['infection_status'] = RECOVERED;//move to recovered
             node['infective'] = 0;
     	}
     	
 	}
-	else if(node['infection_status']==3 && (cur_time - node['time_of_infection'] > 10*SIM_STEPS_PER_DAY)){
+	else if(node['infection_status']==SYMPTOMATIC && (cur_time - node['time_of_infection'] > 10*SIM_STEPS_PER_DAY)){
     	if(Math.random() < STATE_TRAN[age_index][0]){
-            	node['infection_status'] = 5;//move to hospitalisation
+            	node['infection_status'] = HOSPITALISED;//move to hospitalisation
             	node['infective'] = 0;
     	}
     	else {
-        	node['infection_status'] = 4;//move to recovered
+        	node['infection_status'] = RECOVERED;//move to recovered
             node['infective'] = 0;
     	}
 	}
-	else if(node['infection_status']==5 && (cur_time - node['time_of_infection'] > 18*SIM_STEPS_PER_DAY)){
+	else if(node['infection_status']==HOSPITALISED && (cur_time - node['time_of_infection'] > 18*SIM_STEPS_PER_DAY)){
     	if(Math.random() < STATE_TRAN[age_index][1]){
-            	node['infection_status'] = 6;//move to critical care
+            	node['infection_status'] = CRITICAL;//move to critical care
             	node['infective'] = 0;
     	}
     	else {
-        	node['infection_status'] = 4;//move to recovered
+        	node['infection_status'] = RECOVERED;//move to recovered
             node['infective'] = 0;
     	}
 	}
-	else if(node['infection_status']==6 && (cur_time - node['time_of_infection'] > 20*SIM_STEPS_PER_DAY)){
+	else if(node['infection_status']==CRITICAL && (cur_time - node['time_of_infection'] > 20*SIM_STEPS_PER_DAY)){
     	if(Math.random() < STATE_TRAN[age_index][2]){
-            	node['infection_status'] = 7;//move to dead
+            	node['infection_status'] = DEAD;//move to dead
             	node['infective'] = 0;
     	}
     	else {
-        	node['infection_status'] = 4;//move to recovered
+        	node['infection_status'] = RECOVERED;//move to recovered
             node['infective'] = 0;
     	}
 	}
@@ -413,6 +414,21 @@ function update_lambda_c(nodes, community){
 	// Populate it afterwards...
 }
 
+function get_infected_community(nodes, community){
+	var sum_value = 0
+	for (var i=0; i<community['individuals'].length; i++){
+	//	var temp = nodes.filter( function(node) {
+	//		return node['index']==community['individuals'][i];
+	//	});
+		if (nodes[community['individuals'][i]]['infection_status']==INFECTIVE ||
+    		nodes[community['individuals'][i]]['infection_status']==SYMPTOMATIC || 
+    		nodes[community['individuals'][i]]['infection_status']==HOSPITALISED ||
+    		nodes[community['individuals'][i]]['infection_status']==CRITICAL) {sum_value+=1}
+	}
+	return sum_value;
+	// Populate it afterwards...
+}
+
 function update_lambdas(node,homes,workplaces,communities){
 	node['lambda'] = homes[node['home']]['lambda_home'] + workplaces[node['workplace']]['lambda_workplace'] + node['zeta_a']*node['funct_d_ck']*communities[node['community']]['lambda_community'];
 
@@ -440,6 +456,8 @@ function run_simulation() {
 	var days_num_recovered = [];
 	var days_num_affected = [];
 	
+	var infection_status_community=[]
+	
 	for(var i = 0; i < NUM_TIMESTEPS; i++) {
 		
 		for (var j=0; j<NUM_PEOPLE; j++){
@@ -453,29 +471,40 @@ function run_simulation() {
 		for (var w=0; w<NUM_WORKPLACES; w++){
 			workplaces[w]['lambda_workplace'] = update_lambda_w(nodes, workplaces[w]);
 		}
+		
 		for (var c=0; c<NUM_COMMUNITIES; c++){
 			communities[c]['lambda_community'] = update_lambda_c(nodes, communities[c]);
-		}
-		for (var j=0; j<NUM_PEOPLE; j++){
-			update_lambdas(nodes[j],homes,workplaces,communities);
+			
+			var infected_count=get_infected_community(nodes, communities[c]);
+			infection_status_community.push([]);
+			let row = [i/SIM_STEPS_PER_DAY,c,infected_count].join(",");
+            csvContent += row + "\r\n";
 		}
 		
-		var n_infected = nodes.reduce(function(partial_sum, node) {return partial_sum + ((node['infection_status']==2||node['infection_status']==3||node['infection_status']==5||node['infection_status']==6) ? 1 : 0);}, 0);
+		for (var j=0; j<NUM_PEOPLE; j++){
+			update_lambdas(nodes[j],homes,workplaces,communities);			
+		}
+		
+		
+		var n_infected_wardwise = nodes.reduce(function(partial_sum, node) {return partial_sum + ((node['infection_status']==INFECTIVE||node['infection_status']==SYMPTOMATIC||node['infection_status']==HOSPITALISED||node['infection_status']==CRITICAL) ? 1 : 0);}, 0);
+		days_num_infected.push([i/SIM_STEPS_PER_DAY, n_infected]);
+		
+		var n_infected = nodes.reduce(function(partial_sum, node) {return partial_sum + ((node['infection_status']==INFECTIVE||node['infection_status']==SYMPTOMATIC||node['infection_status']==HOSPITALISED||node['infection_status']==CRITICAL) ? 1 : 0);}, 0);
 		days_num_infected.push([i/SIM_STEPS_PER_DAY, n_infected]);
         
-        var n_exposed = nodes.reduce(function(partial_sum, node) {return partial_sum + ((node['infection_status']==1) ? 1 : 0);}, 0);
+        var n_exposed = nodes.reduce(function(partial_sum, node) {return partial_sum + ((node['infection_status']==EXPOSED) ? 1 : 0);}, 0);
 		days_num_exposed.push([i/SIM_STEPS_PER_DAY, n_exposed]);
 		
-		var n_hospitalised = nodes.reduce(function(partial_sum, node) {return partial_sum + ((node['infection_status']==5) ? 1 : 0);}, 0);
+		var n_hospitalised = nodes.reduce(function(partial_sum, node) {return partial_sum + ((node['infection_status']==HOSPITALISED) ? 1 : 0);}, 0);
 		days_num_hospitalised.push([i/SIM_STEPS_PER_DAY, n_hospitalised]);
 		
-		var n_critical = nodes.reduce(function(partial_sum, node) {return partial_sum + ((node['infection_status']==6) ? 1 : 0);}, 0);
+		var n_critical = nodes.reduce(function(partial_sum, node) {return partial_sum + ((node['infection_status']==CRITICAL) ? 1 : 0);}, 0);
 		days_num_critical.push([i/SIM_STEPS_PER_DAY, n_critical]);
 		
-		var n_fatalities = nodes.reduce(function(partial_sum, node) {return partial_sum + ((node['infection_status']==7) ? 1 : 0);}, 0);
+		var n_fatalities = nodes.reduce(function(partial_sum, node) {return partial_sum + ((node['infection_status']==DEAD) ? 1 : 0);}, 0);
 		days_num_fatalities.push([i/SIM_STEPS_PER_DAY, n_fatalities]);
 		
-		var n_recovered = nodes.reduce(function(partial_sum, node) {return partial_sum + ((node['infection_status']==4) ? 1 : 0);}, 0);
+		var n_recovered = nodes.reduce(function(partial_sum, node) {return partial_sum + ((node['infection_status']==RECOVERED) ? 1 : 0);}, 0);
 		days_num_recovered.push([i/SIM_STEPS_PER_DAY, n_recovered]);
 		
 		var n_affected = nodes.reduce(function(partial_sum, node) {return partial_sum + ((node['infection_status']) ? 1 : 0);}, 0);
@@ -484,6 +513,9 @@ function run_simulation() {
 	}
 	return [days_num_infected,days_num_exposed,days_num_hospitalised,days_num_critical,days_num_fatalities,days_num_recovered,days_num_affected];
 }
+
+
+
 
 function plot_simulation(days_num_infected,plot_element,title_1,title_2) {
 	google.charts.load('current', {packages: ['corechart', 'line']});
@@ -523,60 +555,19 @@ function run_and_plot() {
 	plot_simulation(returned_values[4],'num_fatalities_plot','Number Fatalities','Evolution of Fatalities Population');
 	plot_simulation(returned_values[5],'num_recovered_plot','Number Recovered','Evolution of Recovered Population');
 	
-}
-function clamp_block_id(id) {
-	if(id < 0) id = 0;
-	if(id >= N_BLOCKS) id = N_BLOCKS - 1;
-	return id;
-}
+	var encodedUri = encodeURI(csvContent);
+    var link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "my_data.csv");
+    document.body.appendChild(link); // Required for FF
 
-function node_to_block_id(node) {
-	var idy = Math.floor((node['loc'][0] - MIN_LAT) * N_BLOCKS / (MAX_LAT - MIN_LAT));
-	var idx = Math.floor((node['loc'][1] - MIN_LONG) * N_BLOCKS / (MAX_LONG - MIN_LONG));
-	
-	return [clamp_block_id(idx), clamp_block_id(idy)]; // clamp because node can go just outside city limits
+link.click();	
 }
 
-function dist(n1, n2) {
-	// Approx distance using https://blog.mapbox.com/fast-geodesic-approximations-with-cheap-ruler-106f229ad016
-	// This function is good only for Bangalore (lat = 13)! Do NOT use without correction for other cities.
-	
-    var lat1 = n1['loc'][0];
-   	var long1 = n1['loc'][1];
-
-    var lat2 = n2['loc'][0];
-    var long2 = n2['loc'][1];
-	
-	var dy = (lat1 - lat2) * 111134.144;
-	var dx = (long1 - long2) * 111317.43;
-
-    var d = (dx**2 + dy**2)**0.5;
-
-    return d;
-}
-
-function update_pos(node) {
-	// update position of node for one timestep
-	var lat = node['loc'][0];
-	var long = node['loc'][1];
-	
-	// Reverse direction if node goes outside bounding box
-	if(lat > MAX_LAT || lat < MIN_LAT) {
-		node['direction'][0] *= -1;
-	}
-	if(long > MAX_LONG || long < MIN_LONG) {
-		node['direction'][1] *= -1; 
-	}
-		
-	var direction_lat = node['direction'][0];
-	var direction_long = node['direction'][1];
-	
-	var v = PEOPLE_VELOCITY * 0.001; // convert velocity in mt/sec to mt/timestep
-	var new_lat = lat + v * direction_lat;
-	var new_long = long + v * direction_long;
-	
-	node['loc'] = [new_lat, new_long]
-}
 
 //Main function
+//var mydata_ind = JSON.parse(data);
+//console.log(mydata_ind)
+//var mydata_school = JSON.parse(schools);
+//console.log(mydata_school)
 run_and_plot();
