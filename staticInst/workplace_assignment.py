@@ -10,6 +10,10 @@ import numpy as np
 import pandas as pd
 import scipy.stats as stats
 
+# school size distribution
+
+school_size = [100, 200, 300, 400, 500, 600, 700, 800]
+
 # generate s sample of size of workplace 
 def gen_wp_size(count=1, a=3.26, c=0.97, m_max=2870):
     #function to generate a truncated Zipf sample
@@ -63,7 +67,8 @@ workplaces.insert(4,"workers", [[] for x in range(0,WP)])
 # read schools
 schools = pd.read_json('./schools.json')
 S = len(schools)
-schools.insert(3,"students", [[] for x in range(0,S)])
+schools.insert(3,"strength", [0 for x in range(0,S)])
+schools.insert(4,"students", [[] for x in range(0,S)])
 
 # read individuals
 individuals = pd.read_json('./individualLoc.json')
@@ -78,12 +83,13 @@ workplaces.insert(5,"capacity", capacity)
 # keep track of individuals already assigned
 already_assigned = []
 count = 0
-
+workforce = []
 # assign individuals
 for i in range(0,len(individuals)):
     print(i/len(individuals))
     # individuals to workplaces
     if individuals.loc[i,'age']>=22 and individuals.loc[i,'age']<=55: 
+        workforce.append(i)
         count = count+1
         lat = individuals.loc[i,'lat']
         long = individuals.loc[i,'lon']
@@ -108,7 +114,18 @@ for i in range(0,len(individuals)):
         individuals.at[i,'school'] = possible_school_id[index]
         schools.at[schools.loc[schools['ID']==possible_school_id[index]].index[0],'students'].append(i)
 
-# randomly assign unassigned individuals
+# randomly assign unassigned individuals to workplaces
+# first check for workplaces that are not full
+for i in range(0,len(workplaces)):
+    if workplaces.loc[i,'capacity'] > workplaces.loc[i,'workforce']:
+        d = workplaces.loc[i,'capacity'] - workplaces.loc[i,'workforce']
+        if len(np.setdiff1d(workforce, already_assigned)) >=d:
+            add_to_workplace_id = np.random.choice(np.setdiff1d(workforce, already_assigned), d, replace=False)
+            for j in range(0,d):
+                individuals.at[add_to_workplace_id[j],'workplace'] = workplaces.loc[i,'ID']
+                already_assigned.append(add_to_workplace_id[j])
+                workplaces.at[i,'workers'].append(add_to_workplace_id[j])
+                workplaces.at[i,'workforce'] = workplaces.loc[i,'workforce']+1
 for i in range(0,len(individuals)):
     if individuals.loc[i,'age']>=22 and individuals.loc[i,'age']<=55 and (not i in already_assigned):
         lat = individuals.loc[i,'lat']
