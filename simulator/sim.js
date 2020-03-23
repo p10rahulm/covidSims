@@ -1,7 +1,7 @@
 
 NUM_PEOPLE = 100000; // Number of people. Will change once file is read.
 NUM_DAYS = 200; //Number of days. 
-SIM_STEPS_PER_DAY = 4; //Number of simulation steps per day. 
+SIM_STEPS_PER_DAY = 1; //Number of simulation steps per day. 
 NUM_TIMESTEPS = NUM_DAYS*SIM_STEPS_PER_DAY; //
 
 INIT_FRAC_INFECTED = 0.0001; // Initial number of people infected
