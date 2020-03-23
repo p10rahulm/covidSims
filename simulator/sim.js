@@ -1,15 +1,15 @@
 
-NUM_PEOPLE = 100000; // Number of people
-NUM_DAYS = 100; //Number of days
-SIM_STEPS_PER_DAY = 4; //Number of simulation steps per day
+NUM_PEOPLE = 100000; // Number of people. Will change once file is read.
+NUM_DAYS = 100; //Number of days. 
+SIM_STEPS_PER_DAY = 4; //Number of simulation steps per day. 
 NUM_TIMESTEPS = NUM_DAYS*SIM_STEPS_PER_DAY; //
 
-INIT_NUM_INFECTED = 0.0001; // Initial number of people infected
+INIT_FRAC_INFECTED = 0.001; // Initial number of people infected
 
 
-NUM_HOMES = 25000;
-NUM_WORKPLACES = 5000;
-NUM_COMMUNITIES = 198;
+NUM_HOMES = 25000; //Will change once file is read.
+NUM_WORKPLACES = 5000; //Will change once file is read.
+NUM_COMMUNITIES = 198; //Will change once file is read.
 NUM_DISEASE_STATES = 7; //0-S, 1-E, 2-I, 3-Symp,4-R, 5-H, 6-C, 7-D
 
 const SUSCEPTIBLE = 0
@@ -20,7 +20,8 @@ const RECOVERED = 4
 const HOSPITALISED = 5
 const CRITICAL = 6
 const DEAD = 7
-let csvContent = "data:text/csv;charset=utf-8,";
+
+let csvContent = "data:text/csv;charset=utf-8,"; //for file dump
 
 const kappa_threshold1 = 4.5 * SIM_STEPS_PER_DAY; //OPTIMISE: Move this outside function call, compute only once.
 const kappa_threshold2 = 5 * SIM_STEPS_PER_DAY;
@@ -49,50 +50,7 @@ BETA_S = 0.94 //Thailand data
 BETA_C = 0.075 //Thailand data
 ALPHA = 0.8
 
-function init_nodes() {
-
-	const MAX_EXPOSED_DAYS_AT_START = 4.5
-
-	var individuals_json = JSON.parse(loadJSON_001('bangalore_individuals.json'));
-	var workplace_json = JSON.parse(loadJSON_001('bangalore_workspaces.json'));
-	//console.log(individuals_json.length,individuals_json[0]);
-	NUM_PEOPLE =individuals_json.length;
-	NUM_WORKPLACES = workplace_json.length;
-	console.log("Num People", NUM_PEOPLE, "Num Workspaces",NUM_WORKPLACES)
-
-
-	var nodes = [];
-	for(var i = 0; i < NUM_PEOPLE; i++) {
-	    var node = {
-			'loc': [individuals_json[i]['lat'],individuals_json[i]['lon']], // [lat, long]
-			'age': individuals_json[i]['age'],
-			'zeta_a': 1,
-			'infectiousness': 1, // a.k.a. rho
-			'severity': (Math.random() <INIT_NUM_INFECTED)?1:0, // a.k.a. S_k
-			'home': individuals_json[i]['household'], 
-			'workplace': individuals_json[i]['workplaceType']==1? individuals_json[i]['workplace']:NUM_WORKPLACES+individuals_json[i]['school'],
-			'community': individuals_json[i]['ward'],
-			'time_of_infection': 0,
-			'infection_status': (Math.random() <INIT_NUM_INFECTED)?1:0, //random seeding
-			'infective': 0,
-			'lambda_h': 0,
-			'lambda_w': 0,
-			'lambda_c': 0,
-			'lambda': 0,
-			'kappa_T': 1,
-			'psi_T': 0,
-			'funct_d_ck': Math.random(), // TODO: need to use the kernel function. function of distance from community...
-			'workplace_type':  individuals_json[i]['workplaceType'], //either school or office
-	    };
-	    
-	   
-	    node['infective'] = node['infection_status']==INFECTIVE?1:0; //initialise all infected individuals as infective 
-		node['time_of_infection'] = node['infection_status']==EXPOSED?(-MAX_EXPOSED_DAYS_AT_START*SIM_STEPS_PER_DAY*Math.random()):0;
-		node['zeta_a']=zeta(node['age']);
-	    nodes.push(node)
-	}
-	return nodes;
-}
+//some required functions
 
 function kappa_T(node, cur_time){
 
@@ -158,6 +116,167 @@ function zeta(age){
     }
 }
 
+//Functions to init homes, workplaces and communities
+
+function init_homes(){
+	
+	var houses_json = JSON.parse(loadJSON_001('bangalore_houses.json'));
+	// console.log("In init homes:",houses_json.length,houses_json[0]);
+	NUM_HOMES = houses_json.length;
+
+	var homes = [];
+	for (var h=0; h < NUM_HOMES; h++) {
+		var home = {
+			'loc': [houses_json[h]['location'][1],houses_json[h]['location'][0]], // [lat, long],
+			'lambda_home': 0,
+			'individuals': [], // We will populate this later
+			'Q_h': 1,
+			'scale': 0
+		};
+		//home['scale'] = BETA_H*home['Q_h']/(Math.pow(home['individuals'].length, ALPHA));
+		homes.push(home)
+	}
+	return homes;
+}
+
+function init_workplaces(){
+	var workplaces_json = JSON.parse(loadJSON_001('bangalore_workspaces.json'));
+	var schools_json = JSON.parse(loadJSON_001('bangalore_schools.json'));
+	// console.log("In init workplaces:",workplaces_json.length,workplaces_json[0]);
+	NUM_WORKPLACES = workplaces_json.length;
+	NUM_SCHOOLS = schools_json.length;
+	// console.log(NUM_WORKPLACES,NUM_SCHOOLS)
+
+	var workplaces = [];
+	// schools come first followed by workspaces
+
+	for (var w=0; w < NUM_SCHOOLS; w++) {
+		var workplace = {
+			'index': w,
+			'loc':  [schools_json[w]['location'][1],schools_json[w]['location'][0]], // [lat, long],
+			'lambda_workplace': 0, 
+			'individuals': [], //get_individuals_at_workplace(nodes, w), // Populate with individuals in same workplace
+			'Q_w': 1,
+			'scale': 0,
+			'workplace_type': 2
+		};
+		//workplace['scale'] = BETA_W*workplace['Q_w']/workplace['individuals'].length;
+		workplaces.push(workplace)
+	}
+
+	for (var w=0; w < NUM_WORKPLACES; w++) {
+		var workplace = {
+			'index': w,
+			'loc':  [workplaces_json[w]['location'][1],workplaces_json[w]['location'][0]], // [lat, long],
+			'lambda_workplace': 0, 
+			'individuals': [], //get_individuals_at_workplace(nodes, w), // Populate with individuals in same workplace
+			'Q_w': 1,
+			'scale': 0,
+			'workplace_type': 1
+		};
+		//workplace['scale'] = BETA_W*workplace['Q_w']/workplace['individuals'].length;
+		workplaces.push(workplace)
+	}
+	
+	return workplaces;
+}
+
+function compare_wards(a, b) {
+	// Function to sort wards
+	const wardA = a["Ward No."];
+	const wardB = b["Ward No."];
+  
+	let comparison = 0;
+	if (wardA > wardB) {
+	  comparison = 1;
+	} else if (wardA < wardB) {
+	  comparison = -1;
+	}
+	return comparison;
+}
+
+
+
+function init_community(){
+
+	var communities_json = JSON.parse(loadJSON_001('bangalore_cc.json'));
+	// console.log("In init community",communities_json.length,communities_json);
+	communities_json.sort(compare_wards);
+	// console.log("In init community",communities_json.length,communities_json[0]['location']);
+	NUM_COMMUNITIES = communities_json.length;
+
+	var communities = [];
+	for (var c=0; c < NUM_COMMUNITIES; c++) {
+		var community = {
+			'index': c,
+			'loc':  [communities_json[c]['location'][1],communities_json[c]['location'][0]], // [lat, long]
+			'lambda_community': 0, 
+			'individuals': [], // We will populate this later
+			'Q_c': 1,
+			'scale': 0
+		};
+		var sum_value = 0;
+		for (var i=0; i<community['individuals'].length; i++){
+			sum_value += nodes[community['individuals'][i]]['funct_d_ck'];
+		}
+		//community['scale'] = BETA_C*community['Q_c']/sum_value;
+		communities.push(community)
+	}
+	return communities;
+}
+
+
+
+function init_nodes() {
+
+	const MAX_EXPOSED_DAYS_AT_START = 4.5; //at the start of sim, the oldest exposed limit
+
+	var individuals_json = JSON.parse(loadJSON_001('bangalore_individuals.json'));
+	var workplace_json = JSON.parse(loadJSON_001('bangalore_workspaces.json'));
+	//console.log(individuals_json.length,individuals_json[0]);
+	NUM_PEOPLE =individuals_json.length;
+	NUM_WORKPLACES = workplace_json.length;
+	//console.log("Num People", NUM_PEOPLE, "Num Workspaces",NUM_WORKPLACES)
+
+
+	var nodes = [];
+	for(var i = 0; i < NUM_PEOPLE; i++) {
+	    var node = {
+			'loc': [individuals_json[i]['lat'],individuals_json[i]['lon']], // [lat, long]
+			'age': individuals_json[i]['age'],
+			'zeta_a': 1,
+			'infectiousness': 1, // a.k.a. rho
+			'severity': (Math.random() <0.5)?1:0, // a.k.a. S_k
+			'home': individuals_json[i]['household'], 
+			'workplace': individuals_json[i]['workplaceType']==1? individuals_json[i]['workplace']:individuals_json[i]['school'],
+			'community': individuals_json[i]['ward'],
+			'time_of_infection': 0,
+			'infection_status': (Math.random() <INIT_FRAC_INFECTED)?1:0, //random seeding
+			'infective': 0,
+			'lambda_h': 0,
+			'lambda_w': 0,
+			'lambda_c': 0,
+			'lambda': 0,
+			'kappa_T': 1,
+			'psi_T': 0,
+			'funct_d_ck': f_kernel(individuals_json[i]['CommunityCentreDistance']), // TODO: need to use the kernel function. function of distance from community...
+			'workplace_type':  individuals_json[i]['workplaceType'], //either school or office
+	    };
+		
+		if(node['workplace_type']==0) {
+			node['workplace'] = null;
+		}
+	   
+	    node['infective'] = node['infection_status']==INFECTIVE?1:0; //initialise all infected individuals as infective 
+		node['time_of_infection'] = node['infection_status']==EXPOSED?(-MAX_EXPOSED_DAYS_AT_START*SIM_STEPS_PER_DAY*Math.random()):0;
+		node['zeta_a']=zeta(node['age']);
+	    nodes.push(node)
+	}
+	return nodes;
+}
+
+
+
 
 function get_individuals_at_home(nodes, h){
 	var individuals = []
@@ -189,10 +308,14 @@ function get_individuals_at_community(nodes, c){
 	return individuals;
 }
 
-
+// Compute scale factors for each home, workplace and community. Done once at the beginning.
 function compute_scale_homes(homes){
 	
 	for (var w=0; w < homes.length; w++) {
+		if(homes[w]['individuals'].length==0){
+			homes[w]['scale'] = 0;
+			return
+		}
 	
 		homes[w]['scale'] = BETA_H*homes[w]['Q_h']/(Math.pow(homes[w]['individuals'].length, ALPHA));
 		}
@@ -200,11 +323,19 @@ function compute_scale_homes(homes){
 }
 
 function compute_scale_workplaces(workplaces){
-	
+	var beta_workplace
 	for (var w=0; w < workplaces.length; w++) {
-		
-		workplaces[w]['scale'] = BETA_W*workplaces[w]['Q_w']/workplaces[w]['individuals'].length;
+		if(workplaces[w]['individuals'].length==0){
+			workplaces[w]['scale'] = 0
+			return
 		}
+		if(workplaces[w]['workplace_type']==1){
+			beta_workplace = BETA_H //workplace
+		} else if (workplaces[w]['workplace_type']==2){
+			beta_workplace = BETA_S //school
+		}
+		workplaces[w]['scale'] = beta_workplace*workplaces[w]['Q_w']/workplaces[w]['individuals'].length;
+	}
 	
 }
 
@@ -217,117 +348,18 @@ function compute_scale_communities(nodes, communities){
 		for (var i=0; i<communities[w]['individuals'].length; i++){
 			sum_value += nodes[communities[w]['individuals'][i]]['funct_d_ck'];
 		}
+		if(sum_value==0){
+			communities[w]['scale'] = 0
+			return
+		}
 		communities[w]['scale'] = BETA_C*communities[w]['Q_c']/sum_value;
 		}
 	
 }
 
-function init_homes(){
-	
-	var houses_json = JSON.parse(loadJSON_001('bangalore_houses.json'));
-	console.log("In init homes:",houses_json.length,houses_json[0]);
-	NUM_HOMES = houses_json.length;
-
-	var homes = [];
-	for (var h=0; h < NUM_HOMES; h++) {
-		var home = {
-			'loc': [houses_json[h]['location'][1],houses_json[h]['location'][0]], // [lat, long],
-			'lambda_home': 0,
-			'individuals': [], // We will populate this later
-			'Q_h': 1,
-			'scale': 0
-		};
-		//home['scale'] = BETA_H*home['Q_h']/(Math.pow(home['individuals'].length, ALPHA));
-		homes.push(home)
-	}
-	return homes;
-}
-
-function init_workplaces(){
-	var workplaces_json = JSON.parse(loadJSON_001('bangalore_workspaces.json'));
-	var schools_json = JSON.parse(loadJSON_001('bangalore_schools.json'));
-	console.log("In init workplaces:",workplaces_json.length,workplaces_json[0]);
-	NUM_WORKPLACES = workplaces_json.length;
-	NUM_SCHOOLS = schools_json.length;
-	console.log(NUM_WORKPLACES,NUM_SCHOOLS)
-
-	var workplaces = [];
-
-	for (var w=0; w < NUM_WORKPLACES; w++) {
-		var workplace = {
-			'index': w,
-			'loc':  [workplaces_json[w]['location'][1],workplaces_json[w]['location'][0]], // [lat, long],
-			'lambda_workplace': 0, 
-			'individuals': [], //get_individuals_at_workplace(nodes, w), // Populate with individuals in same workplace
-			'Q_w': 1,
-			'scale': 0,
-			'workplace_type': 1
-		};
-		//workplace['scale'] = BETA_W*workplace['Q_w']/workplace['individuals'].length;
-		workplaces.push(workplace)
-	}
-	for (var w=0; w < NUM_SCHOOLS; w++) {
-		var workplace = {
-			'index': w,
-			'loc':  [schools_json[w]['location'][1],schools_json[w]['location'][0]], // [lat, long],
-			'lambda_workplace': 0, 
-			'individuals': [], //get_individuals_at_workplace(nodes, w), // Populate with individuals in same workplace
-			'Q_w': 1,
-			'scale': 0,
-			'workplace_type': 2
-		};
-		//workplace['scale'] = BETA_W*workplace['Q_w']/workplace['individuals'].length;
-		workplaces.push(workplace)
-	}
-	return workplaces;
-}
-
-function compare_wards(a, b) {
-	// Use toUpperCase() to ignore character casing
-	const wardA = a["Ward No."];
-	const wardB = b["Ward No."];
-  
-	let comparison = 0;
-	if (wardA > wardB) {
-	  comparison = 1;
-	} else if (wardA < wardB) {
-	  comparison = -1;
-	}
-	return comparison;
-}
-
-
-
-function init_community(){
-
-	var communities_json = JSON.parse(loadJSON_001('bangalore_cc.json'));
-	console.log("In init community",communities_json.length,communities_json);
-	communities_json.sort(compare_wards);
-	console.log("In init community",communities_json.length,communities_json[0]['location']);
-	NUM_COMMUNITIES = communities_json.length;
-
-	var communities = [];
-	for (var c=0; c < NUM_COMMUNITIES; c++) {
-		var community = {
-			'index': c,
-			'loc':  [communities_json[c]['location'][1],communities_json[c]['location'][0]], // [lat, long]
-			'lambda_community': 0, 
-			'individuals': [], // We will populate this later
-			'Q_c': 1,
-			'scale': 0
-		};
-		var sum_value = 0;
-		for (var i=0; i<community['individuals'].length; i++){
-			sum_value += nodes[community['individuals'][i]]['funct_d_ck'];
-		}
-		//community['scale'] = BETA_C*community['Q_c']/sum_value;
-		communities.push(community)
-	}
-	return communities;
-}
 
 function assign_individual_home_community(nodes,homes,workplaces,communities){
-	
+	//Assign individuals to homes, workplace, community
 	for (var i=0; i < nodes.length; i++) {
 	if(nodes[i]['home']!== null) homes[nodes[i]['home']]['individuals'].push(i); //No checking for null as all individuals have a home
 	if(nodes[i]['workplace']!== null) workplaces[nodes[i]['workplace']]['individuals'].push(i);
@@ -336,19 +368,6 @@ function assign_individual_home_community(nodes,homes,workplaces,communities){
 
 }
 
-
-function update_individual_lambda_h(node){
-	return node['infective'] * node['kappa_T'] * node['infectiousness'] * (1 + node['severity']);
-}
-
-function update_individual_lambda_w(node){
-	return node['infective'] * node['kappa_T'] * node['infectiousness'] * (1 + node['severity']*(2*node['psi_T']-1));
-}
-
-function update_individual_lambda_c(node){
-	return node['infective'] * node['kappa_T'] * node['infectiousness'] * node['funct_d_ck'] * (1 + node['severity']);
-	// optimised version: return node['lambda_h] * node['funct_d_ck']; 
-}
 
 function update_infection(node,cur_time){
     
@@ -445,6 +464,21 @@ function update_psi(node, cur_time){
 	//console.log(node['psi_T'])
 }
 
+
+function update_individual_lambda_h(node){
+	return node['infective'] * node['kappa_T'] * node['infectiousness'] * (1 + node['severity']);
+}
+
+function update_individual_lambda_w(node){
+	return node['infective'] * node['kappa_T'] * node['infectiousness'] * (1 + node['severity']*(2*node['psi_T']-1));
+}
+
+function update_individual_lambda_c(node){
+	return node['infective'] * node['kappa_T'] * node['infectiousness'] * node['funct_d_ck'] * (1 + node['severity']);
+	// optimised version: return node['lambda_h] * node['funct_d_ck']; 
+}
+
+
 function update_lambda_h(nodes, home){
 	var sum_value = 0
 	
@@ -498,11 +532,13 @@ function get_infected_community(nodes, community){
 }
 
 function update_lambdas(node,homes,workplaces,communities){
-	node['lambda'] = homes[node['home']]['lambda_home'] + workplaces[node['workplace']]['lambda_workplace'] + node['zeta_a']*node['funct_d_ck']*communities[node['community']]['lambda_community'];
-
+	var temp = 0
+	if(node['home']!=null) temp+=homes[node['home']]['lambda_home']
+	if(node['workplace']!=null) temp+= workplaces[node['workplace']]['lambda_workplace']
+	if(node['community']!=null) temp+=node['zeta_a']*node['funct_d_ck']*communities[node['community']]['lambda_community'];
+	node['lambda'] = temp
 	
 }
-
 
 function run_simulation() {
 	
@@ -606,7 +642,8 @@ function plot_simulation(days_num_infected,plot_element,title_1,title_2) {
 	        vAxis: {
 	            title: title_1
 	        },
-			title: title_2
+			title: title_2,
+			legend: {position:'none'}
 	    };
 
 	    var chart = new google.visualization.LineChart(document.getElementById(plot_element));
@@ -632,7 +669,7 @@ function run_and_plot() {
     link.setAttribute("download", "my_data.csv");
     document.body.appendChild(link); // Required for FF
 
-link.click();	
+	//link.click();	//TODO: Instead of click link, add link for download on page.
 }
 
 
