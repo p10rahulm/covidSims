@@ -1,15 +1,16 @@
 
 NUM_PEOPLE = 100000; // Number of people. Will change once file is read.
-NUM_DAYS = 100; //Number of days. 
+NUM_DAYS = 200; //Number of days. 
 SIM_STEPS_PER_DAY = 4; //Number of simulation steps per day. 
 NUM_TIMESTEPS = NUM_DAYS*SIM_STEPS_PER_DAY; //
 
-INIT_FRAC_INFECTED = 0.001; // Initial number of people infected
+INIT_FRAC_INFECTED = 0.0001; // Initial number of people infected
 
 
 NUM_HOMES = 25000; //Will change once file is read.
 NUM_WORKPLACES = 5000; //Will change once file is read.
 NUM_COMMUNITIES = 198; //Will change once file is read.
+NUM_SCHOOLS = 0;
 NUM_DISEASE_STATES = 7; //0-S, 1-E, 2-I, 3-Symp,4-R, 5-H, 6-C, 7-D
 
 const SUSCEPTIBLE = 0
@@ -52,12 +53,57 @@ ALPHA = 0.8
 
 //some required functions
 
+function init_nodes() {
+
+	const MAX_EXPOSED_DAYS_AT_START = 4.5; //at the start of sim, the oldest exposed limit
+
+	var individuals_json = JSON.parse(loadJSON_001('bangalore_individuals.json'));
+	var workplace_json = JSON.parse(loadJSON_001('bangalore_workspaces.json'));
+	//console.log(individuals_json.length,individuals_json[0]);
+	NUM_PEOPLE =individuals_json.length;
+	NUM_WORKPLACES = workplace_json.length;
+	//console.log("Num People", NUM_PEOPLE, "Num Workspaces",NUM_WORKPLACES)
+
+
+	var nodes = [];
+	for(var i = 0; i < NUM_PEOPLE; i++) {
+	    var node = {
+			'loc': [individuals_json[i]['lat'],individuals_json[i]['lon']], // [lat, long]
+			'age': individuals_json[i]['age'],
+			'zeta_a': 1,
+			'infectiousness': 1, // a.k.a. rho
+			'severity': (Math.random() <0.5)?1:0, // a.k.a. S_k
+			'home': individuals_json[i]['household'], 
+			'workplace': individuals_json[i]['workplaceType']==1? individuals_json[i]['workplace']:individuals_json[i]['school'],
+			'community': individuals_json[i]['ward'],
+			'time_of_infection': 0,
+			'infection_status': (Math.random() <INIT_FRAC_INFECTED)?1:0, //random seeding
+			'infective': 0,
+			'lambda_h': 0,
+			'lambda_w': 0,
+			'lambda_c': 0,
+			'lambda': 0,
+			'kappa_T': 1,
+			'psi_T': 0,
+			'funct_d_ck': f_kernel(individuals_json[i]['CommunityCentreDistance']), // TODO: need to use the kernel function. function of distance from community...
+			'workplace_type':  individuals_json[i]['workplaceType'], //either school or office
+	    };
+		//Correct initialisation for individuals not associated to workplace or school
+		if(node['workplace_type']==0) {
+			node['workplace'] = null;
+		}
+	   
+	    node['infective'] = node['infection_status']==INFECTIVE?1:0; //initialise all infected individuals as infective 
+		node['time_of_infection'] = node['infection_status']==EXPOSED?(-MAX_EXPOSED_DAYS_AT_START*SIM_STEPS_PER_DAY*Math.random()):0;
+		node['zeta_a']=zeta(node['age']);
+	    nodes.push(node)
+	}
+	return nodes;
+}
+
 function kappa_T(node, cur_time){
 
 	
-	var threshold1 = 4.5 * SIM_STEPS_PER_DAY; //OPTIMISE: Move this outside function call, compute only once.
-	var threshold2 = 5 * SIM_STEPS_PER_DAY;
-	var threshold3 = 10* SIM_STEPS_PER_DAY;
 	if(node["infective"]!=1){
 		return 0;
 	}
@@ -116,6 +162,85 @@ function zeta(age){
     }
 }
 
+function get_individuals_at_home(nodes, h){
+	var individuals = []
+	for (var i=0; i<NUM_PEOPLE; i++){
+		if (nodes[i]['home']==h){
+			individuals.push(i)
+		}
+	}
+	return individuals;
+}
+
+function get_individuals_at_workplace(nodes, w){
+	var individuals = []
+	for (var i=0; i<NUM_PEOPLE; i++){
+		if (nodes[i]['workplace']==w){
+			individuals.push(i)
+		}
+	}
+	return individuals;
+}
+
+function get_individuals_at_community(nodes, c){
+	var individuals = []
+	for (var i=0; i<NUM_PEOPLE; i++){
+		if (nodes[i]['community']==c){
+			individuals.push(i)
+		}
+	}
+	return individuals;
+}
+
+
+// Compute scale factors for each home, workplace and community. Done once at the beginning.
+function compute_scale_homes(homes){
+	
+	for (var w=0; w < homes.length; w++) {
+		if(homes[w]['individuals'].length==0){
+			homes[w]['scale'] = 0;			
+		} else {
+			homes[w]['scale'] = BETA_H*homes[w]['Q_h']/(Math.pow(homes[w]['individuals'].length, ALPHA));
+		}
+	}
+	
+}
+
+function compute_scale_workplaces(workplaces){
+	var beta_workplace
+	for (var w=0; w < workplaces.length; w++) {
+		if(workplaces[w]['individuals'].length==0){
+			workplaces[w]['scale'] = 0			
+		} else {
+			if(workplaces[w]['workplace_type']==1){
+				beta_workplace = BETA_W //workplace
+			} else if (workplaces[w]['workplace_type']==2){
+				beta_workplace = BETA_S //school
+			}
+			workplaces[w]['scale'] = beta_workplace*workplaces[w]['Q_w']/workplaces[w]['individuals'].length;
+		}
+	}
+	
+}
+
+
+function compute_scale_communities(nodes, communities){
+	
+	for (var w=0; w < communities.length; w++) {
+	
+    	var sum_value = 0;
+		for (var i=0; i<communities[w]['individuals'].length; i++){
+			sum_value += nodes[communities[w]['individuals'][i]]['funct_d_ck'];
+		}
+		if(sum_value==0){
+			communities[w]['scale'] = 0
+			
+		}
+		communities[w]['scale'] = BETA_C*communities[w]['Q_c']/sum_value;
+		}
+	
+}
+
 //Functions to init homes, workplaces and communities
 
 function init_homes(){
@@ -151,8 +276,7 @@ function init_workplaces(){
 	// schools come first followed by workspaces
 
 	for (var w=0; w < NUM_SCHOOLS; w++) {
-		var workplace = {
-			'index': w,
+		var workplace = {			
 			'loc':  [schools_json[w]['location'][1],schools_json[w]['location'][0]], // [lat, long],
 			'lambda_workplace': 0, 
 			'individuals': [], //get_individuals_at_workplace(nodes, w), // Populate with individuals in same workplace
@@ -165,8 +289,7 @@ function init_workplaces(){
 	}
 
 	for (var w=0; w < NUM_WORKPLACES; w++) {
-		var workplace = {
-			'index': w,
+		var workplace = {			
 			'loc':  [workplaces_json[w]['location'][1],workplaces_json[w]['location'][0]], // [lat, long],
 			'lambda_workplace': 0, 
 			'individuals': [], //get_individuals_at_workplace(nodes, w), // Populate with individuals in same workplace
@@ -208,7 +331,7 @@ function init_community(){
 	var communities = [];
 	for (var c=0; c < NUM_COMMUNITIES; c++) {
 		var community = {
-			'index': c,
+			
 			'loc':  [communities_json[c]['location'][1],communities_json[c]['location'][0]], // [lat, long]
 			'lambda_community': 0, 
 			'individuals': [], // We will populate this later
@@ -227,145 +350,37 @@ function init_community(){
 
 
 
-function init_nodes() {
-
-	const MAX_EXPOSED_DAYS_AT_START = 4.5; //at the start of sim, the oldest exposed limit
-
-	var individuals_json = JSON.parse(loadJSON_001('bangalore_individuals.json'));
-	var workplace_json = JSON.parse(loadJSON_001('bangalore_workspaces.json'));
-	//console.log(individuals_json.length,individuals_json[0]);
-	NUM_PEOPLE =individuals_json.length;
-	NUM_WORKPLACES = workplace_json.length;
-	//console.log("Num People", NUM_PEOPLE, "Num Workspaces",NUM_WORKPLACES)
-
-
-	var nodes = [];
-	for(var i = 0; i < NUM_PEOPLE; i++) {
-	    var node = {
-			'loc': [individuals_json[i]['lat'],individuals_json[i]['lon']], // [lat, long]
-			'age': individuals_json[i]['age'],
-			'zeta_a': 1,
-			'infectiousness': 1, // a.k.a. rho
-			'severity': (Math.random() <0.5)?1:0, // a.k.a. S_k
-			'home': individuals_json[i]['household'], 
-			'workplace': individuals_json[i]['workplaceType']==1? individuals_json[i]['workplace']:individuals_json[i]['school'],
-			'community': individuals_json[i]['ward'],
-			'time_of_infection': 0,
-			'infection_status': (Math.random() <INIT_FRAC_INFECTED)?1:0, //random seeding
-			'infective': 0,
-			'lambda_h': 0,
-			'lambda_w': 0,
-			'lambda_c': 0,
-			'lambda': 0,
-			'kappa_T': 1,
-			'psi_T': 0,
-			'funct_d_ck': f_kernel(individuals_json[i]['CommunityCentreDistance']), // TODO: need to use the kernel function. function of distance from community...
-			'workplace_type':  individuals_json[i]['workplaceType'], //either school or office
-	    };
-		
-		if(node['workplace_type']==0) {
-			node['workplace'] = null;
-		}
-	   
-	    node['infective'] = node['infection_status']==INFECTIVE?1:0; //initialise all infected individuals as infective 
-		node['time_of_infection'] = node['infection_status']==EXPOSED?(-MAX_EXPOSED_DAYS_AT_START*SIM_STEPS_PER_DAY*Math.random()):0;
-		node['zeta_a']=zeta(node['age']);
-	    nodes.push(node)
-	}
-	return nodes;
-}
 
 
 
 
-function get_individuals_at_home(nodes, h){
-	var individuals = []
-	for (var i=0; i<NUM_PEOPLE; i++){
-		if (nodes[i]['home']==h){
-			individuals.push(i)
-		}
-	}
-	return individuals;
-}
-
-function get_individuals_at_workplace(nodes, w){
-	var individuals = []
-	for (var i=0; i<NUM_PEOPLE; i++){
-		if (nodes[i]['workplace']==w){
-			individuals.push(i)
-		}
-	}
-	return individuals;
-}
-
-function get_individuals_at_community(nodes, c){
-	var individuals = []
-	for (var i=0; i<NUM_PEOPLE; i++){
-		if (nodes[i]['community']==c){
-			individuals.push(i)
-		}
-	}
-	return individuals;
-}
-
-// Compute scale factors for each home, workplace and community. Done once at the beginning.
-function compute_scale_homes(homes){
-	
-	for (var w=0; w < homes.length; w++) {
-		if(homes[w]['individuals'].length==0){
-			homes[w]['scale'] = 0;
-			return
-		}
-	
-		homes[w]['scale'] = BETA_H*homes[w]['Q_h']/(Math.pow(homes[w]['individuals'].length, ALPHA));
-		}
-	
-}
-
-function compute_scale_workplaces(workplaces){
-	var beta_workplace
-	for (var w=0; w < workplaces.length; w++) {
-		if(workplaces[w]['individuals'].length==0){
-			workplaces[w]['scale'] = 0
-			return
-		}
-		if(workplaces[w]['workplace_type']==1){
-			beta_workplace = BETA_H //workplace
-		} else if (workplaces[w]['workplace_type']==2){
-			beta_workplace = BETA_S //school
-		}
-		workplaces[w]['scale'] = beta_workplace*workplaces[w]['Q_w']/workplaces[w]['individuals'].length;
-	}
-	
-}
 
 
-function compute_scale_communities(nodes, communities){
-	
-	for (var w=0; w < communities.length; w++) {
-	
-    	var sum_value = 0;
-		for (var i=0; i<communities[w]['individuals'].length; i++){
-			sum_value += nodes[communities[w]['individuals'][i]]['funct_d_ck'];
-		}
-		if(sum_value==0){
-			communities[w]['scale'] = 0
-			return
-		}
-		communities[w]['scale'] = BETA_C*communities[w]['Q_c']/sum_value;
-		}
-	
-}
+
+
 
 
 function assign_individual_home_community(nodes,homes,workplaces,communities){
 	//Assign individuals to homes, workplace, community
 	for (var i=0; i < nodes.length; i++) {
-	if(nodes[i]['home']!== null) homes[nodes[i]['home']]['individuals'].push(i); //No checking for null as all individuals have a home
-	if(nodes[i]['workplace']!== null) workplaces[nodes[i]['workplace']]['individuals'].push(i);
-	if(nodes[i]['community']!== null) communities[nodes[i]['community']]['individuals'].push(i);
+		if(nodes[i]['home']!== null) 	{homes[nodes[i]['home']]['individuals'].push(i);} //No checking for null as all individuals have a home
+		if(nodes[i]['workplace']!== null)	{workplaces[nodes[i]['workplace']]['individuals'].push(i);}
+		if(nodes[i]['community']!== null) 	{communities[nodes[i]['community']]['individuals'].push(i);}
 	}
 
+}
+
+function update_individual_lambda_h(node){
+	return node['infective'] * node['kappa_T'] * node['infectiousness'] * (1 + node['severity']);
+}
+
+function update_individual_lambda_w(node){
+	return node['infective'] * node['kappa_T'] * node['infectiousness'] * (1 + node['severity']*(2*node['psi_T']-1));
+}
+
+function update_individual_lambda_c(node){
+	return node['infective'] * node['kappa_T'] * node['infectiousness'] * node['funct_d_ck'] * (1 + node['severity']);
+	// optimised version: return node['lambda_h] * node['funct_d_ck']; 
 }
 
 
@@ -465,18 +480,6 @@ function update_psi(node, cur_time){
 }
 
 
-function update_individual_lambda_h(node){
-	return node['infective'] * node['kappa_T'] * node['infectiousness'] * (1 + node['severity']);
-}
-
-function update_individual_lambda_w(node){
-	return node['infective'] * node['kappa_T'] * node['infectiousness'] * (1 + node['severity']*(2*node['psi_T']-1));
-}
-
-function update_individual_lambda_c(node){
-	return node['infective'] * node['kappa_T'] * node['infectiousness'] * node['funct_d_ck'] * (1 + node['severity']);
-	// optimised version: return node['lambda_h] * node['funct_d_ck']; 
-}
 
 
 function update_lambda_h(nodes, home){
@@ -532,11 +535,11 @@ function get_infected_community(nodes, community){
 }
 
 function update_lambdas(node,homes,workplaces,communities){
-	var temp = 0
-	if(node['home']!=null) temp+=homes[node['home']]['lambda_home']
-	if(node['workplace']!=null) temp+= workplaces[node['workplace']]['lambda_workplace']
-	if(node['community']!=null) temp+=node['zeta_a']*node['funct_d_ck']*communities[node['community']]['lambda_community'];
-	node['lambda'] = temp
+	var temp = 0;
+	if(node['home']!=null) {temp+=homes[node['home']]['lambda_home'];}
+	if(node['workplace']!=null) {temp+= workplaces[node['workplace']]['lambda_workplace'];}
+	if(node['community']!=null) {temp+=node['zeta_a']*node['funct_d_ck']*communities[node['community']]['lambda_community'];}
+	node['lambda'] = temp;
 	
 }
 
@@ -669,7 +672,7 @@ function run_and_plot() {
     link.setAttribute("download", "my_data.csv");
     document.body.appendChild(link); // Required for FF
 
-	//link.click();	//TODO: Instead of click link, add link for download on page.
+	link.click();	//TODO: Instead of click link, add link for download on page.
 }
 
 
