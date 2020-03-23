@@ -21,7 +21,13 @@ const HOSPITALISED = 5
 const CRITICAL = 6
 const DEAD = 7
 let csvContent = "data:text/csv;charset=utf-8,";
-// bounding box around Blore (approx)
+
+const kappa_threshold1 = 4.5 * SIM_STEPS_PER_DAY; //OPTIMISE: Move this outside function call, compute only once.
+const kappa_threshold2 = 5 * SIM_STEPS_PER_DAY;
+const kappa_threshold3 = 10* SIM_STEPS_PER_DAY;
+
+
+
 //age related transition probabilities
 STATE_TRAN=[
    [0.0010000,   0.0500000,   0.4000000],
@@ -39,21 +45,33 @@ STATE_TRAN=[
 // Beta values
 BETA_H = 0.47 //Thailand data
 BETA_W = 0.47 //Thailand data
+BETA_S = 0.94 //Thailand data
 BETA_C = 0.075 //Thailand data
 ALPHA = 0.8
 
 function init_nodes() {
+
+	const MAX_EXPOSED_DAYS_AT_START = 4.5
+
+	var individuals_json = JSON.parse(loadJSON_001('bangalore_individuals.json'));
+	var workplace_json = JSON.parse(loadJSON_001('bangalore_workspaces.json'));
+	//console.log(individuals_json.length,individuals_json[0]);
+	NUM_PEOPLE =individuals_json.length;
+	NUM_WORKPLACES = workplace_json.length;
+	console.log("Num People", NUM_PEOPLE, "Num Workspaces",NUM_WORKPLACES)
+
+
 	var nodes = [];
 	for(var i = 0; i < NUM_PEOPLE; i++) {
 	    var node = {
-			'loc': [0,0], // [lat, long]
-			'age': Math.floor(Math.random() * 100),
+			'loc': [individuals_json[i]['lat'],individuals_json[i]['lon']], // [lat, long]
+			'age': individuals_json[i]['age'],
 			'zeta_a': 1,
 			'infectiousness': 1, // a.k.a. rho
-			'severity': 0, // a.k.a. S_k
-			'home': Math.floor(Math.random() * NUM_HOMES), 
-			'workplace': Math.floor(Math.random() * NUM_WORKPLACES),
-			'community': Math.floor(Math.random() * NUM_COMMUNITIES),
+			'severity': (Math.random() <INIT_NUM_INFECTED)?1:0, // a.k.a. S_k
+			'home': individuals_json[i]['household'], 
+			'workplace': individuals_json[i]['workplaceType']==1? individuals_json[i]['workplace']:NUM_WORKPLACES+individuals_json[i]['school'],
+			'community': individuals_json[i]['ward'],
 			'time_of_infection': 0,
 			'infection_status': (Math.random() <INIT_NUM_INFECTED)?1:0, //random seeding
 			'infective': 0,
@@ -64,12 +82,13 @@ function init_nodes() {
 			'kappa_T': 1,
 			'psi_T': 0,
 			'funct_d_ck': Math.random(), // TODO: need to use the kernel function. function of distance from community...
-			'workplace_type': Math.floor(Math.random() * 2), //either school or office
+			'workplace_type':  individuals_json[i]['workplaceType'], //either school or office
 	    };
 	    
 	   
 	    node['infective'] = node['infection_status']==INFECTIVE?1:0; //initialise all infected individuals as infective 
-	    node['time_of_infection'] = node['infection_status']==EXPOSED?(-5*SIM_STEPS_PER_DAY*Math.random()):0;
+		node['time_of_infection'] = node['infection_status']==EXPOSED?(-MAX_EXPOSED_DAYS_AT_START*SIM_STEPS_PER_DAY*Math.random()):0;
+		node['zeta_a']=zeta(node['age']);
 	    nodes.push(node)
 	}
 	return nodes;
@@ -87,9 +106,9 @@ function kappa_T(node, cur_time){
 	else {
 		var time_since_infection = cur_time - node["time_of_infection"];
 
-		if(time_since_infection < threshold1 || time_since_infection > threshold3) { return 0;}
-		else if(time_since_infection < threshold2) {return 1;}
-		else if(time_since_infection < threshold3) {return 1.5;}
+		if(time_since_infection < kappa_threshold1 || time_since_infection > kappa_threshold3) { return 0;}
+		else if(time_since_infection < kappa_threshold2) {return 1;}
+		else if(time_since_infection < kappa_threshold3) {return 1.5;}
 		else return 0;
 	}	
 }
@@ -183,7 +202,7 @@ function compute_scale_homes(homes){
 function compute_scale_workplaces(workplaces){
 	
 	for (var w=0; w < workplaces.length; w++) {
-	
+		
 		workplaces[w]['scale'] = BETA_W*workplaces[w]['Q_w']/workplaces[w]['individuals'].length;
 		}
 	
@@ -203,12 +222,16 @@ function compute_scale_communities(nodes, communities){
 	
 }
 
-function init_homes(num_homes){
+function init_homes(){
+	
+	var houses_json = JSON.parse(loadJSON_001('bangalore_houses.json'));
+	console.log("In init homes:",houses_json.length,houses_json[0]);
+	NUM_HOMES = houses_json.length;
+
 	var homes = [];
-	for (var h=0; h < num_homes; h++) {
+	for (var h=0; h < NUM_HOMES; h++) {
 		var home = {
-			'index': h,
-			'loc': [0,0], // [lat, long],
+			'loc': [houses_json[h]['location'][1],houses_json[h]['location'][0]], // [lat, long],
 			'lambda_home': 0,
 			'individuals': [], // We will populate this later
 			'Q_h': 1,
@@ -220,16 +243,38 @@ function init_homes(num_homes){
 	return homes;
 }
 
-function init_workplaces(num_workplaces){
+function init_workplaces(){
+	var workplaces_json = JSON.parse(loadJSON_001('bangalore_workspaces.json'));
+	var schools_json = JSON.parse(loadJSON_001('bangalore_schools.json'));
+	console.log("In init workplaces:",workplaces_json.length,workplaces_json[0]);
+	NUM_WORKPLACES = workplaces_json.length;
+	NUM_SCHOOLS = schools_json.length;
+	console.log(NUM_WORKPLACES,NUM_SCHOOLS)
+
 	var workplaces = [];
-	for (var w=0; w < num_workplaces; w++) {
+
+	for (var w=0; w < NUM_WORKPLACES; w++) {
 		var workplace = {
 			'index': w,
-			'loc':  [0,0], // [lat, long],
+			'loc':  [workplaces_json[w]['location'][1],workplaces_json[w]['location'][0]], // [lat, long],
 			'lambda_workplace': 0, 
 			'individuals': [], //get_individuals_at_workplace(nodes, w), // Populate with individuals in same workplace
 			'Q_w': 1,
-			'scale': 0
+			'scale': 0,
+			'workplace_type': 1
+		};
+		//workplace['scale'] = BETA_W*workplace['Q_w']/workplace['individuals'].length;
+		workplaces.push(workplace)
+	}
+	for (var w=0; w < NUM_SCHOOLS; w++) {
+		var workplace = {
+			'index': w,
+			'loc':  [schools_json[w]['location'][1],schools_json[w]['location'][0]], // [lat, long],
+			'lambda_workplace': 0, 
+			'individuals': [], //get_individuals_at_workplace(nodes, w), // Populate with individuals in same workplace
+			'Q_w': 1,
+			'scale': 0,
+			'workplace_type': 2
 		};
 		//workplace['scale'] = BETA_W*workplace['Q_w']/workplace['individuals'].length;
 		workplaces.push(workplace)
@@ -237,12 +282,35 @@ function init_workplaces(num_workplaces){
 	return workplaces;
 }
 
-function init_community(num_communities){
+function compare_wards(a, b) {
+	// Use toUpperCase() to ignore character casing
+	const wardA = a["Ward No."];
+	const wardB = b["Ward No."];
+  
+	let comparison = 0;
+	if (wardA > wardB) {
+	  comparison = 1;
+	} else if (wardA < wardB) {
+	  comparison = -1;
+	}
+	return comparison;
+}
+
+
+
+function init_community(){
+
+	var communities_json = JSON.parse(loadJSON_001('bangalore_cc.json'));
+	console.log("In init community",communities_json.length,communities_json);
+	communities_json.sort(compare_wards);
+	console.log("In init community",communities_json.length,communities_json[0]['location']);
+	NUM_COMMUNITIES = communities_json.length;
+
 	var communities = [];
-	for (var c=0; c < num_communities; c++) {
+	for (var c=0; c < NUM_COMMUNITIES; c++) {
 		var community = {
 			'index': c,
-			'loc':  [0,0], // [lat, long],
+			'loc':  [communities_json[c]['location'][1],communities_json[c]['location'][0]], // [lat, long]
 			'lambda_community': 0, 
 			'individuals': [], // We will populate this later
 			'Q_c': 1,
@@ -438,11 +506,14 @@ function update_lambdas(node,homes,workplaces,communities){
 
 function run_simulation() {
 	
-	var homes = init_homes(NUM_HOMES);
-	var workplaces = init_workplaces(NUM_WORKPLACES);
-	var communities = init_community(NUM_COMMUNITIES);
+	var homes = init_homes();
+	var workplaces = init_workplaces();
+	var communities = init_community();
 	var nodes = init_nodes();
 	
+	console.log(NUM_PEOPLE,NUM_HOMES,NUM_WORKPLACES,NUM_COMMUNITIES)
+
+
 	assign_individual_home_community(nodes,homes,workplaces,communities);
 	compute_scale_homes(homes)
 	compute_scale_workplaces(workplaces)
