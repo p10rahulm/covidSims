@@ -48,6 +48,11 @@ def possible_workplaces_ids(input_ward):
 
 def assign_schools_and_workplaces(wardNeighbors, workplaces, schools, individuals):
     # generate workplaces size distribution
+    count=1
+    a=3.26
+    c=0.97
+    m_max=2870
+    
     vals = np.arange(m_max)
     p_nplus = np.arange(float(m_max))
     for m in range(m_max):
