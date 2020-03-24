@@ -174,13 +174,25 @@ def assign_individuals_to_houses(targetPopulation, wards, totalHousehold, ageDis
 
     unassigned_households_ids = households.loc[households['flag']==0]['id'].values
 
-    if len(unassigned_individuals_ids)>0:
-        if len(unassigned_households_ids)>0:
-            house_indices =  np.random.choice(len(unassigned_households_ids),len(unassigned_individuals_ids), replace=False)
-            for j in range(0,len(house_indices)):
-                households.at[unassigned_households_ids[house_indices[j]],'people staying'] = households.loc[house_indices[j],'people staying']+1
-                households.at[unassigned_households_ids[house_indices[j]],'individuals'].append(unassigned_individuals_ids[j])
-                individuals.at[unassigned_individuals_ids[j],'household']=unassigned_households_ids[house_indices[j]]
 
+if len(unassigned_individuals_ids)>0:
+    if len(unassigned_households_ids)>0:
+        for j in range(0,len(unassigned_individuals_ids)):
+            house_index = np.random.choice(len(unassigned_households_ids))
+            individuals.at[unassigned_individuals_ids[j],'household'] = unassigned_households_ids[house_index]
+            #households.at[unassigned_households_ids[house_index],'people staying'] = households.loc[house_index,'people staying'] + 1
+            households.at[unassigned_households_ids[house_index],'flag'] = 1
+            households.at[unassigned_households_ids[house_index], 'individuals'].append(unassigned_individuals_ids[j])
+    else:
+        house_indices =  np.random.choice(len(households),len(unassigned_individuals_ids), replace=False)
+        for j in range(0,len(unassigned_individuals_ids)):
+            households.at[house_indices[j],'people staying'] = households.loc[house_indices[j],'people staying']+1
+            households.at[house_indices[j],'individuals'].append(unassigned_individuals_ids[j])
+            individuals.at[unassigned_individuals_ids[j],'household']=house_indices[j]
+            households.at[house_indices[j],'flag'] = 1
+            households.at[house_indices[j], 'individuals'].append(unassigned_individuals_ids[j])
+
+unassigned_households_ids = households.loc[households['flag']==0]['id'].values
+households = households.loc[households['flag']!=0]
     individuals['household']=individuals['household'].astype(int)
     return individuals, households

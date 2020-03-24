@@ -8,25 +8,25 @@ import pandas as pd
 from scipy.stats import stats
 
 # generate s sample of size of workplace 
-def gen_wp_size(count=1, a=3.26, c=0.97, m_max=2870):
+#def gen_wp_size(count=1, a=3.26, c=0.97, m_max=2870):
     #function to generate a truncated Zipf sample
 
-    vals = np.arange(m_max)
-    p_nplus = np.arange(float(m_max))
-    for m in range(m_max):
-        p_nplus[m] =  ((( (1+m_max/a)/(1+m/a))**c) -1) / (((1+m_max/a)**c) -1)
+#    vals = np.arange(m_max)
+#    p_nplus = np.arange(float(m_max))
+#    for m in range(m_max):
+#        p_nplus[m] =  ((( (1+m_max/a)/(1+m/a))**c) -1) / (((1+m_max/a)**c) -1)
 
-    p_nminus = 1.0 - p_nplus
-    p_n = np.arange(float(m_max))
-    prev=0.0
-    for m in range(1, m_max):
-        p_n[m] = p_nminus[m] - prev
-        prev = p_nminus[m] 
+#    p_nminus = 1.0 - p_nplus
+#    p_n = np.arange(float(m_max))
+#    prev=0.0
+#    for m in range(1, m_max):
+#        p_n[m] = p_nminus[m] - prev
+#        prev = p_nminus[m] 
 
-    bzipf = stats.rv_discrete (name='bzipf', values=(vals, p_n))
-    rval = bzipf.rvs(size=count)
+#    bzipf = stats.rv_discrete (name='bzipf', values=(vals, p_n))
+#    rval = bzipf.rvs(size=count)
     #print(rval)
-    return rval
+#    return rval
 
 
 # findout neighbours of a given ward
@@ -47,6 +47,27 @@ def possible_workplaces_ids(input_ward):
     
 
 def assign_schools_and_workplaces(wardNeighbors, workplaces, schools, individuals):
+    # generate workplaces size distribution
+    count=1
+    a=3.26
+    c=0.97
+    m_max=2870
+    
+    vals = np.arange(m_max)
+    p_nplus = np.arange(float(m_max))
+    for m in range(m_max):
+        p_nplus[m] =  ((( (1+m_max/a)/(1+m/a))**c) -1) / (((1+m_max/a)**c) -1)
+
+    p_nminus = 1.0 - p_nplus
+    p_n = np.arange(float(m_max))
+    prev=0.0
+    for m in range(1, m_max):
+        p_n[m] = p_nminus[m] - prev
+        prev = p_nminus[m] 
+
+    bzipf = stats.rv_discrete (name='bzipf', values=(vals, p_n))
+
+
     wards = wardNeighbors
     W = len(wardNeighbors)
 
@@ -62,7 +83,7 @@ def assign_schools_and_workplaces(wardNeighbors, workplaces, schools, individual
     # generate capacity according to workspace size distribution
     capacity = []
     for i in range(0,WP):
-        capacity.append(gen_wp_size()[0])
+        capacity.append(bzipf.rvs(size=1)[0])
 
     workplaces.insert(4,"capacity", capacity)
 
