@@ -66,6 +66,23 @@ def assign_schools_and_workplaces(wardNeighbors, workplaces, schools, individual
         prev = p_nminus[m] 
 
     bzipf = stats.rv_discrete (name='bzipf', values=(vals, p_n))
+    
+    # generate schools size distribution
+    schoolsize_values = np.arange(50,901,1)
+    schoolsize_distribution_over_gap100 =[ 0.0184, 0.1204, 0.2315, 0.2315, 0.1574, 0.0889, 0.0630, 0.0481, 0.0278, 0.0130]
+    # 50-99, 100-199, ..., 800 - 899, 900+
+    schoolsize_distribution = []
+    for i in range(1,len(schoolsize_distribution_over_gap100)-1):
+        for j in range(0,100):
+            schoolsize_distribution.append(schoolsize_distribution_over_gap100[i]/100)
+
+    for i in range(0,50):
+        schoolsize_distribution.insert(0,schoolsize_distribution_over_gap100[0]/50)
+
+    schoolsize_distribution.append(schoolsize_distribution_over_gap100[len(schoolsize_distribution_over_gap100)-1])
+    schoolsize_distribution = np.array(schoolsize_distribution)
+    schoolsize_distribution = schoolsize_distribution/np.sum(schoolsize_distribution)
+    mean_schoolsize = np.matmul(schoolsize_values, schoolsize_distribution)
 
 
     wards = wardNeighbors
@@ -78,6 +95,10 @@ def assign_schools_and_workplaces(wardNeighbors, workplaces, schools, individual
 
     S = len(schools)
     schools.insert(2,"students", [[] for x in range(0,S)])
+    schools.insert(3,"strength", [0 for x in range(0,S)])
+    schools.insert(4,"capacity", np.random.choice(schoolsize_values, S, p=schoolsize_distribution))
+    schools.insert(5,"students", [[] for x in range(0,S)])
+
     workDistance = []
 
     # generate capacity according to workspace size distribution
@@ -91,6 +112,8 @@ def assign_schools_and_workplaces(wardNeighbors, workplaces, schools, individual
     already_assigned = []
     count = 0
     workforce = []
+    studentforce = []
+    already_assigned_students = []
     # assign individuals
     for i in range(0,len(individuals)):
         # print(i/len(individuals))
@@ -114,13 +137,23 @@ def assign_schools_and_workplaces(wardNeighbors, workplaces, schools, individual
                 already_assigned.append(i)
         # individuals to schools - this is done randomly now, Sarath will make sure that marginals are consistent
         elif individuals.loc[i,'age']<=21 and individuals.loc[i,'age']>=5:
+            studentforce.append(i)
             lat = individuals.loc[i,'lat']
             long = individuals.loc[i,'lon']
-            possible_school_id = schools.loc[schools['ward']==individuals.loc[i,'ward']]['ID'].values
-            index = np.random.choice(len(possible_school_id))
-            individuals.at[i,'school'] = possible_school_id[index]
-            schools.at[schools.loc[schools['ID']==possible_school_id[index]].index[0],'students'].append(i)
-
+            possible_school_id1 = schools.loc[schools['ward']==individuals.loc[i,'ward']]['ID'].values
+            possible_school_id = []
+            if len(possible_school_id1) > 0:
+                for j in range(0,len(possible_school_id1)):
+                    if schools.loc[schools.loc[schools['ID']==possible_school_id1[j],'ID'].index[0],'capacity'] > schools.loc[schools.loc[schools['ID']==possible_school_id1[j],'ID'].index[0],'strength']:
+                        possible_school_id.append(possible_school_id1[j])
+                possible_school_id = np.array(possible_school_id)
+            if len(possible_school_id) > 0:
+                index = np.random.choice(len(possible_school_id))
+                individuals.at[i,'school'] = possible_school_id[index]
+                schools.at[schools.loc[schools['ID']==possible_school_id[index]].index[0],'students'].append(i)
+                schools.at[schools.loc[schools['ID']==possible_school_id[index]].index[0],'strength'] = schools.loc[schools.loc[schools['ID']==possible_school_id[index]].index[0],'strength'] +1 
+                already_assigned_students.append(i)
+                
     # randomly assign unassigned individuals to workplaces
     # first check for workplaces that are not full
     for i in range(0,len(workplaces)):
@@ -133,6 +166,18 @@ def assign_schools_and_workplaces(wardNeighbors, workplaces, schools, individual
                     already_assigned.append(add_to_workplace_id[j])
                     workplaces.at[i,'workers'].append(add_to_workplace_id[j])
                     workplaces.at[i,'workforce'] = workplaces.loc[i,'workforce']+1
+    # first check if schools are not full
+    for i in range(0,len(schools)):
+        if schools.loc[i,'capacity'] > schools.loc[i,'strength']:
+            d = schools.loc[i,'capacity'] - schools.loc[i,'strength']
+            if len(np.setdiff1d(studentforce, already_assigned_students)) >=d:
+                add_to_school_id = np.random.choice(np.setdiff1d(studentforce, already_assigned_students), d, replace=False)
+                for j in range(0,d):
+                    individuals.at[add_to_school_id[j],'school'] = schools.loc[i,'ID']
+                    already_assigned_students.append(add_to_school_id[j])
+                    schools.at[i,'students'].append(add_to_school_id[j])
+                    schools.at[i,'strength'] = schools.loc[i,'strength']+1
+    # if anyone has unassigned workplace or home, assign it randomly
     for i in range(0,len(individuals)):
         if individuals.loc[i,'age']>=22 and individuals.loc[i,'age']<=55 and (not i in already_assigned):
             lat = individuals.loc[i,'lat']
@@ -141,5 +186,12 @@ def assign_schools_and_workplaces(wardNeighbors, workplaces, schools, individual
             individuals.at[i,'workplace'] = add_to_workplace_id
             workplaces.at[int(add_to_workplace_id), 'workforce'] =workplaces.loc[int(add_to_workplace_id), 'workforce']+1 
             workplaces.at[int(add_to_workplace_id),'workers'].append(i)
-    
+
+        elif individuals.loc[i,'age']<=21 and individuals.loc[i,'age']>=5 and (not i in already_assigned_students):
+            lat = individuals.loc[i,'lat']
+            long = individuals.loc[i,'lon']
+            add_to_school_id = np.random.choice(S)
+            individuals.at[i,'school'] = add_to_school_id
+            schools.at[int(add_to_school_id), 'strength'] =schools.loc[int(add_to_school_id), 'strength']+1 
+            schools.at[int(add_to_school_id),'students'].append(i)
     return workplaces, schools, individuals
