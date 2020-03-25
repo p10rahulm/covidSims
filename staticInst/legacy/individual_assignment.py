@@ -48,14 +48,14 @@ households = pd.DataFrame(households)
 already_assigned = []
 
 for i in range(0,H):
-    #print(i)
+    print(i/H)
     if len(already_assigned)<N-6:
         if households['people staying'].values[i] == 1:
             possible_list = individuals.iloc[np.setdiff1d(np.where(np.logical_and(individuals['age'].values>=22,individuals['age'].values<=30)),already_assigned)]
             if (len(possible_list)>0):
                 choose_index = np.random.choice(len(possible_list))
                 already_assigned.append(int(possible_list.iloc[choose_index]['id']))
-                individuals.at[int(possible_list.iloc[choose_index]['id']),'household']=int(i)
+                individuals.at[int(possible_list.ilnp.ones((1,N))[0]*-1oc[choose_index]['id']),'household']=int(i)
                 households.at[i,'individuals'].append(int(possible_list.iloc[choose_index]['id']))
                 households.at[i,'flag']=1
         elif households['people staying'].values[i] == 2:

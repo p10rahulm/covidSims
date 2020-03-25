@@ -6,18 +6,18 @@ ___author__ = "Sarath"
 import numpy as np 
 import pandas as pd 
 
-def assign_individuals_to_houses(targetPopulation, wards, totalHousehold, ageDistribution=[0.073, 0.078, 0.083, 0.086, 0.102, 0.11, 0.098, 0.081, 0.071, 0.059, 0.049, 0.037, 0.03, 0.021, 0.01, 0.007, 0.005], householdDistribution=[0.0417, 0.1308, 0.2228, 0.3077, 0.1530, 0.1439]):
+def assign_individuals_to_houses(targetPopulation, wards, totalHousehold, ageDistribution=[0.073, 0.078, 0.083, 0.086, 0.102, 0.11, 0.098, 0.081, 0.071, 0.059, 0.049, 0.037, 0.03, 0.021, 0.01, 0.007, 0.005], householdDistribution=[0.0417, 0.1308, 0.2228, 0.3077, 0.1530, 0.0726, 0.0645, 0.0054, 0.0015]):
     N = targetPopulation
     dictlist_individuals = [dict() for x in range(N)]
 
-    H = totalHousehold
+    H = int(targetPopulation/totalHousehold)
     dictlist_houses = [dict() for x in range(H)]
 
     W = wards
 
     # age distribution
     age_values = np.arange(0,81,1)
-    age_distribution_over_gap5 = [0.073, 0.078, 0.083, 0.086, 0.102, 0.11, 0.098, 0.081, 0.071, 0.059, 0.049, 0.037, 0.03, 0.021, 0.01, 0.007, 0.005]
+    age_distribution_over_gap5 = ageDistribution
 
     age_distribution = []
     for i in range(0,len(age_distribution_over_gap5)-1):
@@ -28,8 +28,8 @@ def assign_individuals_to_houses(targetPopulation, wards, totalHousehold, ageDis
     age_distribution = age_distribution/sum(age_distribution)
 
     # household size distributin
-    household_sizes = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
-    household_dist = [0.0417, 0.1308, 0.2228, 0.3077, 0.1530, 0.0726, 0.0645, 0.0054, 0.0015] #1,2,3,4,5,6,7-10,11-14,15+
+    household_sizes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+    household_dist = householdDistribution  #1,2,3,4,5,6,7-10,11-14,15+
     household_distribution = household_dist[0:6]
     for i in range(0,4):
         household_distribution.append(household_dist[6]/4)

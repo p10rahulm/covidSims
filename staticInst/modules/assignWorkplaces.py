@@ -5,40 +5,21 @@ ___author__ = "Sarath"
 
 import numpy as np
 import pandas as pd 
-from scipy.stats import stats
+import scipy.stats as stats
 
-# generate s sample of size of workplace 
-#def gen_wp_size(count=1, a=3.26, c=0.97, m_max=2870):
-    #function to generate a truncated Zipf sample
-
-#    vals = np.arange(m_max)
-#    p_nplus = np.arange(float(m_max))
-#    for m in range(m_max):
-#        p_nplus[m] =  ((( (1+m_max/a)/(1+m/a))**c) -1) / (((1+m_max/a)**c) -1)
-
-#    p_nminus = 1.0 - p_nplus
-#    p_n = np.arange(float(m_max))
-#    prev=0.0
-#    for m in range(1, m_max):
-#        p_n[m] = p_nminus[m] - prev
-#        prev = p_nminus[m] 
-
-#    bzipf = stats.rv_discrete (name='bzipf', values=(vals, p_n))
-#    rval = bzipf.rvs(size=count)
-    #print(rval)
-#    return rval
-
+wards = None #global variable to hold the wards DF
 
 # findout neighbours of a given ward
 def neighbouring_wards_ids(input_ward):
-    return np.array(str.split(wards.loc[wards['Ward No.']==input_ward,'Neighbors'].values[0],','),dtype=int)
+    global ward
+    return np.array(str.split(wards.loc[wards['wardNo']==input_ward,'neighbors'].values[0],','),dtype=int)
     
 # compute Euclidean distance    
 def distance(lat1, long1, lat2, long2):
     return np.sqrt((lat1 - lat2)**2 + (long1-long2)**2)
     
 # findout possible wokrplaces for an individual by looking at nearby wards
-def possible_workplaces_ids(input_ward):
+def possible_workplaces_ids(input_ward, workplaces):
     neighbouring_wards = neighbouring_wards_ids(input_ward)
     temp = []
     for j in range(0,len(neighbouring_wards)):
@@ -46,7 +27,8 @@ def possible_workplaces_ids(input_ward):
     return temp
     
 
-def assign_schools_and_workplaces(wardNeighbors, workplaces, schools, individuals):
+def assign_schools_and_workplaces(demographics, workplaces, schools, individuals, schoolDistribution=[0.0184, 0.1204, 0.2315, 0.2315, 0.1574, 0.0889, 0.0630, 0.0481, 0.0278, 0.0130]):
+    global wards
     # generate workplaces size distribution
     count=1
     a=3.26
@@ -69,8 +51,7 @@ def assign_schools_and_workplaces(wardNeighbors, workplaces, schools, individual
     
     # generate schools size distribution
     schoolsize_values = np.arange(50,901,1)
-    schoolsize_distribution_over_gap100 =[ 0.0184, 0.1204, 0.2315, 0.2315, 0.1574, 0.0889, 0.0630, 0.0481, 0.0278, 0.0130]
-    # 50-99, 100-199, ..., 800 - 899, 900+
+    schoolsize_distribution_over_gap100 = schoolDistribution # 50-99, 100-199, ..., 800 - 899, 900+
     schoolsize_distribution = []
     for i in range(1,len(schoolsize_distribution_over_gap100)-1):
         for j in range(0,100):
@@ -85,9 +66,8 @@ def assign_schools_and_workplaces(wardNeighbors, workplaces, schools, individual
     mean_schoolsize = np.matmul(schoolsize_values, schoolsize_distribution)
 
 
-    wards = wardNeighbors
-    W = len(wardNeighbors)
-
+    wards = demographics[['wardNo', 'wardIndex', 'neighbors']]
+    W = len(wards)
     WP = len(workplaces)
     # insert some columns for further processing
     workplaces.insert(2,"workforce", [0 for x in range(0,WP)]) 
@@ -122,7 +102,7 @@ def assign_schools_and_workplaces(wardNeighbors, workplaces, schools, individual
             count = count+1
             lat = individuals.loc[i,'lat']
             long = individuals.loc[i,'lon']
-            possible_workplace_ids =  possible_workplaces_ids(individuals.loc[i,'ward'])
+            possible_workplace_ids =  possible_workplaces_ids(individuals.loc[i,'ward'], workplaces)
             distances = []
             for j in range(0,len(possible_workplace_ids)):
                 distances.append(distance(lat,long,workplaces.loc[workplaces['ID']==int(possible_workplace_ids[j]),'location'].values[0][1],workplaces.loc[workplaces['ID']==int(possible_workplace_ids[j]),'location'].values[0][0]))
@@ -181,7 +161,7 @@ def assign_schools_and_workplaces(wardNeighbors, workplaces, schools, individual
         if individuals.loc[i,'age']>=22 and individuals.loc[i,'age']<=55 and (not i in already_assigned):
             lat = individuals.loc[i,'lat']
             long = individuals.loc[i,'lon']
-            add_to_workplace_id = np.random.choice(W)
+            add_to_workplace_id = np.random.choice(WP)
             individuals.at[i,'workplace'] = add_to_workplace_id
             workplaces.at[int(add_to_workplace_id), 'workforce'] =workplaces.loc[int(add_to_workplace_id), 'workforce']+1 
             workplaces.at[int(add_to_workplace_id),'workers'].append(i)
@@ -193,4 +173,8 @@ def assign_schools_and_workplaces(wardNeighbors, workplaces, schools, individual
             individuals.at[i,'school'] = add_to_school_id
             schools.at[int(add_to_school_id), 'strength'] =schools.loc[int(add_to_school_id), 'strength']+1 
             schools.at[int(add_to_school_id),'students'].append(i)
+    
+    workplaces = workplaces.sort_values("ID")
+    schools = schools.sort_values("ID")
+    individuals = individuals.sort_values("id")
     return workplaces, schools, individuals
