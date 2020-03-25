@@ -28,10 +28,17 @@ def assign_individuals_to_houses(targetPopulation, wards, totalHousehold, ageDis
     age_distribution = age_distribution/sum(age_distribution)
 
     # household size distributin
-    household_sizes = [1,2,3,4,5,6]
-    household_distribution = [0.0417, 0.1308, 0.2228, 0.3077, 0.1530, 0.1439]
-    household_distribution = np.array(household_distribution)
-    household_distribution /= household_distribution.sum() #Normalizing to avoid probabilities not adding to 1
+    household_sizes = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
+    household_dist = [0.0417, 0.1308, 0.2228, 0.3077, 0.1530, 0.0726, 0.0645, 0.0054, 0.0015] #1,2,3,4,5,6,7-10,11-14,15+
+    household_distribution = household_dist[0:6]
+    for i in range(0,4):
+        household_distribution.append(household_dist[6]/4)
+    for i in range(0,4):
+        household_distribution.append(household_dist[7]/4)
+    household_distribution.append(household_dist[8])
+    household_distribution = np.array(household_distribution)/np.sum(household_distribution)
+    mean_household_size = np.matmul(household_sizes, household_distribution)    
+    
     # create individuals with desired age distribution
     individuals = {'id': np.arange(0,N), 'age':np.random.choice(age_values,N,p=age_distribution), 'household':np.ones((1,N))[0]*-1}
     individuals = pd.DataFrame(individuals) #after households DF is ready - add lat, lon, ward no to individuals || call functions in workplace_assignment.py
@@ -129,7 +136,7 @@ def assign_individuals_to_houses(targetPopulation, wards, totalHousehold, ageDis
                     individuals.at[int(possible_list3.iloc[choose_index]['id']),'household']=int(i)
                     households.at[i,'individuals'].append(int(possible_list3.iloc[choose_index]['id']))
                     households.at[i,'flag']=1
-            else:
+            elif households['people staying'].values[i] == 6:
                 possible_list1 = individuals.iloc[np.setdiff1d(np.where(np.logical_and(individuals['age'].values>=21,individuals['age'].values<=30)),already_assigned)]
                 possible_list2 = individuals.iloc[np.setdiff1d(np.where(np.logical_and(individuals['age'].values>=45,individuals['age'].values<=55)),already_assigned)]
                 possible_list3 = individuals.iloc[np.setdiff1d(np.where(individuals['age'].values>=65),already_assigned)]
@@ -140,24 +147,332 @@ def assign_individuals_to_houses(targetPopulation, wards, totalHousehold, ageDis
                         individuals.at[int(possible_list1.iloc[choose_index[j]]['id']),'household']=int(i)
                         households.at[i,'individuals'].append(int(possible_list1.iloc[choose_index[j]]['id']))
                         households.at[i,'flag']=1
-
+    
                     choose_index = np.random.choice(len(possible_list2),2, replace=False)
                     for j in range(0,len(choose_index)):
                         already_assigned.append(int(possible_list2.iloc[choose_index[j]]['id']))
                         individuals.at[int(possible_list2.iloc[choose_index[j]]['id']),'household']=int(i)
                         households.at[i,'individuals'].append(int(possible_list2.iloc[choose_index[j]]['id']))
                         households.at[i,'flag']=1
-
+    
                     choose_index = np.random.choice(len(possible_list3),2, replace=False)
                     for j in range(0,len(choose_index)):
                         already_assigned.append(int(possible_list3.iloc[choose_index[j]]['id']))
                         individuals.at[int(possible_list3.iloc[choose_index[j]]['id']),'household']=int(i)
                         households.at[i,'individuals'].append(int(possible_list3.iloc[choose_index[j]]['id']))
                         households.at[i,'flag']=1
-    # assign individuals to 
+             
+            elif households['people staying'].values[i] == 7:
+                
+                possible_list1 = individuals.iloc[np.setdiff1d(np.where(np.logical_and(individuals['age'].values>=21,individuals['age'].values<=30)),already_assigned)]
+                possible_list2 = individuals.iloc[np.setdiff1d(np.where(np.logical_and(individuals['age'].values>=45,individuals['age'].values<=55)),already_assigned)]
+                possible_list3 = individuals.iloc[np.setdiff1d(np.where(individuals['age'].values>=65),already_assigned)]
+                possible_list4 = individuals.iloc[np.setdiff1d(np.where(individuals['age'].values<=20),already_assigned)]
+                if (len(possible_list1)>=2) and (len(possible_list2)>=2) and (len(possible_list3)>=2) and (len(possible_list4)>=1):
+                    choose_index = np.random.choice(len(possible_list1),2, replace=False)
+                    for j in range(0,len(choose_index)):
+                        already_assigned.append(int(possible_list1.iloc[choose_index[j]]['id']))
+                        individuals.at[int(possible_list1.iloc[choose_index[j]]['id']),'household']=int(i)
+                        households.at[i,'individuals'].append(int(possible_list1.iloc[choose_index[j]]['id']))
+                        households.at[i,'flag']=1
+    
+                    choose_index = np.random.choice(len(possible_list2),2, replace=False)
+                    for j in range(0,len(choose_index)):
+                        already_assigned.append(int(possible_list2.iloc[choose_index[j]]['id']))
+                        individuals.at[int(possible_list2.iloc[choose_index[j]]['id']),'household']=int(i)
+                        households.at[i,'individuals'].append(int(possible_list2.iloc[choose_index[j]]['id']))
+                        households.at[i,'flag']=1
+    
+                    choose_index = np.random.choice(len(possible_list3),2, replace=False)
+                    for j in range(0,len(choose_index)):
+                        already_assigned.append(int(possible_list3.iloc[choose_index[j]]['id']))
+                        individuals.at[int(possible_list3.iloc[choose_index[j]]['id']),'household']=int(i)
+                        households.at[i,'individuals'].append(int(possible_list3.iloc[choose_index[j]]['id']))
+                        households.at[i,'flag']=1
+                        
+                    choose_index = np.random.choice(len(possible_list4),1, replace=False)
+                    already_assigned.append(int(possible_list4.iloc[choose_index]['id']))
+                    individuals.at[int(possible_list4.iloc[choose_index]['id']),'household']=int(i)
+                    households.at[i,'individuals'].append(int(possible_list4.iloc[choose_index]['id']))
+                    households.at[i,'flag']=1
+    	     
+            elif households['people staying'].values[i] == 8:
+                possible_list1 = individuals.iloc[np.setdiff1d(np.where(np.logical_and(individuals['age'].values>=21,individuals['age'].values<=30)),already_assigned)]
+                possible_list2 = individuals.iloc[np.setdiff1d(np.where(np.logical_and(individuals['age'].values>=45,individuals['age'].values<=55)),already_assigned)]
+                possible_list3 = individuals.iloc[np.setdiff1d(np.where(individuals['age'].values>=65),already_assigned)]
+                possible_list4 = individuals.iloc[np.setdiff1d(np.where(individuals['age'].values<=20),already_assigned)]
+                if (len(possible_list1)>=2) and (len(possible_list2)>=2) and (len(possible_list3)>=2) and (len(possible_list4)>=2):
+                    choose_index = np.random.choice(len(possible_list1),2, replace=False)
+                    for j in range(0,len(choose_index)):
+                        already_assigned.append(int(possible_list1.iloc[choose_index[j]]['id']))
+                        individuals.at[int(possible_list1.iloc[choose_index[j]]['id']),'household']=int(i)
+                        households.at[i,'individuals'].append(int(possible_list1.iloc[choose_index[j]]['id']))
+                        households.at[i,'flag']=1
+    
+                    choose_index = np.random.choice(len(possible_list2),2, replace=False)
+                    for j in range(0,len(choose_index)):
+                        already_assigned.append(int(possible_list2.iloc[choose_index[j]]['id']))
+                        individuals.at[int(possible_list2.iloc[choose_index[j]]['id']),'household']=int(i)
+                        households.at[i,'individuals'].append(int(possible_list2.iloc[choose_index[j]]['id']))
+                        households.at[i,'flag']=1
+    
+                    choose_index = np.random.choice(len(possible_list3),2, replace=False)
+                    for j in range(0,len(choose_index)):
+                        already_assigned.append(int(possible_list3.iloc[choose_index[j]]['id']))
+                        individuals.at[int(possible_list3.iloc[choose_index[j]]['id']),'household']=int(i)
+                        households.at[i,'individuals'].append(int(possible_list3.iloc[choose_index[j]]['id']))
+                        households.at[i,'flag']=1
+                        
+                    choose_index = np.random.choice(len(possible_list4),2, replace=False)
+                    for j in range(0,len(choose_index)):
+                        already_assigned.append(int(possible_list4.iloc[choose_index[j]]['id']))
+                        individuals.at[int(possible_list4.iloc[choose_index[j]]['id']),'household']=int(i)
+                        households.at[i,'individuals'].append(int(possible_list4.iloc[choose_index[j]]['id']))
+                        households.at[i,'flag']=1
+    	               
+            elif households['people staying'].values[i] == 9:
+                possible_list1 = individuals.iloc[np.setdiff1d(np.where(np.logical_and(individuals['age'].values>=21,individuals['age'].values<=30)),already_assigned)]
+                possible_list2 = individuals.iloc[np.setdiff1d(np.where(np.logical_and(individuals['age'].values>=45,individuals['age'].values<=55)),already_assigned)]
+                possible_list3 = individuals.iloc[np.setdiff1d(np.where(individuals['age'].values>=65),already_assigned)]
+                possible_list4 = individuals.iloc[np.setdiff1d(np.where(individuals['age'].values<=20),already_assigned)]
+                if (len(possible_list1)>=2) and (len(possible_list2)>=2) and (len(possible_list3)>=2) and (len(possible_list4)>=3):
+                    choose_index = np.random.choice(len(possible_list1),2, replace=False)
+                    for j in range(0,len(choose_index)):
+                        already_assigned.append(int(possible_list1.iloc[choose_index[j]]['id']))
+                        individuals.at[int(possible_list1.iloc[choose_index[j]]['id']),'household']=int(i)
+                        households.at[i,'individuals'].append(int(possible_list1.iloc[choose_index[j]]['id']))
+                        households.at[i,'flag']=1
+    
+                    choose_index = np.random.choice(len(possible_list2),2, replace=False)
+                    for j in range(0,len(choose_index)):
+                        already_assigned.append(int(possible_list2.iloc[choose_index[j]]['id']))
+                        individuals.at[int(possible_list2.iloc[choose_index[j]]['id']),'household']=int(i)
+                        households.at[i,'individuals'].append(int(possible_list2.iloc[choose_index[j]]['id']))
+                        households.at[i,'flag']=1
+    
+                    choose_index = np.random.choice(len(possible_list3),2, replace=False)
+                    for j in range(0,len(choose_index)):
+                        already_assigned.append(int(possible_list3.iloc[choose_index[j]]['id']))
+                        individuals.at[int(possible_list3.iloc[choose_index[j]]['id']),'household']=int(i)
+                        households.at[i,'individuals'].append(int(possible_list3.iloc[choose_index[j]]['id']))
+                        households.at[i,'flag']=1
+                        
+                    choose_index = np.random.choice(len(possible_list4),3, replace=False)
+                    for j in range(0,len(choose_index)):
+                        already_assigned.append(int(possible_list4.iloc[choose_index[j]]['id']))
+                        individuals.at[int(possible_list4.iloc[choose_index[j]]['id']),'household']=int(i)
+                        households.at[i,'individuals'].append(int(possible_list4.iloc[choose_index[j]]['id']))
+                        households.at[i,'flag']=1
+    	                                   
+            elif households['people staying'].values[i] == 10:
+                possible_list1 = individuals.iloc[np.setdiff1d(np.where(np.logical_and(individuals['age'].values>=21,individuals['age'].values<=30)),already_assigned)]
+                possible_list2 = individuals.iloc[np.setdiff1d(np.where(np.logical_and(individuals['age'].values>=45,individuals['age'].values<=55)),already_assigned)]
+                possible_list3 = individuals.iloc[np.setdiff1d(np.where(individuals['age'].values>=65),already_assigned)]
+                possible_list4 = individuals.iloc[np.setdiff1d(np.where(individuals['age'].values<=20),already_assigned)]
+                if (len(possible_list1)>=2) and (len(possible_list2)>=2) and (len(possible_list3)>=2) and (len(possible_list4)>=4):
+                    choose_index = np.random.choice(len(possible_list1),2, replace=False)
+                    for j in range(0,len(choose_index)):
+                        already_assigned.append(int(possible_list1.iloc[choose_index[j]]['id']))
+                        individuals.at[int(possible_list1.iloc[choose_index[j]]['id']),'household']=int(i)
+                        households.at[i,'individuals'].append(int(possible_list1.iloc[choose_index[j]]['id']))
+                        households.at[i,'flag']=1
+    
+                    choose_index = np.random.choice(len(possible_list2),2, replace=False)
+                    for j in range(0,len(choose_index)):
+                        already_assigned.append(int(possible_list2.iloc[choose_index[j]]['id']))
+                        individuals.at[int(possible_list2.iloc[choose_index[j]]['id']),'household']=int(i)
+                        households.at[i,'individuals'].append(int(possible_list2.iloc[choose_index[j]]['id']))
+                        households.at[i,'flag']=1
+    
+                    choose_index = np.random.choice(len(possible_list3),2, replace=False)
+                    for j in range(0,len(choose_index)):
+                        already_assigned.append(int(possible_list3.iloc[choose_index[j]]['id']))
+                        individuals.at[int(possible_list3.iloc[choose_index[j]]['id']),'household']=int(i)
+                        households.at[i,'individuals'].append(int(possible_list3.iloc[choose_index[j]]['id']))
+                        households.at[i,'flag']=1
+                        
+                    choose_index = np.random.choice(len(possible_list4),4, replace=False)
+                    for j in range(0,len(choose_index)):
+                        already_assigned.append(int(possible_list4.iloc[choose_index[j]]['id']))
+                        individuals.at[int(possible_list4.iloc[choose_index[j]]['id']),'household']=int(i)
+                        households.at[i,'individuals'].append(int(possible_list4.iloc[choose_index[j]]['id']))
+                        households.at[i,'flag']=1
+    	                                   
+            elif households['people staying'].values[i] == 11:
+                possible_list1 = individuals.iloc[np.setdiff1d(np.where(np.logical_and(individuals['age'].values>=21,individuals['age'].values<=30)),already_assigned)]
+                possible_list2 = individuals.iloc[np.setdiff1d(np.where(np.logical_and(individuals['age'].values>=45,individuals['age'].values<=55)),already_assigned)]
+                possible_list3 = individuals.iloc[np.setdiff1d(np.where(individuals['age'].values>=65),already_assigned)]
+                possible_list4 = individuals.iloc[np.setdiff1d(np.where(individuals['age'].values<=20),already_assigned)]
+                if (len(possible_list1)>=3) and (len(possible_list2)>=2) and (len(possible_list3)>=2) and (len(possible_list4)>=4):
+                    choose_index = np.random.choice(len(possible_list1),3, replace=False)
+                    for j in range(0,len(choose_index)):
+                        already_assigned.append(int(possible_list1.iloc[choose_index[j]]['id']))
+                        individuals.at[int(possible_list1.iloc[choose_index[j]]['id']),'household']=int(i)
+                        households.at[i,'individuals'].append(int(possible_list1.iloc[choose_index[j]]['id']))
+                        households.at[i,'flag']=1
+    
+                    choose_index = np.random.choice(len(possible_list2),2, replace=False)
+                    for j in range(0,len(choose_index)):
+                        already_assigned.append(int(possible_list2.iloc[choose_index[j]]['id']))
+                        individuals.at[int(possible_list2.iloc[choose_index[j]]['id']),'household']=int(i)
+                        households.at[i,'individuals'].append(int(possible_list2.iloc[choose_index[j]]['id']))
+                        households.at[i,'flag']=1
+    
+                    choose_index = np.random.choice(len(possible_list3),2, replace=False)
+                    for j in range(0,len(choose_index)):
+                        already_assigned.append(int(possible_list3.iloc[choose_index[j]]['id']))
+                        individuals.at[int(possible_list3.iloc[choose_index[j]]['id']),'household']=int(i)
+                        households.at[i,'individuals'].append(int(possible_list3.iloc[choose_index[j]]['id']))
+                        households.at[i,'flag']=1
+                        
+                    choose_index = np.random.choice(len(possible_list4),4, replace=False)
+                    for j in range(0,len(choose_index)):
+                        already_assigned.append(int(possible_list4.iloc[choose_index[j]]['id']))
+                        individuals.at[int(possible_list4.iloc[choose_index[j]]['id']),'household']=int(i)
+                        households.at[i,'individuals'].append(int(possible_list4.iloc[choose_index[j]]['id']))
+                        households.at[i,'flag']=1
+    	                                   
+                        
+            elif households['people staying'].values[i] == 12:
+                possible_list1 = individuals.iloc[np.setdiff1d(np.where(np.logical_and(individuals['age'].values>=21,individuals['age'].values<=30)),already_assigned)]
+                possible_list2 = individuals.iloc[np.setdiff1d(np.where(np.logical_and(individuals['age'].values>=45,individuals['age'].values<=55)),already_assigned)]
+                possible_list3 = individuals.iloc[np.setdiff1d(np.where(individuals['age'].values>=65),already_assigned)]
+                possible_list4 = individuals.iloc[np.setdiff1d(np.where(individuals['age'].values<=20),already_assigned)]
+                if (len(possible_list1)>=4) and (len(possible_list2)>=2) and (len(possible_list3)>=2) and (len(possible_list4)>=4):
+                    choose_index = np.random.choice(len(possible_list1),4, replace=False)
+                    for j in range(0,len(choose_index)):
+                        already_assigned.append(int(possible_list1.iloc[choose_index[j]]['id']))
+                        individuals.at[int(possible_list1.iloc[choose_index[j]]['id']),'household']=int(i)
+                        households.at[i,'individuals'].append(int(possible_list1.iloc[choose_index[j]]['id']))
+                        households.at[i,'flag']=1
+    
+                    choose_index = np.random.choice(len(possible_list2),2, replace=False)
+                    for j in range(0,len(choose_index)):
+                        already_assigned.append(int(possible_list2.iloc[choose_index[j]]['id']))
+                        individuals.at[int(possible_list2.iloc[choose_index[j]]['id']),'household']=int(i)
+                        households.at[i,'individuals'].append(int(possible_list2.iloc[choose_index[j]]['id']))
+                        households.at[i,'flag']=1
+    
+                    choose_index = np.random.choice(len(possible_list3),2, replace=False)
+                    for j in range(0,len(choose_index)):
+                        already_assigned.append(int(possible_list3.iloc[choose_index[j]]['id']))
+                        individuals.at[int(possible_list3.iloc[choose_index[j]]['id']),'household']=int(i)
+                        households.at[i,'individuals'].append(int(possible_list3.iloc[choose_index[j]]['id']))
+                        households.at[i,'flag']=1
+                        
+                    choose_index = np.random.choice(len(possible_list4),4, replace=False)
+                    for j in range(0,len(choose_index)):
+                        already_assigned.append(int(possible_list4.iloc[choose_index[j]]['id']))
+                        individuals.at[int(possible_list4.iloc[choose_index[j]]['id']),'household']=int(i)
+                        households.at[i,'individuals'].append(int(possible_list4.iloc[choose_index[j]]['id']))
+                        households.at[i,'flag']=1
+    	                                   
+            elif households['people staying'].values[i] == 13:
+                possible_list1 = individuals.iloc[np.setdiff1d(np.where(np.logical_and(individuals['age'].values>=21,individuals['age'].values<=30)),already_assigned)]
+                possible_list2 = individuals.iloc[np.setdiff1d(np.where(np.logical_and(individuals['age'].values>=45,individuals['age'].values<=55)),already_assigned)]
+                possible_list3 = individuals.iloc[np.setdiff1d(np.where(individuals['age'].values>=65),already_assigned)]
+                possible_list4 = individuals.iloc[np.setdiff1d(np.where(individuals['age'].values<=20),already_assigned)]
+                if (len(possible_list1)>=4) and (len(possible_list2)>=2) and (len(possible_list3)>=3) and (len(possible_list4)>=4):
+                    choose_index = np.random.choice(len(possible_list1),4, replace=False)
+                    for j in range(0,len(choose_index)):
+                        already_assigned.append(int(possible_list1.iloc[choose_index[j]]['id']))
+                        individuals.at[int(possible_list1.iloc[choose_index[j]]['id']),'household']=int(i)
+                        households.at[i,'individuals'].append(int(possible_list1.iloc[choose_index[j]]['id']))
+                        households.at[i,'flag']=1
+    
+                    choose_index = np.random.choice(len(possible_list2),2, replace=False)
+                    for j in range(0,len(choose_index)):
+                        already_assigned.append(int(possible_list2.iloc[choose_index[j]]['id']))
+                        individuals.at[int(possible_list2.iloc[choose_index[j]]['id']),'household']=int(i)
+                        households.at[i,'individuals'].append(int(possible_list2.iloc[choose_index[j]]['id']))
+                        households.at[i,'flag']=1
+    
+                    choose_index = np.random.choice(len(possible_list3),3, replace=False)
+                    for j in range(0,len(choose_index)):
+                        already_assigned.append(int(possible_list3.iloc[choose_index[j]]['id']))
+                        individuals.at[int(possible_list3.iloc[choose_index[j]]['id']),'household']=int(i)
+                        households.at[i,'individuals'].append(int(possible_list3.iloc[choose_index[j]]['id']))
+                        households.at[i,'flag']=1
+                        
+                    choose_index = np.random.choice(len(possible_list4),4, replace=False)
+                    for j in range(0,len(choose_index)):
+                        already_assigned.append(int(possible_list4.iloc[choose_index[j]]['id']))
+                        individuals.at[int(possible_list4.iloc[choose_index[j]]['id']),'household']=int(i)
+                        households.at[i,'individuals'].append(int(possible_list4.iloc[choose_index[j]]['id']))
+                        households.at[i,'flag']=1
+            elif households['people staying'].values[i] == 14:
+                possible_list1 = individuals.iloc[np.setdiff1d(np.where(np.logical_and(individuals['age'].values>=21,individuals['age'].values<=30)),already_assigned)]
+                possible_list2 = individuals.iloc[np.setdiff1d(np.where(np.logical_and(individuals['age'].values>=45,individuals['age'].values<=55)),already_assigned)]
+                possible_list3 = individuals.iloc[np.setdiff1d(np.where(individuals['age'].values>=65),already_assigned)]
+                possible_list4 = individuals.iloc[np.setdiff1d(np.where(individuals['age'].values<=20),already_assigned)]
+                if (len(possible_list1)>=5) and (len(possible_list2)>=2) and (len(possible_list3)>=3) and (len(possible_list4)>=4):
+                    choose_index = np.random.choice(len(possible_list1),5, replace=False)
+                    for j in range(0,len(choose_index)):
+                        already_assigned.append(int(possible_list1.iloc[choose_index[j]]['id']))
+                        individuals.at[int(possible_list1.iloc[choose_index[j]]['id']),'household']=int(i)
+                        households.at[i,'individuals'].append(int(possible_list1.iloc[choose_index[j]]['id']))
+                        households.at[i,'flag']=1
+    
+                    choose_index = np.random.choice(len(possible_list2),2, replace=False)
+                    for j in range(0,len(choose_index)):
+                        already_assigned.append(int(possible_list2.iloc[choose_index[j]]['id']))
+                        individuals.at[int(possible_list2.iloc[choose_index[j]]['id']),'household']=int(i)
+                        households.at[i,'individuals'].append(int(possible_list2.iloc[choose_index[j]]['id']))
+                        households.at[i,'flag']=1
+    
+                    choose_index = np.random.choice(len(possible_list3),3, replace=False)
+                    for j in range(0,len(choose_index)):
+                        already_assigned.append(int(possible_list3.iloc[choose_index[j]]['id']))
+                        individuals.at[int(possible_list3.iloc[choose_index[j]]['id']),'household']=int(i)
+                        households.at[i,'individuals'].append(int(possible_list3.iloc[choose_index[j]]['id']))
+                        households.at[i,'flag']=1
+                        
+                    choose_index = np.random.choice(len(possible_list4),4, replace=False)
+                    for j in range(0,len(choose_index)):
+                        already_assigned.append(int(possible_list4.iloc[choose_index[j]]['id']))
+                        individuals.at[int(possible_list4.iloc[choose_index[j]]['id']),'household']=int(i)
+                        households.at[i,'individuals'].append(int(possible_list4.iloc[choose_index[j]]['id']))
+                        households.at[i,'flag']=1
+    
+            elif households['people staying'].values[i] == 15:
+                possible_list1 = individuals.iloc[np.setdiff1d(np.where(np.logical_and(individuals['age'].values>=21,individuals['age'].values<=30)),already_assigned)]
+                possible_list2 = individuals.iloc[np.setdiff1d(np.where(np.logical_and(individuals['age'].values>=45,individuals['age'].values<=55)),already_assigned)]
+                possible_list3 = individuals.iloc[np.setdiff1d(np.where(individuals['age'].values>=65),already_assigned)]
+                possible_list4 = individuals.iloc[np.setdiff1d(np.where(individuals['age'].values<=20),already_assigned)]
+                if (len(possible_list1)>=6) and (len(possible_list2)>=2) and (len(possible_list3)>=3) and (len(possible_list4)>=4):
+                    choose_index = np.random.choice(len(possible_list1),6, replace=False)
+                    for j in range(0,len(choose_index)):
+                        already_assigned.append(int(possible_list1.iloc[choose_index[j]]['id']))
+                        individuals.at[int(possible_list1.iloc[choose_index[j]]['id']),'household']=int(i)
+                        households.at[i,'individuals'].append(int(possible_list1.iloc[choose_index[j]]['id']))
+                        households.at[i,'flag']=1
+    
+                    choose_index = np.random.choice(len(possible_list2),2, replace=False)
+                    for j in range(0,len(choose_index)):
+                        already_assigned.append(int(possible_list2.iloc[choose_index[j]]['id']))
+                        individuals.at[int(possible_list2.iloc[choose_index[j]]['id']),'household']=int(i)
+                        households.at[i,'individuals'].append(int(possible_list2.iloc[choose_index[j]]['id']))
+                        households.at[i,'flag']=1
+    
+                    choose_index = np.random.choice(len(possible_list3),3, replace=False)
+                    for j in range(0,len(choose_index)):
+                        already_assigned.append(int(possible_list3.iloc[choose_index[j]]['id']))
+                        individuals.at[int(possible_list3.iloc[choose_index[j]]['id']),'household']=int(i)
+                        households.at[i,'individuals'].append(int(possible_list3.iloc[choose_index[j]]['id']))
+                        households.at[i,'flag']=1
+                        
+                    choose_index = np.random.choice(len(possible_list4),4, replace=False)
+                    for j in range(0,len(choose_index)):
+                        already_assigned.append(int(possible_list4.iloc[choose_index[j]]['id']))
+                        individuals.at[int(possible_list4.iloc[choose_index[j]]['id']),'household']=int(i)
+                        households.at[i,'individuals'].append(int(possible_list4.iloc[choose_index[j]]['id']))
+                        households.at[i,'flag']=1                                   
+                        
+    # assign unassigned individuals to households
 
     unassigned_individuals_ids =  individuals.loc[individuals['household']==-1]['id'].values
     unassigned_households_ids = households.loc[households['flag']==0]['id'].values
+    # first look for any unoccupied household
     for i in range(0,len(unassigned_households_ids)):
         #print(i)
         #print(len(unassigned_individuals_ids)>=households.loc[i]['people staying'])
@@ -174,25 +489,26 @@ def assign_individuals_to_houses(targetPopulation, wards, totalHousehold, ageDis
 
     unassigned_households_ids = households.loc[households['flag']==0]['id'].values
 
+    # if any more unassigned individuals, randomly assign them to houses and increase the household size
 
-if len(unassigned_individuals_ids)>0:
-    if len(unassigned_households_ids)>0:
-        for j in range(0,len(unassigned_individuals_ids)):
-            house_index = np.random.choice(len(unassigned_households_ids))
-            individuals.at[unassigned_individuals_ids[j],'household'] = unassigned_households_ids[house_index]
-            #households.at[unassigned_households_ids[house_index],'people staying'] = households.loc[house_index,'people staying'] + 1
-            households.at[unassigned_households_ids[house_index],'flag'] = 1
-            households.at[unassigned_households_ids[house_index], 'individuals'].append(unassigned_individuals_ids[j])
-    else:
-        house_indices =  np.random.choice(len(households),len(unassigned_individuals_ids), replace=False)
-        for j in range(0,len(unassigned_individuals_ids)):
-            households.at[house_indices[j],'people staying'] = households.loc[house_indices[j],'people staying']+1
-            households.at[house_indices[j],'individuals'].append(unassigned_individuals_ids[j])
-            individuals.at[unassigned_individuals_ids[j],'household']=house_indices[j]
-            households.at[house_indices[j],'flag'] = 1
-            households.at[house_indices[j], 'individuals'].append(unassigned_individuals_ids[j])
+    if len(unassigned_individuals_ids)>0:
+        if len(unassigned_households_ids)>0:
+            for j in range(0,len(unassigned_individuals_ids)):
+                house_index = np.random.choice(len(unassigned_households_ids))
+                individuals.at[unassigned_individuals_ids[j],'household'] = unassigned_households_ids[house_index]
+                #households.at[unassigned_households_ids[house_index],'people staying'] = households.loc[house_index,'people staying'] + 1
+                households.at[unassigned_households_ids[house_index],'flag'] = 1
+                households.at[unassigned_households_ids[house_index], 'individuals'].append(unassigned_individuals_ids[j])
+        else:
+            house_indices =  np.random.choice(len(households),len(unassigned_individuals_ids), replace=False)
+            for j in range(0,len(unassigned_individuals_ids)):
+                households.at[house_indices[j],'people staying'] = households.loc[house_indices[j],'people staying']+1
+                households.at[house_indices[j],'individuals'].append(unassigned_individuals_ids[j])
+                individuals.at[unassigned_individuals_ids[j],'household']=house_indices[j]
+                households.at[house_indices[j],'flag'] = 1
+                households.at[house_indices[j], 'individuals'].append(unassigned_individuals_ids[j])
 
-unassigned_households_ids = households.loc[households['flag']==0]['id'].values
-households = households.loc[households['flag']!=0]
+    unassigned_households_ids = households.loc[households['flag']==0]['id'].values
+    households = households.loc[households['flag']!=0]
     individuals['household']=individuals['household'].astype(int)
     return individuals, households
