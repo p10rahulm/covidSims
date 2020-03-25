@@ -97,7 +97,6 @@ def assign_schools_and_workplaces(wardNeighbors, workplaces, schools, individual
     schools.insert(2,"students", [[] for x in range(0,S)])
     schools.insert(3,"strength", [0 for x in range(0,S)])
     schools.insert(4,"capacity", np.random.choice(schoolsize_values, S, p=schoolsize_distribution))
-    schools.insert(5,"students", [[] for x in range(0,S)])
 
     workDistance = []
 
@@ -135,7 +134,7 @@ def assign_schools_and_workplaces(wardNeighbors, workplaces, schools, individual
                 workplaces.at[workplaces.loc[workplaces['ID']==int(add_to_workplace_id),'ID'].index[0],'workforce'] = workplaces.loc[workplaces.loc[workplaces['ID']==int(add_to_workplace_id),'ID'].index[0],'workforce']+1
                 workplaces.at[workplaces.loc[workplaces['ID']==int(add_to_workplace_id),'ID'].index[0],'workers'].append(i)
                 already_assigned.append(i)
-        # individuals to schools - this is done randomly now, Sarath will make sure that marginals are consistent
+        # individuals to schools 
         elif individuals.loc[i,'age']<=21 and individuals.loc[i,'age']>=5:
             studentforce.append(i)
             lat = individuals.loc[i,'lat']
@@ -154,7 +153,7 @@ def assign_schools_and_workplaces(wardNeighbors, workplaces, schools, individual
                 schools.at[schools.loc[schools['ID']==possible_school_id[index]].index[0],'strength'] = schools.loc[schools.loc[schools['ID']==possible_school_id[index]].index[0],'strength'] +1 
                 already_assigned_students.append(i)
                 
-    # randomly assign unassigned individuals to workplaces
+    # randomly assign unassigned individuals to workplaces and schools
     # first check for workplaces that are not full
     for i in range(0,len(workplaces)):
         if workplaces.loc[i,'capacity'] > workplaces.loc[i,'workforce']:
@@ -177,7 +176,7 @@ def assign_schools_and_workplaces(wardNeighbors, workplaces, schools, individual
                     already_assigned_students.append(add_to_school_id[j])
                     schools.at[i,'students'].append(add_to_school_id[j])
                     schools.at[i,'strength'] = schools.loc[i,'strength']+1
-    # if anyone has unassigned workplace or home, assign it randomly
+    # if anyone has unassigned workplace or school, assign him/her randomly
     for i in range(0,len(individuals)):
         if individuals.loc[i,'age']>=22 and individuals.loc[i,'age']<=55 and (not i in already_assigned):
             lat = individuals.loc[i,'lat']
