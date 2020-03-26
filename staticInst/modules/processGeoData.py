@@ -61,23 +61,23 @@ def commonAreaLocation(geoDF):
   cc['lat'] = cc.apply(lambda row: row['location'][1], axis=1)
   cc['lon'] = cc.apply(lambda row: row['location'][0], axis=1)
   cc = cc.sort_values(by=['ward']) #sort dataframe by wardNo
-  return cc[['ward','lat', 'lon', 'location']]
+  return cc[['ward','lat', 'lon']]
 
 #assign houses across the wards randomly per ward
 def houseLocation(demographics, individuals, households):
   houseNumbers = individuals['household'].values
   #ward assignments based on ID column
   wardBounds = demographics.copy()
-  wardBounds = wardBounds.rename(columns={"wardNo": "Ward No"})
-  wardBounds = wardBounds[['Ward No', 'wardBounds']] #sorted by ward numbers
-  households = pd.merge(households, wardBounds, on=['Ward No'])
+  # wardBounds = wardBounds.rename(columns={"wardNo": "Ward No"})
+  wardBounds = wardBounds[['wardNo', 'wardBounds']] #sorted by ward numbers
+  households = pd.merge(households, wardBounds, on=['wardNo'])
 
   households['location'] = households.apply(lambda row: (np.random.choice([row['wardBounds'][0],row['wardBounds'][2]]), np.random.choice([row['wardBounds'][1], row['wardBounds'][3]])), axis=1)
   households['lat'] = households.apply(lambda row: row['location'][1], axis=1)
   households['lon'] = households.apply(lambda row: row['location'][0], axis=1)
   households['household'] = households['id'].values
-  individuals = pd.merge(individuals, households[['household', 'Ward No', 'lat', 'lon']], on='household')
-  individuals = individuals.rename(columns={"Ward No": "ward"})
+  individuals = pd.merge(individuals, households[['household', 'wardNo', 'lat', 'lon']], on='household')
+  # individuals = individuals.rename(columns={"Ward No": "ward"})
   individuals = individuals.sort_values(by=['id'])
   households = households.sort_values(by=['id'])
   return households, individuals
@@ -97,7 +97,8 @@ def schoolLocation(demographics, averageStudents):
 
   ward = []
   location = []
-
+  lat = []
+  lon = []
   for i in range(len(wards)):
       lon1 = bounds[i][0]
       lat1 = bounds[i][1]
@@ -106,13 +107,17 @@ def schoolLocation(demographics, averageStudents):
 
       for house in range(totalSchools[i]):
           ward.append(i+1)
-          location.append((uniform(lon1, lon2), uniform(lat1, lat2)))
+          lt = uniform(lat1, lat2)
+          ln = uniform(lon1, lon2) 
+          location.append((ln ,lt ))
+          lat.append(lt)
+          lon.append(ln)
 
   schools['ward'] = ward
   schools['location'] = location
   schools = schools.reset_index()
   schools = schools.rename(columns={"index":"ID"})
-  return(schools)
+  return schools[['ID', 'ward', 'lat', 'lon']]
 
 #assign location to workplaces
 def workplaceLocation(geoDF, schools, workplaceNeeded):
@@ -156,4 +161,4 @@ def workplaceLocation(geoDF, schools, workplaceNeeded):
   workplaces['ID'] = workplaceID
   workplaces = workplaces.sort_values(by=['ID'])
 
-  return workplaces
+  return workplaces[['ID', 'ward', 'lat', 'lon']]
