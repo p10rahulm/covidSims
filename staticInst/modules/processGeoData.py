@@ -9,16 +9,41 @@ import geopandas as gpd
 from random import choice, uniform
 from scipy.spatial.distance import pdist, squareform
 from shapely.geometry import Point, MultiPolygon
-
+import math
 #return geojson
 def getGeojson(geoDF, filepath):
   geoDF.to_file(filepath, driver='GeoJSON')
 
+def polar_to_cartesian(row):
+  R = 6371
+  lat = row['lat']*np.pi/180
+  lon = row['lon']*np.pi/180
+  x = R*math.cos(lat)*math.cos(lon)
+  y = R*math.cos(lat)*math.sin(lon)
+  z = R*math.sin(lat)
+  return x, y, z
 #compute ward-centre distance matrix
 def computeWardCentreDistance(geoDF, filepath):
+  R = 6371
+ 
   ccMatrix = geoDF[['wardNo', 'wardCentre']]
-  ccMatrix[['lon', 'lat']] = pd.DataFrame(ccMatrix['wardCentre'].tolist(), index=ccMatrix.index) 
-  ccMatrix = pd.DataFrame(squareform(pdist(ccMatrix.iloc[:, 2:])), columns=ccMatrix.wardNo.unique(), index=ccMatrix.wardNo.unique())
+  ccMatrix[['lon', 'lat']] = pd.DataFrame(ccMatrix['wardCentre'].tolist(), index=ccMatrix.index)
+  temp = ccMatrix.copy()
+  temp['x'] = 0
+  temp['y'] = 0
+  temp['z'] = 0
+  temp['x'] = temp.apply(polar_to_cartesian,axis = 1)
+  temp[['x', 'y','z']] = pd.DataFrame(temp['x'].tolist(), index=temp.index)
+ 
+  print(temp)
+  print("pdist out = ", pdist(temp[['x', 'y','z']]))
+  print("squareform out = ", squareform(pdist(temp[['x', 'y','z']])))
+  temp = temp.sort_values("wardNo")
+  ccMatrix = pd.DataFrame(squareform(pdist(temp[['x', 'y','z']])), columns=temp.wardNo.unique(), index=temp.wardNo.unique())
+  ccMatrix = ccMatrix.reset_index()
+   
+  ccMatrix = ccMatrix.rename(columns={"index":"ID"})
+  print(ccMatrix[:5])
   ccMatrix.to_json(filepath, orient="records")
 
 #parsing geojson and using geometry of wards to compute ward centre and bounds
