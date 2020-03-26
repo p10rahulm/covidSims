@@ -8,6 +8,7 @@ import pandas as pd
 import math
 import scipy.stats as stats
 
+
 wards = None #global variable to hold the wards DF
 
 # findout neighbours of a given ward
