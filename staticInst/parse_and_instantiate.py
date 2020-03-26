@@ -62,7 +62,7 @@ def instantiate(city, targetPopulation, averageStudents, averageWorkforce, avera
 	commonArea = commonAreaLocation(cityGeoDF)
 	schools = schoolLocation(cityDemographicsDF,  averageStudents)
 	workplaces = workplaceLocation(cityGeoDF, schools, workplaceNeeded)
-	exit()
+
 	#assignment of individuals to households
 	print("instantiating individuals and households...")
 	individuals, households = assign_individuals_to_houses(targetPopulation, totalNumberOfWards, averageHouseholds, ageDistribution, householdDistribution)
