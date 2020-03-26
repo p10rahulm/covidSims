@@ -28,22 +28,18 @@ def computeWardCentreDistance(geoDF, filepath):
  
   ccMatrix = geoDF[['wardNo', 'wardCentre']]
   ccMatrix[['lon', 'lat']] = pd.DataFrame(ccMatrix['wardCentre'].tolist(), index=ccMatrix.index)
-  temp = ccMatrix.copy()
-  temp['x'] = 0
-  temp['y'] = 0
-  temp['z'] = 0
-  temp['x'] = temp.apply(polar_to_cartesian,axis = 1)
-  temp[['x', 'y','z']] = pd.DataFrame(temp['x'].tolist(), index=temp.index)
  
-  print(temp)
-  print("pdist out = ", pdist(temp[['x', 'y','z']]))
-  print("squareform out = ", squareform(pdist(temp[['x', 'y','z']])))
-  temp = temp.sort_values("wardNo")
-  ccMatrix = pd.DataFrame(squareform(pdist(temp[['x', 'y','z']])), columns=temp.wardNo.unique(), index=temp.wardNo.unique())
+  ccMatrix['x'] = 0
+  ccMatrix['y'] = 0
+  ccMatrix['z'] = 0
+  ccMatrix['x'] = ccMatrix.apply(polar_to_cartesian,axis = 1)
+  ccMatrix[['x', 'y','z']] = pd.DataFrame(ccMatrix['x'].tolist(), index=ccMatrix.index)
+ 
+  ccMatrix = ccMatrix.sort_values("wardNo")
+  ccMatrix = pd.DataFrame(squareform(pdist(ccMatrix[['x', 'y','z']])), columns=ccMatrix.wardNo.unique(), index=ccMatrix.wardNo.unique())
   ccMatrix = ccMatrix.reset_index()
    
   ccMatrix = ccMatrix.rename(columns={"index":"ID"})
-  print(ccMatrix[:5])
   ccMatrix.to_json(filepath, orient="records")
 
 #parsing geojson and using geometry of wards to compute ward centre and bounds
