@@ -8,6 +8,7 @@ import pandas as pd
 import math
 import scipy.stats as stats
 
+
 wards = None #global variable to hold the wards DF
 
 # findout neighbours of a given ward
@@ -15,9 +16,6 @@ def neighbouring_wards_ids(input_ward):
     global ward
     return np.array(str.split(wards.loc[wards['wardNo']==input_ward,'neighbors'].values[0],','),dtype=int)
     
-# compute Euclidean distance    
-def distance(lat1, long1, lat2, long2):
-    return np.sqrt((lat1 - lat2)**2 + (long1-long2)**2)
 # compute haversine distance
 def distance(lat1, lon1, lat2, lon2):
     radius = 6371 # km
