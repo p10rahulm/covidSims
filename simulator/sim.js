@@ -19,7 +19,7 @@ const CASE_ISOLATION = 1
 const HOME_QUARANTINE = 2
 const LOCKDOWN = 3
 
-INTERVENTION = HOME_QUARANTINE;
+INTERVENTION = NO_INTERVENTION;
 
 
 const SUSCEPTIBLE = 0
@@ -538,6 +538,7 @@ function euclidean(loc1,loc2) {
 
 
 function compute_community_distances(communities){
+	var inter_ward_distances_json = JSON.parse(loadJSON_001('bangalore_cc.json'));
 
 	 var community_dist_matrix = math.zeros([communities.length,communities.length]);
 	/// console.log(community_dist_matrix)
@@ -546,8 +547,20 @@ function compute_community_distances(communities){
 			/// console.log(communities[c1]['loc'],communities[c2]['loc'])
 			 community_dist_matrix[c1][c2] = euclidean(communities[c1]['loc'],communities[c2]['loc']); 
 			 community_dist_matrix[c2][c1] = community_dist_matrix[c1][c2];
+			 
 		 }
 	 }
+	 /*
+	 for (var c1 =0; c1< inter_ward_distances_json.length;c1++){
+		for (var c2=c1+1; c2<inter_ward_distances_json.length;c2++){
+		   /// console.log(communities[c1]['loc'],communities[c2]['loc'])
+			community_dist_matrix[c1][c2] = inter_ward_distances_json[c1][(c2+1).toString()]; 
+			community_dist_matrix[c2][c1] = community_dist_matrix[c1][c2];
+			
+		}
+	}
+	*/
+
 	 return community_dist_matrix;
 }
 
@@ -1009,15 +1022,17 @@ function plot_simulation(days_num_infected,plot_element,title_1,title_2) {
 }
 
 function run_and_plot() {
-    var returned_values 
+	var returned_values 
+	INTERVENTION = NO_INTERVENTION
 	returned_values = run_simulation();
-	plot_simulation(returned_values[6],'num_affected_plot','Number Affected','Evolution of Affected Population');
-	plot_simulation(returned_values[0],'num_infected_plot','Number Infected','Evolution of Infected Population');
-	plot_simulation(returned_values[1],'num_exposed_plot','Number Exposed','Evolution of Exposed Population');
-	plot_simulation(returned_values[2],'num_hospitalised_plot','Number Hospitalised','Evolution of Hospitalised Population');
-	plot_simulation(returned_values[3],'num_critical_plot','Number Crtitical','Evolution of Crtitical Population');
-	plot_simulation(returned_values[4],'num_fatalities_plot','Number Fatalities','Evolution of Fatalities Population');
-	plot_simulation(returned_values[5],'num_recovered_plot','Number Recovered','Evolution of Recovered Population');
+	
+	plot_plotly([returned_values[6]],'num_affected_plot_2','Number Affected','Evolution of Affected Population');
+	plot_plotly([returned_values[0]],'num_infected_plot_2','Number Infected','Evolution of Infected Population');
+	plot_plotly([returned_values[1]],'num_exposed_plot_2','Number Exposed','Evolution of Exposed Population');
+	plot_plotly([returned_values[2]],'num_hospitalised_plot_2','Number Hospitalised','Evolution of Hospitalised Population');
+	plot_plotly([returned_values[3]],'num_critical_plot_2','Number Crtitical','Evolution of Crtitical Population');
+	plot_plotly([returned_values[4]],'num_fatalities_plot_2','Number Fatalities','Evolution of Fatalities Population');
+	plot_plotly([returned_values[5]],'num_recovered_plot_2','Number Recovered','Evolution of Recovered Population');
 	
 	var encodedUri = encodeURI(csvContent);
     var link = document.createElement("a");
@@ -1034,10 +1049,110 @@ function run_and_plot() {
     document.body.appendChild(link); // Required for FF
 
 	link.click();	
+	
 
 }
+
+function plot_plotly(data,plot_position,title_text,legends){
+
+	var trace = [];
+
+	for (var count = 0; count < data.length;count++){
+		var trace1 = {
+			x: [],
+			y: [],
+			mode: 'lines',
+			name: legends[count]
+		  };
+		  for (var count2 = 0; count2 < data[count].length;count2++){
+			  trace1.x.push(data[count][count2][0]);
+			  trace1.y.push(data[count][count2][1]);
+
+		  }
+		  trace.push(trace1)
+	}
+	
+	  
+	  var data_plot = trace;
+	  
+	  var layout = {
+		title: {
+		  text: title_text,
+		  font: {
+			family: 'Courier New, monospace',
+			size: 24
+		  },
+		  xref: 'paper',
+		  x: 0.05,
+		},
+		xaxis: {
+		  title: {
+			text: 'Days',
+			font: {
+			  family: 'Courier New, monospace',
+			  size: 18,
+			  color: '#7f7f7f'
+			}
+		  },
+		},
+		yaxis: {
+		  title: {
+			text: title_text,
+			font: {
+			  family: 'Courier New, monospace',
+			  size: 18,
+			  color: '#7f7f7f'
+			}
+		  }
+		}
+	  };
+	  
+	  
+	  Plotly.newPlot(plot_position, data_plot, layout);
+}
+
+function run_and_plot_2() {
+	var interventions = [NO_INTERVENTION,CASE_ISOLATION,HOME_QUARANTINE]
+	var returned_values = []
+	var legends = ['No Intervention','Case Isolation','Home Quarantine'];
+
+	for (var count = 0; count < interventions.length;count++){
+		INTERVENTION = interventions[count];
+		returned_values.push(run_simulation());
+	}
+	
+	
+
+	
+	plot_plotly([returned_values[0][6],returned_values[1][6],returned_values[2][6]],'num_affected_plot','Number Affected',legends);
+	plot_plotly([returned_values[0][0],returned_values[1][0],returned_values[2][0]],'num_infected_plot','Number Infected',legends);
+	plot_plotly([returned_values[0][1],returned_values[1][1],returned_values[2][1]],'num_exposed_plot','Number Exposed',legends);
+	plot_plotly([returned_values[0][2],returned_values[1][2],returned_values[2][2]],'num_hospitalised_plot','Number Hospitalised',legends);
+	plot_plotly([returned_values[0][3],returned_values[1][3],returned_values[2][3]],'num_critical_plot','Number Crtitical',legends);
+	plot_plotly([returned_values[0][4],returned_values[1][4],returned_values[2][4]],'num_fatalities_plot','Number Fatalities',legends);
+	plot_plotly([returned_values[0][5],returned_values[1][5],returned_values[2][5]],'num_recovered_plot','Number Recovered',legends);
+	
+	var encodedUri = encodeURI(csvContent);
+    var link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "my_data.csv");
+    document.body.appendChild(link); // Required for FF
+
+	//link.click();	//TODO: Instead of click link, add link for download on page.
+
+	encodedUri = encodeURI(csvContent_alltogether);
+    link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "my_data_all_together.csv");
+    document.body.appendChild(link); // Required for FF
+
+	//link.click();	
+
+}
+
 
 
 //Main function
 
 run_and_plot();
+//run_and_plot_2();

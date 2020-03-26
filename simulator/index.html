@@ -41,22 +41,50 @@
             a:visited {
                 color: #005999;
             }
+            .column {
+                float: left;
+                width: 45%;
+                padding: 15px;
+            }
+
+            /* Clear floats after the columns */
+            .row:after {
+                content: "";
+                display: table;
+                clear: both;
+            }
         </style>
     </head>
     <body>
-        <div class="content">
+        <div class="row">
             <h1>Coronavirus Pandemic Analysis</h1>
-			<div id="status"></div>
-			<div id="num_affected_plot"></div>
-            <div id="num_infected_plot"></div>
-            <div id="num_exposed_plot"></div>
-            <div id="num_hospitalised_plot"></div>
-            <div id="num_critical_plot"></div>
-            <div id="num_fatalities_plot"></div>
-            <div id="num_recovered_plot"></div>
-            <div id="plotly_tester"></div>
+            <div class="column">
+                
+                <div id="status"></div>
+                <div id="num_affected_plot"></div>
+                <div id="num_infected_plot"></div>
+                <div id="num_exposed_plot"></div>
+                <div id="num_hospitalised_plot"></div>
+                <div id="num_critical_plot"></div>
+                <div id="num_fatalities_plot"></div>
+                <div id="num_recovered_plot"></div>
+                
+            </div>
+            <div class="column">
+                
+                <div id="status"></div>
+                <div id="num_affected_plot_2"></div>
+                <div id="num_infected_plot_2"></div>
+                <div id="num_exposed_plot_2"></div>
+                <div id="num_hospitalised_plot_2"></div>
+                <div id="num_critical_plot_2"></div>
+                <div id="num_fatalities_plot_2"></div>
+                <div id="num_recovered_plot_2"></div>
+                
+            </div>
         </div>
         <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/6.6.1/math.js"></script>
         <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/jstat@latest/dist/jstat.min.js"></script>
         <script type="text/javascript" src="random-0.26.js"></script>
