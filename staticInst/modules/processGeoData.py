@@ -115,6 +115,8 @@ def schoolLocation(demographics, averageStudents):
 
   schools['ward'] = ward
   schools['location'] = location
+  schools['lat'] = lat
+  schools['lon'] = lon
   schools = schools.reset_index()
   schools = schools.rename(columns={"index":"ID"})
   return schools[['ID', 'ward', 'lat', 'lon']]
