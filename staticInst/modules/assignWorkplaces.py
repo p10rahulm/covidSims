@@ -5,6 +5,7 @@ ___author__ = "Sarath"
 
 import numpy as np
 import pandas as pd 
+import math
 import scipy.stats as stats
 
 wards = None #global variable to hold the wards DF
@@ -17,7 +18,19 @@ def neighbouring_wards_ids(input_ward):
 # compute Euclidean distance    
 def distance(lat1, long1, lat2, long2):
     return np.sqrt((lat1 - lat2)**2 + (long1-long2)**2)
-    
+# compute haversine distance
+def distance(lat1, lon1, lat2, lon2):
+    radius = 6371 # km
+
+    dlat = math.radians(lat2-lat1)
+    dlon = math.radians(lon2-lon1)
+    a = math.sin(dlat/2) * math.sin(dlat/2) + math.cos(math.radians(lat1)) \
+        * math.cos(math.radians(lat2)) * math.sin(dlon/2) * math.sin(dlon/2)
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+    d = radius * c
+
+    return d
+
 # findout possible wokrplaces for an individual by looking at nearby wards
 def possible_workplaces_ids(input_ward, workplaces):
     neighbouring_wards = neighbouring_wards_ids(input_ward)
