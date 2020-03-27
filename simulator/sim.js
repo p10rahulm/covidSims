@@ -133,9 +133,9 @@ function init_nodes() {
 			'severity': (Math.random() <0.5)?1:0, // a.k.a. S_k
 			'home': individuals_json[i]['household'], 
 			'workplace': individuals_json[i]['workplaceType']==1? individuals_json[i]['workplace']:individuals_json[i]['school'],
-			'community': individuals_json[i]['ward'],
+			'community': individuals_json[i]['wardNo'],
 			'time_of_infection': 0,
-			'infection_status': (Math.random() <COMMUNITY_INFECTION_PROB[individuals_json[i]['ward']])?1:0, //random seeding
+			'infection_status': (Math.random() <COMMUNITY_INFECTION_PROB[individuals_json[i]['wardNo']])?1:0, //random seeding
 			'infective': 0,
 			'lambda_h': 0, //individuals contribution to his home cluster
 			'lambda_w': 0, //individuals contribution to his workplace cluster
@@ -425,7 +425,7 @@ function init_homes(){
 	var homes = [];
 	for (var h=0; h < NUM_HOMES; h++) {
 		var home = {
-			'loc': [houses_json[h]['location'][1],houses_json[h]['location'][0]], // [lat, long],
+			'loc': [houses_json[h]['lat'],houses_json[h]['lon']], // [lat, long],
 			'lambda_home': 0,
 			'individuals': [], // We will populate this later
 			'Q_h': 1,
@@ -456,7 +456,7 @@ function init_workplaces(){
 
 	for (var w=0; w < NUM_SCHOOLS; w++) {
 		var workplace = {			
-			'loc':  [schools_json[w]['location'][1],schools_json[w]['location'][0]], // [lat, long],
+			'loc':  [schools_json[w]['lat'],schools_json[w]['lon']], // [lat, long],
 			'lambda_workplace': 0, 
 			'individuals': [], //get_individuals_at_workplace(nodes, w), // Populate with individuals in same workplace
 			'Q_w': 1,
@@ -469,7 +469,7 @@ function init_workplaces(){
 
 	for (var w=0; w < NUM_WORKPLACES; w++) {
 		var workplace = {			
-			'loc':  [workplaces_json[w]['location'][1],workplaces_json[w]['location'][0]], // [lat, long],
+			'loc':  [workplaces_json[w]['lat'],workplaces_json[w]['lon']], // [lat, long],
 			'lambda_workplace': 0, 
 			'individuals': [], //get_individuals_at_workplace(nodes, w), // Populate with individuals in same workplace
 			'Q_w': 1,
@@ -485,8 +485,8 @@ function init_workplaces(){
 
 function compare_wards(a, b) {
 	// Function to sort wards
-	const wardA = a["Ward No."];
-	const wardB = b["Ward No."];
+	const wardA = a["wardNo"];
+	const wardB = b["wardNo"];
   
 	let comparison = 0;
 	if (wardA > wardB) {
@@ -511,7 +511,7 @@ function init_community(){
 	for (var c=0; c < NUM_COMMUNITIES; c++) {
 		var community = {
 			
-			'loc':  [communities_json[c]['location'][1],communities_json[c]['location'][0]], // [lat, long]
+			'loc':  [communities_json[c]['lat'],communities_json[c]['lon']], // [lat, long]
 			'lambda_community': 0,
 			'lambda_community_global': 0,  
 			'individuals': [], // We will populate this later
@@ -594,6 +594,7 @@ function assign_individual_home_community(nodes,homes,workplaces,communities){
 	//Assign individuals to homes, workplace, community
 	for (var i=0; i < nodes.length; i++) {
 		if(nodes[i]['home']!== null) 	{
+		
 			homes[nodes[i]['home']]['individuals'].push(i); //No checking for null as all individuals have a home
 			nodes[i]['compliant'] = homes[nodes[i]['home']]['compliant']; //All members of the household are set the same compliance value
 		}
