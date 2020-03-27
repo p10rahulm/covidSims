@@ -122,7 +122,7 @@ def validate_distributions(ageDistribution,householdDistribution,schoolsizeDistr
     HH_output_distribution = HH_numbers/sum(HH_numbers)
     plt.plot(HH_ranges,household_distribution)
     plt.plot(HH_ranges,HH_output_distribution,'r')
-    plt.xticks(np.arange(1,7,1), np.concatenate((np.array(household_sizes)[np.arange(0,5,1)], ['6+'])) )
+    plt.xticks(np.arange(1,16,1), np.concatenate((np.array(household_sizes)[np.arange(0,14,1)], ['15+'])) )
     plt.xlabel('Household size')
     plt.ylabel('Density')
     plt.title('Distribution of household size')
