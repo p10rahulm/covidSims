@@ -1,3 +1,6 @@
+//Copyright [2020] [Indian Institute of Science, Bangalore]
+//SPDX-License-Identifier: Apache-2.0
+
 
 //simulation inputs
 NUM_DAYS = 200; //Number of days. Simulation duration
@@ -19,7 +22,7 @@ const CASE_ISOLATION = 1
 const HOME_QUARANTINE = 2
 const LOCKDOWN = 3
 
-INTERVENTION = NO_INTERVENTION;
+INTERVENTION = NO_INTERVENTION; //run_and_plot() changes this
 
 
 const SUSCEPTIBLE = 0
@@ -37,6 +40,7 @@ const kappa_threshold1 = 4.5 * SIM_STEPS_PER_DAY; //OPTIMISE: Move this outside 
 const kappa_threshold2 = 5 * SIM_STEPS_PER_DAY;
 const kappa_threshold3 = 10* SIM_STEPS_PER_DAY;
 
+COMMUNITY_INFECTION_PROB=[];
 
 
 //age related transition probabilities
@@ -85,17 +89,34 @@ function compliance(){
 	return val;
 }
 
+
+function compute_prob_infection_given_community(infection_probability){
+
+	var prob_infec_given_community = [];
+	var communities_json = JSON.parse(loadJSON_001('commonArea.json'));
+	var num_communities = communities_json.length;
+	for (var w = 0; w < num_communities; w++){
+		prob_infec_given_community.push(infection_probability);
+		//prob_infec_given_community.push(infection_probability*ward_infection_distribution[w]/ward_population_distribution[w]);
+
+	}
+	return prob_infec_given_community;
+}
+
+
+
+
 function init_nodes() {
 
 	const MAX_EXPOSED_DAYS_AT_START = 4.5; //at the start of sim, the oldest exposed limit
 
-	var individuals_json = JSON.parse(loadJSON_001('bangalore_individuals.json'));
-	var workplace_json = JSON.parse(loadJSON_001('bangalore_workspaces.json'));
+	var individuals_json = JSON.parse(loadJSON_001('individuals.json'));
+	var workplace_json = JSON.parse(loadJSON_001('workplaces.json'));
 	//console.log(individuals_json.length,individuals_json[0]);
 	NUM_PEOPLE =individuals_json.length;
 	NUM_WORKPLACES = workplace_json.length;
 	//console.log("Num People", NUM_PEOPLE, "Num Workspaces",NUM_WORKPLACES)
-
+	COMMUNITY_INFECTION_PROB = compute_prob_infection_given_community(INIT_FRAC_INFECTED)
 
 	var nodes = [];
 	var stream1 = new Random(1234);
@@ -114,7 +135,7 @@ function init_nodes() {
 			'workplace': individuals_json[i]['workplaceType']==1? individuals_json[i]['workplace']:individuals_json[i]['school'],
 			'community': individuals_json[i]['ward'],
 			'time_of_infection': 0,
-			'infection_status': (Math.random() <INIT_FRAC_INFECTED)?1:0, //random seeding
+			'infection_status': (Math.random() <COMMUNITY_INFECTION_PROB[individuals_json[i]['ward']])?1:0, //random seeding
 			'infective': 0,
 			'lambda_h': 0, //individuals contribution to his home cluster
 			'lambda_w': 0, //individuals contribution to his workplace cluster
@@ -258,7 +279,7 @@ function kappa_H(node, cur_time){
 		case LOCKDOWN:
 			val = 1;
 			if(node['compliant']){
-				val=1.5;
+				val=2;
 			}
 			break;
 		default:
@@ -397,7 +418,7 @@ function compute_scale_communities(nodes, communities){
 
 function init_homes(){
 	
-	var houses_json = JSON.parse(loadJSON_001('bangalore_houses.json'));
+	var houses_json = JSON.parse(loadJSON_001('houses.json'));
 	// console.log("In init homes:",houses_json.length,houses_json[0]);
 	NUM_HOMES = houses_json.length;
 
@@ -421,11 +442,13 @@ function init_homes(){
 
 
 function init_workplaces(){
-	var workplaces_json = JSON.parse(loadJSON_001('bangalore_workspaces.json'));
-	var schools_json = JSON.parse(loadJSON_001('bangalore_schools.json'));
+	var workplaces_json = JSON.parse(loadJSON_001('workplaces.json'));
+	var schools_json = JSON.parse(loadJSON_001('schools.json'));
 	// console.log("In init workplaces:",workplaces_json.length,workplaces_json[0]);
 	NUM_WORKPLACES = workplaces_json.length;
 	NUM_SCHOOLS = schools_json.length;
+
+	
 	// console.log(NUM_WORKPLACES,NUM_SCHOOLS)
 
 	var workplaces = [];
@@ -478,7 +501,7 @@ function compare_wards(a, b) {
 
 function init_community(){
 
-	var communities_json = JSON.parse(loadJSON_001('bangalore_cc.json'));
+	var communities_json = JSON.parse(loadJSON_001('commonArea.json'));
 	// console.log("In init community",communities_json.length,communities_json);
 	communities_json.sort(compare_wards);
 	// console.log("In init community",communities_json.length,communities_json[0]['location']);
@@ -538,7 +561,7 @@ function euclidean(loc1,loc2) {
 
 
 function compute_community_distances(communities){
-	var inter_ward_distances_json = JSON.parse(loadJSON_001('bangalore_cc.json'));
+	var inter_ward_distances_json = JSON.parse(loadJSON_001('commonArea.json'));
 
 	 var community_dist_matrix = math.zeros([communities.length,communities.length]);
 	/// console.log(community_dist_matrix)
@@ -899,7 +922,7 @@ function run_simulation() {
 		for (var h=0; h<NUM_HOMES; h++){
 			homes[h]['lambda_home'] = update_lambda_h(nodes, homes[h]);
 		}
-		for (var w=0; w<NUM_WORKPLACES; w++){
+		for (var w=0; w<NUM_SCHOOLS+NUM_WORKPLACES; w++){
 			workplaces[w]['lambda_workplace'] = update_lambda_w(nodes, workplaces[w]);
 		}
 		
@@ -1021,9 +1044,9 @@ function plot_simulation(days_num_infected,plot_element,title_1,title_2) {
 	}
 }
 
-function run_and_plot() {
+function run_and_plot(intervention) {
 	var returned_values 
-	INTERVENTION = NO_INTERVENTION
+	INTERVENTION = intervention
 	returned_values = run_simulation();
 	
 	plot_plotly([returned_values[6]],'num_affected_plot_2','Number Affected','Evolution of Affected Population');
@@ -1154,5 +1177,5 @@ function run_and_plot_2() {
 
 //Main function
 
-run_and_plot();
+run_and_plot(NO_INTERVENTION);
 //run_and_plot_2();

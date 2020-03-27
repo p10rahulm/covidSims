@@ -1,3 +1,5 @@
+//Copyright [2020] [Indian Institute of Science, Bangalore]
+//SPDX-License-Identifier: Apache-2.0
 
 function loadJSON_001(file_path) {   
 
