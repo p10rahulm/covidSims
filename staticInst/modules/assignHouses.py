@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""
+Copyright [2020] [Indian Institute of Science, Bangalore]
+SPDX-License-Identifier: Apache-2.0
+"""
 __name__ = "Module to assign individuals to houses"
-___author__ = "Sarath"
 
 import numpy as np 
 import pandas as pd 

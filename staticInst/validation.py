@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Mon Mar 23 07:50:35 2020
-
-@author: sarathy
-"""
+""""
+Copyright [2020] [Indian Institute of Science, Bangalore]
+SPDX-License-Identifier: Apache-2.0
+""""
+__name__ = "validation script for data vs model validation"
 
 import numpy as np
 import pandas as pd

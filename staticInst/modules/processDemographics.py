@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""
+Copyright [2020] [Indian Institute of Science, Bangalore]
+SPDX-License-Identifier: Apache-2.0
+""" 
 __name__ = "Module to process census demographic data"
-___author__ = "Sharad"
 
 import json
 import numpy as np

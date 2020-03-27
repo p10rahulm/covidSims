@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""
+Copyright [2020] [Indian Institute of Science, Bangalore]
+SPDX-License-Identifier: Apache-2.0
+"""
 __name__ = "Module to process geospatial data"
 ___author__ = "Sharad"
 
@@ -27,6 +31,7 @@ def computeWardCentreDistance(geoDF, filepath):
   R = 6371
  
   ccMatrix = geoDF[['wardNo', 'wardCentre']]
+
   ccMatrix[['lon', 'lat']] = pd.DataFrame(ccMatrix['wardCentre'].tolist(), index=ccMatrix.index)
  
   ccMatrix['x'] = 0
@@ -56,12 +61,14 @@ def parse_geospatial_data(geojsonFile):
 #common areas are the ward centre
 def commonAreaLocation(geoDF):
   cc = pd.DataFrame()
-  cc['ward'] = geoDF['wardNo'].values
+  cc['wardNo'] = geoDF['wardNo'].values
   cc['location'] = geoDF['wardCentre'].values
   cc['lat'] = cc.apply(lambda row: row['location'][1], axis=1)
   cc['lon'] = cc.apply(lambda row: row['location'][0], axis=1)
-  cc = cc.sort_values(by=['ward']) #sort dataframe by wardNo
-  return cc[['ward','lat', 'lon']]
+  cc = cc.sort_values(by=['wardNo']) #sort dataframe by wardNo
+  cc = cc.reset_index()
+  cc = cc.rename(columns={"index":"ID"})
+  return cc
 
 #assign houses across the wards randomly per ward
 def houseLocation(demographics, individuals, households):
@@ -84,45 +91,45 @@ def houseLocation(demographics, individuals, households):
 
 
 #assign location to schools per ward
-def schoolLocation(demographics, averageStudents):
+def schoolLocation(geoDF, schoolsNeeded):
   schools = pd.DataFrame()
-  averageStudents = 300
-  wards = demographics['wardNo'].values
-  bounds = demographics['wardBounds'].values
-  totalSchools = demographics.apply(lambda row: int(((row['age 0-4']*0.1) +\
-                                                      row['age 5-9'] + \
-                                                      row['age 10-14'] + \
-                                                      row['age 15-19'] + \
-                                                      (row['age 20-24']*0.3))/ averageStudents), axis=1) 
+  wards = geoDF['wardNo'].values.tolist()
+  bounds = geoDF['wardBounds'].values.tolist()
 
   ward = []
-  location = []
   lat = []
-  lon = []
-  for i in range(len(wards)):
-      lon1 = bounds[i][0]
-      lat1 = bounds[i][1]
-      lon2 = bounds[i][2]
-      lat2 = bounds[i][3]
+  lon = [] 
+  loc = []
+  for space in range(int(schoolsNeeded)):
 
-      for house in range(totalSchools[i]):
-          ward.append(i+1)
-          lt = uniform(lat1, lat2)
-          ln = uniform(lon1, lon2) 
-          location.append((ln ,lt ))
-          lat.append(lt)
-          lon.append(ln)
+      boundIndex = int(uniform(0, len(bounds)))
+
+      lon1 = bounds[boundIndex][0]
+      lat1 = bounds[boundIndex][1]
+      lon2 = bounds[boundIndex][2]
+      lat2 = bounds[boundIndex][3]
+
+      ward.append(wards[boundIndex])
+      ln = uniform(lon1, lon2)
+      lt = uniform(lat1, lat2)
+      lon.append(ln)
+      lat.append(lt) 
+      loc.append((ln, lt))
+
 
   schools['ward'] = ward
-  schools['location'] = location
   schools['lat'] = lat
   schools['lon'] = lon
+
+  schools['location'] = loc
   schools = schools.reset_index()
   schools = schools.rename(columns={"index":"ID"})
-  return schools[['ID', 'ward', 'lat', 'lon']]
+
+  return schools
+
 
 #assign location to workplaces
-def workplaceLocation(geoDF, schools, workplaceNeeded):
+def workplaceLocation(geoDF, workplaceNeeded):
   workplaces = pd.DataFrame()
   wards = geoDF['wardNo'].values.tolist()
   bounds = geoDF['wardBounds'].values.tolist()
@@ -156,11 +163,4 @@ def workplaceLocation(geoDF, schools, workplaceNeeded):
   workplaces = workplaces.reset_index()
   workplaces = workplaces.rename(columns={"index":"ID"})
 
-
-  #Combining the IDs for schools and workplaces
-  schoolID = schools['ID'].values[-1]
-  workplaceID = [schoolID+1 + index for index in workplaces['ID'].values]
-  workplaces['ID'] = workplaceID
-  workplaces = workplaces.sort_values(by=['ID'])
-
-  return workplaces[['ID', 'ward', 'lat', 'lon']]
+  return workplaces

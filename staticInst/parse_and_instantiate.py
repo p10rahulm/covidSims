@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""
+Copyright [2020] [Indian Institute of Science, Bangalore]
+SPDX-License-Identifier: Apache-2.0
+"""
 __name__ = "Instantiate a city and dump instantiations as json"
-___author__ = "Sharad"
 
 import os, sys
 import json
@@ -16,11 +19,7 @@ from modules.assignHouses import *
 from modules.assignWorkplaces import *
 
 #Global Variables from sys.argv
-# city = "bangalore"
-# targetPopulation = 100000 #10000000
-# averageHouseholds = 4 #cityDemographicsDF['Mean Household Size'].describe()['mean']
-# averageStudents=300 #300
-# averageWorkforce=20
+
 
 # get the city and target population as inputs
 def instantiate(city, targetPopulation, averageStudents, averageWorkforce, averageHouseholds):
@@ -56,13 +55,21 @@ def instantiate(city, targetPopulation, averageStudents, averageWorkforce, avera
 													float(cityDemographicsDF[['age 45-49']].sum())+\
 													float(cityDemographicsDF[['age 50-54']].sum())+\
 													float(cityDemographicsDF[['age 55-59']].sum())
+	workplaceNeeded = int(totalWorkingPopulation/ averageWorkforce)
+	
+	totalStudents = (float(cityDemographicsDF[['age 0-4']].sum())*0.1)+\
+													float(cityDemographicsDF[['age 5-9']].sum())+\
+													float(cityDemographicsDF[['age 10-14']].sum())+\
+													float(cityDemographicsDF[['age 15-19']].sum())+\
+													float(cityDemographicsDF[['age 20-24']].sum()*0.3)
+	schoolsNeeded = int(totalStudents/ averageStudents)
 
-	workplaceNeeded = totalWorkingPopulation/ averageWorkforce
 	totalNumberOfWards = len(cityDemographicsDF['wardNo'].values)
-	commonArea = commonAreaLocation(cityGeoDF)
-	schools = schoolLocation(cityDemographicsDF,  averageStudents)
-	workplaces = workplaceLocation(cityGeoDF, schools, workplaceNeeded)
 
+	commonArea = commonAreaLocation(cityGeoDF)
+	schools = schoolLocation(cityGeoDF,  schoolsNeeded)
+	workplaces = workplaceLocation(cityGeoDF,  workplaceNeeded)
+	
 	#assignment of individuals to households
 	print("instantiating individuals and households...")
 	individuals, households = assign_individuals_to_houses(targetPopulation, totalNumberOfWards, averageHouseholds, ageDistribution, householdDistribution)
@@ -71,13 +78,14 @@ def instantiate(city, targetPopulation, averageStudents, averageWorkforce, avera
 	households, individuals = houseLocation(cityDemographicsDF, individuals, households)
 
 	print("instantiating individuals to workplaces and schools...")
-	workplaces, schools, individuals = assign_schools_and_workplaces(cityDemographicsDF, workplaces, schools, individuals, schoolDistribution)
+	workplaces, schools, individuals = assign_schools_and_workplaces(cityDemographicsDF, workplaces, schools, individuals, schoolsNeeded, schoolDistribution)
 
 
 	print("additonal data processing...")
+
 	#associate individuals to common areas (by distance) and categorize workplace Type
 	def getDistances(row, cc):
-		findCommunityCentre = cc[int(row["ward"])]
+		findCommunityCentre = cc[int(row["wardNo"])]
 		lat1 = row['lat']
 		lon1 = row['lon']
 
@@ -97,12 +105,18 @@ def instantiate(city, targetPopulation, averageStudents, averageWorkforce, avera
 	individuals['CommunityCentreDistance'] = individuals.apply(getDistances, axis=1, args=(commonArea['location'].values,))
 	individuals['workplaceType']=individuals.apply(getWorkplaceType, axis=1)
 
+	#Combining the IDs for schools and workplaces
+	schoolID = schools['ID'].values[-1]
+	workplaceID = [schoolID+1 + index for index in workplaces['ID'].values]
+	workplaces['ID'] = workplaceID
+	workplaces = workplaces.sort_values(by=['ID'])
+
 	print("saving instantiations as JSON....")
 	individuals.to_json("data/"+city+"/individuals.json", orient='records')
 	households[['id', 'wardNo' ,'lat', 'lon']].to_json("data/"+city+"/houses.json", orient='records')
-	schools[['id', 'wardNo' ,'lat', 'lon']].to_json("data/"+city+"/schools.json", orient='records')
-	workplaces[['id', 'wardNo' ,'lat', 'lon']].to_json("data/"+city+"/workplaces.json", orient='records')
-	commonArea[['id', 'wardNo' ,'lat', 'lon']].to_json("data/"+city+"/commonArea.json", orient='records')
+	schools[['ID', 'ward' ,'lat', 'lon']].to_json("data/"+city+"/schools.json", orient='records')
+	workplaces[['ID', 'ward' ,'lat', 'lon']].to_json("data/"+city+"/workplaces.json", orient='records')
+	commonArea[['ID', 'wardNo' ,'lat', 'lon']].to_json("data/"+city+"/commonArea.json", orient='records')
 	computeWardCentreDistance(cityGeoDF, "data/"+city+"/wardCentreDistance.json")
 
 instantiate(city=sys.argv[1], targetPopulation=sys.argv[2], averageStudents=sys.argv[3], averageWorkforce=sys.argv[4], averageHouseholds=sys.argv[5])

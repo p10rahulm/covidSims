@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""
+Copyright [2020] [Indian Institute of Science, Bangalore]
+SPDX-License-Identifier: Apache-2.0
+"""
 __name__ = "Module to assign individuals to workplaces or schools"
-___author__ = "Sarath"
 
 import numpy as np
 import pandas as pd 
@@ -38,7 +41,7 @@ def possible_workplaces_ids(input_ward, workplaces):
     return temp
     
 
-def assign_schools_and_workplaces(demographics, workplaces, schools, individuals, schoolDistribution=[0.0184, 0.1204, 0.2315, 0.2315, 0.1574, 0.0889, 0.0630, 0.0481, 0.0278, 0.0130]):
+def assign_schools_and_workplaces(demographics, workplaces, schools, individuals, schoolsNeeded, schoolDistribution=[0.0184, 0.1204, 0.2315, 0.2315, 0.1574, 0.0889, 0.0630, 0.0481, 0.0278, 0.0130]):
     global wards
     # generate workplaces size distribution
     count=1
@@ -58,6 +61,8 @@ def assign_schools_and_workplaces(demographics, workplaces, schools, individuals
         p_n[m] = p_nminus[m] - prev
         prev = p_nminus[m] 
 
+    #scale number of workplaces by population
+   
     bzipf = stats.rv_discrete (name='bzipf', values=(vals, p_n))
     
     # generate schools size distribution
@@ -76,6 +81,9 @@ def assign_schools_and_workplaces(demographics, workplaces, schools, individuals
     schoolsize_distribution = schoolsize_distribution/np.sum(schoolsize_distribution)
     mean_schoolsize = np.matmul(schoolsize_values, schoolsize_distribution)
 
+    #scale number of school sizes by population
+    school_scaling_factor = schoolsNeeded / mean_schoolsize
+    schoolsize_values = [int(value*school_scaling_factor) for value in schoolsize_values]
 
     wards = demographics[['wardNo', 'wardIndex', 'neighbors']]
     W = len(wards)
@@ -113,7 +121,7 @@ def assign_schools_and_workplaces(demographics, workplaces, schools, individuals
             count = count+1
             lat = individuals.loc[i,'lat']
             long = individuals.loc[i,'lon']
-            possible_workplace_ids =  possible_workplaces_ids(individuals.loc[i,'ward'], workplaces)
+            possible_workplace_ids =  possible_workplaces_ids(individuals.loc[i,'wardNo'], workplaces)
             distances = []
             for j in range(0,len(possible_workplace_ids)):
                 distances.append(distance(lat,long,workplaces.loc[workplaces['ID']==int(possible_workplace_ids[j]),'location'].values[0][1],workplaces.loc[workplaces['ID']==int(possible_workplace_ids[j]),'location'].values[0][0]))
@@ -130,7 +138,7 @@ def assign_schools_and_workplaces(demographics, workplaces, schools, individuals
             studentforce.append(i)
             lat = individuals.loc[i,'lat']
             long = individuals.loc[i,'lon']
-            possible_school_id1 = schools.loc[schools['ward']==individuals.loc[i,'ward']]['ID'].values
+            possible_school_id1 = schools.loc[schools['ward']==individuals.loc[i,'wardNo']]['ID'].values
             possible_school_id = []
             if len(possible_school_id1) > 0:
                 for j in range(0,len(possible_school_id1)):
