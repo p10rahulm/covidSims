@@ -1,3 +1,6 @@
+#Copyright [2020] [Indian Institute of Science, Bangalore]
+#SPDX-License-Identifier: Apache-2.0
+
 from datetime import datetime, timedelta 
 import geojson as gjsn
 import json
