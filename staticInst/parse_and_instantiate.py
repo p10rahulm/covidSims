@@ -49,6 +49,7 @@ def instantiate(city, targetPopulation, averageStudents, averageWorkforce, avera
 	print("getting parameters ready ....") #create DataFrames
 	cityDemographicsDF = project_population(cityDemographicsDF, targetPopulation) #scale population in city to the target population
 	totalWorkingPopulation = (float(cityDemographicsDF[['age 20-24']].sum())*0.6)+\
+														float(cityDemographicsDF[['age 25-29']].sum())+\
 													float(cityDemographicsDF[['age 30-34']].sum())+\
 													float(cityDemographicsDF[['age 35-39']].sum())+\
 													float(cityDemographicsDF[['age 40-44']].sum())+\
