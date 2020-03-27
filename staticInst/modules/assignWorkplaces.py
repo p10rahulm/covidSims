@@ -48,7 +48,6 @@ def assign_schools_and_workplaces(demographics, workplaces, schools, individuals
     a=3.26
     c=0.97
     m_max=2870
-    
     vals = np.arange(m_max)
     p_nplus = np.arange(float(m_max))
     for m in range(m_max):
@@ -151,6 +150,7 @@ def assign_schools_and_workplaces(demographics, workplaces, schools, individuals
                 schools.at[schools.loc[schools['ID']==possible_school_id[index]].index[0],'students'].append(i)
                 schools.at[schools.loc[schools['ID']==possible_school_id[index]].index[0],'strength'] = schools.loc[schools.loc[schools['ID']==possible_school_id[index]].index[0],'strength'] +1 
                 already_assigned_students.append(i)
+
                 
     # randomly assign unassigned individuals to workplaces and schools
     # first check for workplaces that are not full
@@ -164,6 +164,7 @@ def assign_schools_and_workplaces(demographics, workplaces, schools, individuals
                     already_assigned.append(add_to_workplace_id[j])
                     workplaces.at[i,'workers'].append(add_to_workplace_id[j])
                     workplaces.at[i,'workforce'] = workplaces.loc[i,'workforce']+1
+
     # first check if schools are not full
     for i in range(0,len(schools)):
         if schools.loc[i,'capacity'] > schools.loc[i,'strength']:
@@ -175,6 +176,7 @@ def assign_schools_and_workplaces(demographics, workplaces, schools, individuals
                     already_assigned_students.append(add_to_school_id[j])
                     schools.at[i,'students'].append(add_to_school_id[j])
                     schools.at[i,'strength'] = schools.loc[i,'strength']+1
+
     # if anyone has unassigned workplace or school, assign him/her randomly
     for i in range(0,len(individuals)):
         if individuals.loc[i,'age']>=22 and individuals.loc[i,'age']<=55 and (not i in already_assigned):
@@ -192,8 +194,7 @@ def assign_schools_and_workplaces(demographics, workplaces, schools, individuals
             individuals.at[i,'school'] = add_to_school_id
             schools.at[int(add_to_school_id), 'strength'] =schools.loc[int(add_to_school_id), 'strength']+1 
             schools.at[int(add_to_school_id),'students'].append(i)
-    
-    workplaces = workplaces.sort_values("ID")
-    schools = schools.sort_values("ID")
-    individuals = individuals.sort_values("id")
+    # workplaces = workplaces.sort_values("ID")
+    # schools = schools.sort_values("ID")
+    # individuals = individuals.sort_values("id")
     return workplaces, schools, individuals

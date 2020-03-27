@@ -54,9 +54,12 @@ def parse_geospatial_data(geojsonFile):
   geoDF = geoDF[['wardNo', 'wardName', 'geometry']]
   geoDF['wardBounds'] = geoDF.apply(lambda row: MultiPolygon(row['geometry']).bounds, axis=1)
   geoDF['wardCentre'] = geoDF.apply(lambda row: (MultiPolygon(row['geometry']).centroid.x, MultiPolygon(row['geometry']).centroid.y), axis=1)
-  geoDF["neighbors"] = geoDF.apply(lambda row: ", ".join([str(ward) for ward in geoDF[~geoDF.geometry.disjoint(row['geometry'])]['wardNo'].tolist() if row['wardNo'] != ward]) , axis=1)
+  geoDF["neighbors"] = geoDF.apply(lambda row: ", ".join([str(ward) for ward in geoDF[~geoDF.geometry.disjoint(row['geometry'])]['wardNo'].tolist()]) , axis=1)
+  geoDF = geoDF.sort_values(by=['wardNo']) #sort dataframe by wardNo
 
-  return geoDF[['wardNo', 'wardBounds', 'wardCentre', 'neighbors']]
+  geoDF = geoDF.reset_index()
+  geoDF = geoDF.rename(columns={"index":"wardIndex"})
+  return geoDF[['wardIndex', 'wardNo', 'wardBounds', 'wardCentre', 'neighbors']]
 
 #common areas are the ward centre
 def commonAreaLocation(geoDF):
@@ -76,9 +79,10 @@ def houseLocation(demographics, individuals, households):
   #ward assignments based on ID column
   wardBounds = demographics.copy()
   # wardBounds = wardBounds.rename(columns={"wardNo": "Ward No"})
-  wardBounds = wardBounds[['wardNo', 'wardBounds']] #sorted by ward numbers
-  households = pd.merge(households, wardBounds, on=['wardNo'])
-
+  wardBounds = wardBounds[['wardIndex','wardNo', 'wardBounds']] #sorted by ward numbers
+  # households = pd.merge(households, wardBounds, on=['wardNo'])
+  households = pd.merge(households, wardBounds, on=['wardIndex'], how="outer")
+  households = households.dropna()
   households['location'] = households.apply(lambda row: (np.random.choice([row['wardBounds'][0],row['wardBounds'][2]]), np.random.choice([row['wardBounds'][1], row['wardBounds'][3]])), axis=1)
   households['lat'] = households.apply(lambda row: row['location'][1], axis=1)
   households['lon'] = households.apply(lambda row: row['location'][0], axis=1)

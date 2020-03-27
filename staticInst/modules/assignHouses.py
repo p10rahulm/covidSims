@@ -48,7 +48,7 @@ def assign_individuals_to_houses(targetPopulation, wards, totalHousehold, ageDis
 
     # create households with desired household-size distribution
     #Ward No, Lat and Lon - would be city data (geojson of city)
-    households = {'id':np.arange(0,H), 'wardNo': np.random.choice(np.arange(0,W),H), 'people staying':np.random.choice(household_sizes, H, p=household_distribution), 'individuals':[[] for x in range(0,H)],  'flag':[0 for x in range(0,H)]}
+    households = {'id':np.arange(0,H), 'wardIndex': np.random.choice(np.arange(0,W),H), 'people staying':np.random.choice(household_sizes, H, p=household_distribution), 'individuals':[[] for x in range(0,H)],  'flag':[0 for x in range(0,H)]}
     households = pd.DataFrame(households)
 
 
@@ -512,6 +512,6 @@ def assign_individuals_to_houses(targetPopulation, wards, totalHousehold, ageDis
                 households.at[house_indices[j], 'individuals'].append(unassigned_individuals_ids[j])
 
     unassigned_households_ids = households.loc[households['flag']==0]['id'].values
-    households = households.loc[households['flag']!=0]
+    # households = households.loc[households['flag']!=0]
     individuals['household']=individuals['household'].astype(int)
     return individuals, households

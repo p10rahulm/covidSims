@@ -73,7 +73,6 @@ def instantiate(city, targetPopulation, averageStudents, averageWorkforce, avera
 	#assignment of individuals to households
 	print("instantiating individuals and households...")
 	individuals, households = assign_individuals_to_houses(targetPopulation, totalNumberOfWards, averageHouseholds, ageDistribution, householdDistribution)
-
 	print("instantiating individual location by house...")
 	households, individuals = houseLocation(cityDemographicsDF, individuals, households)
 
@@ -112,6 +111,11 @@ def instantiate(city, targetPopulation, averageStudents, averageWorkforce, avera
 	workplaces = workplaces.sort_values(by=['ID'])
 
 	print("saving instantiations as JSON....")
+	workplaces = workplaces.sort_values("ID")
+	schools = schools.sort_values("ID")
+	individuals = individuals.sort_values("id")
+
+	print(len(individuals), len(households), len(schools), len(workplaces), len(commonArea))
 	individuals.to_json("data/"+city+"/individuals.json", orient='records')
 	households[['id', 'wardNo' ,'lat', 'lon']].to_json("data/"+city+"/houses.json", orient='records')
 	schools[['ID', 'ward' ,'lat', 'lon']].to_json("data/"+city+"/schools.json", orient='records')
