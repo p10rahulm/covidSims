@@ -4,8 +4,8 @@
 
 //simulation inputs
 
-NUM_DAYS = 500; //Number of days. Simulation duration
-SIM_STEPS_PER_DAY = 1; //Number of simulation steps per day.
+NUM_DAYS = 400; //Number of days. Simulation duration
+SIM_STEPS_PER_DAY = 4; //Number of simulation steps per day.
 NUM_TIMESTEPS = NUM_DAYS*SIM_STEPS_PER_DAY; //
 INIT_FRAC_INFECTED = 0.0001; // Initial number of people infected
 
@@ -38,9 +38,12 @@ const DEAD = 7
 let csvContent = "data:text/csv;charset=utf-8,"; //for file dump
 
 //These are parameters associated with the disease progression
-const kappa_threshold1 = 4.5 * SIM_STEPS_PER_DAY; //OPTIMISE: Move this outside function call, compute only once.
-const kappa_threshold2 = 5 * SIM_STEPS_PER_DAY;
-const kappa_threshold3 = 10* SIM_STEPS_PER_DAY;
+const INCUBATION_PERIOD_SHAPE = 2;
+const INCUBATION_PERIOD_SCALE = 2.29*SIM_STEPS_PER_DAY; // 2.29 days
+const ASYMPTOMATIC_PERIOD = 0.5*SIM_STEPS_PER_DAY; // half a day
+const SYMPTOMATIC_PERIOD = 5*SIM_STEPS_PER_DAY; // 5 days
+const HOSPITAL_REGULAR_PERIOD = 8*SIM_STEPS_PER_DAY;
+const HOSPITAL_CRITICAL_PERIOD = 2*SIM_STEPS_PER_DAY;
 
 COMMUNITY_INFECTION_PROB=[];
 
@@ -61,9 +64,9 @@ STATE_TRAN=[
 
 // Beta values
 BETA_H = 0.47 *1.0 //Thailand data
-BETA_W = 0.47 *1.0//Thailand data
-BETA_S = 0.94 *1.0//Thailand data
-BETA_C = 0.097*1.0//Thailand data
+BETA_W = 0.47 *0.8//Thailand data
+BETA_S = 0.94 *0.8//Thailand data
+BETA_C = 0.097*3.5//Thailand data
 
 
 ALPHA = 0.8 //exponent of number of people in a household while normalising infection rate in a household.
@@ -110,8 +113,6 @@ function compute_prob_infection_given_community(infection_probability){
 // Initialise the nodes with various features.
 function init_nodes() {
 
-	const MAX_EXPOSED_DAYS_AT_START = 4.5; //at the start of sim, the oldest exposed limit
-
 	var individuals_json = JSON.parse(loadJSON_001('individuals.json'));
 	var workplace_json = JSON.parse(loadJSON_001('workplaces.json'));
 	//console.log(individuals_json.length,individuals_json[0]);
@@ -151,7 +152,12 @@ function init_nodes() {
 			'compliant' : 1,
 			'kappa_H' : 1,
 			'kappa_W' : 1,
-			'kappa_C' : 1
+			'kappa_C' : 1,
+			'incubation_period': stream1.gamma(INCUBATION_PERIOD_SHAPE,INCUBATION_PERIOD_SCALE),
+			'asymptomatic_period': stream1.gamma(1,ASYMPTOMATIC_PERIOD),
+			'symptomatic_period': SYMPTOMATIC_PERIOD,
+			'hospital_regular_period': HOSPITAL_REGULAR_PERIOD,
+			'hospital_critical_period': HOSPITAL_CRITICAL_PERIOD
 		};
 		
 		//Correct initialisation for individuals not associated to workplace or school
@@ -161,7 +167,7 @@ function init_nodes() {
 		
 	    //Set infective status, set the time of infection, and other age-related factors
 	    node['infective'] = node['infection_status']==INFECTIVE?1:0; //initialise all infected individuals as infective 
-		node['time_of_infection'] = node['infection_status']==EXPOSED?(-MAX_EXPOSED_DAYS_AT_START*SIM_STEPS_PER_DAY*Math.random()):0;
+		node['time_of_infection'] = node['infection_status']==EXPOSED?(-node['incubation_period']*Math.random()):0;
 		node['zeta_a']=zeta(node['age']);
 	    nodes.push(node)
 	}
@@ -171,18 +177,23 @@ function init_nodes() {
 
 // This is a multiplication factor that quantifies an individual's infective status given the infection state.
 function kappa_T(node, cur_time){
-	
+	var val = 0;
 	if(node["infective"]!=1){
-		return 0;
+		val = 0;
 	}
 	else {
 		var time_since_infection = cur_time - node["time_of_infection"];
 
-		if(time_since_infection < kappa_threshold1 || time_since_infection > kappa_threshold3) { return 0;}
-		else if(time_since_infection < kappa_threshold2) {return 1;}
-		else if(time_since_infection < kappa_threshold3) {return 1.5;}
-		else return 0;
-	}	
+		if(time_since_infection < node['incubation_period'] || time_since_infection > (node['incubation_period']+node['asymptomatic_period']+node['symptomatic_period'])) { 
+			// Individual is not yet symptomatic or has been recovered, or has moved to the hospital
+			val = 0;
+		} else if(time_since_infection < node['incubation_period']+node['asymptomatic_period']) {
+			val = 1;
+		} else {
+			val = 1.5;
+		}
+	}
+	return val;
 }
 
 NUM_DAYS_TO_RECOG_SYMPTOMS = 1;
@@ -217,9 +228,7 @@ function kappa_C(node, cur_time){
 		case LOCKDOWN:
 			val = 1;
 			if(node['compliant']){
-				
-					val = 0.25;
-				
+					val = 0.1;			
 			}
 			break;
 		default:
@@ -257,7 +266,7 @@ function kappa_W(node, cur_time){
 			val = 0; 
 			if(node['workplace_type']==1){
 				////workplace
-				val = 0.25;
+				val = 0.1;
 			}
 			break;
 		default:
@@ -660,11 +669,11 @@ function update_infection(node,cur_time){
 		node['infective'] = 0;
 		update_lambda_stats(node)		
 	}
-	else if(node['infection_status']==EXPOSED && (cur_time - node['time_of_infection'] > 4.5*SIM_STEPS_PER_DAY)){
+	else if(node['infection_status']==EXPOSED && (cur_time - node['time_of_infection'] > node['incubation_period'])){
     	node['infection_status'] = INFECTIVE;//move to infective state
     	node['infective'] = 1;
 	}
-	else if(node['infection_status']==INFECTIVE && (cur_time - node['time_of_infection'] > 5*SIM_STEPS_PER_DAY)){
+	else if(node['infection_status']==INFECTIVE && (cur_time - node['time_of_infection'] > (node['incubation_period']+node['asymptomatic_period']) )){
     	if(Math.random() < 2/3){
             	node['infection_status'] = SYMPTOMATIC;//move to symptomatic
             	node['infective'] = 1;
@@ -673,9 +682,8 @@ function update_infection(node,cur_time){
         	node['infection_status'] = RECOVERED;//move to recovered
             node['infective'] = 0;
     	}
-    	
 	}
-	else if(node['infection_status']==SYMPTOMATIC && (cur_time - node['time_of_infection'] > 10*SIM_STEPS_PER_DAY)){
+	else if(node['infection_status']==SYMPTOMATIC && (cur_time - node['time_of_infection'] > (node['incubation_period']+node['asymptomatic_period']+node['symptomatic_period']))){
     	if(Math.random() < STATE_TRAN[age_index][0]){
             	node['infection_status'] = HOSPITALISED;//move to hospitalisation
             	node['infective'] = 0;
@@ -685,7 +693,7 @@ function update_infection(node,cur_time){
             node['infective'] = 0;
     	}
 	}
-	else if(node['infection_status']==HOSPITALISED && (cur_time - node['time_of_infection'] > 18*SIM_STEPS_PER_DAY)){
+	else if(node['infection_status']==HOSPITALISED && (cur_time - node['time_of_infection'] > (node['incubation_period']+node['asymptomatic_period']+node['symptomatic_period']+node['hospital_regular_period']))){
     	if(Math.random() < STATE_TRAN[age_index][1]){
             	node['infection_status'] = CRITICAL;//move to critical care
             	node['infective'] = 0;
@@ -695,7 +703,7 @@ function update_infection(node,cur_time){
             node['infective'] = 0;
     	}
 	}
-	else if(node['infection_status']==CRITICAL && (cur_time - node['time_of_infection'] > 20*SIM_STEPS_PER_DAY)){
+	else if(node['infection_status']==CRITICAL && (cur_time - node['time_of_infection'] > (node['incubation_period']+node['asymptomatic_period']+node['symptomatic_period']+node['hospital_regular_period']+node['hospital_critical_period']))){
     	if(Math.random() < STATE_TRAN[age_index][2]){
             	node['infection_status'] = DEAD;//move to dead
             	node['infective'] = 0;
@@ -822,7 +830,7 @@ function update_lambdas(node,homes,workplaces,communities,nodes,cur_time){
 	if(INTERVENTION == HOME_QUARANTINE && node['compliant']){
 		var house_members = homes[node['home']]['individuals'];
 		for (var l = 0; l < house_members.length; l++){
-			var time_since_symptoms = cur_time - nodes[house_members[l]]['time_since_infection'] - 5*SIM_STEPS_PER_DAY;
+			var time_since_symptoms = cur_time - nodes[house_members[l]]['time_since_infection'] - nodes[house_members[l]]['incubation_period'] - nodes[house_members[l]]['asymptomatic_period'];
 			node_home_quarantined = node_home_quarantined || 
 			(	(nodes[house_members[l]]['infection_status']!=SUSCEPTIBLE) && 
 				(nodes[house_members[l]]['infection_status']!=EXPOSED) && 
@@ -904,7 +912,7 @@ function run_simulation() {
 	compute_scale_workplaces(workplaces)
 	compute_scale_communities(nodes, communities)
 	
-	get_init_stats(nodes,homes,workplaces,communities);
+	//get_init_stats(nodes,homes,workplaces,communities);
 
 	var days_num_infected = [];
 	var days_num_exposed = [];
