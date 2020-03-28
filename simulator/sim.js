@@ -185,6 +185,7 @@ function kappa_T(node, cur_time){
 	}	
 }
 
+NUM_DAYS_TO_RECOG_SYMPTOMS = 1;
 // When interventions are applied, the multiplification factors may change based on the mixing space.
 // Adjustment function for intervention in community mixing space.
 function kappa_C(node, cur_time){
@@ -199,7 +200,7 @@ function kappa_C(node, cur_time){
 			val = 1;
 			if(node['compliant']){
 
-				if(time_since_infection > 1*SIM_STEPS_PER_DAY){ // The magin number 1 = time to recognise symptoms
+				if(time_since_infection > NUM_DAYS_TO_RECOG_SYMPTOMS*SIM_STEPS_PER_DAY){ // The magin number 1 = time to recognise symptoms
 
 					val = 0.25;
 				}
@@ -208,7 +209,7 @@ function kappa_C(node, cur_time){
 		case HOME_QUARANTINE:
 			val = 1;
 			if(node['compliant']){
-				if(time_since_infection > 1*SIM_STEPS_PER_DAY){
+				if(time_since_infection > NUM_DAYS_TO_RECOG_SYMPTOMS*SIM_STEPS_PER_DAY){
 					val = 0.25;
 				}
 			}
@@ -239,7 +240,7 @@ function kappa_W(node, cur_time){
 		case CASE_ISOLATION:
 			val = 1;
 			if(node['compliant']){
-				if(time_since_infection > 1*SIM_STEPS_PER_DAY){ //The magic number 1 = time to recognise symptoms. 
+				if(time_since_infection > NUM_DAYS_TO_RECOG_SYMPTOMS*SIM_STEPS_PER_DAY){ //The magic number 1 = time to recognise symptoms. 
 					val = 0.25;
 				}
 			}
@@ -247,7 +248,7 @@ function kappa_W(node, cur_time){
 		case HOME_QUARANTINE:
 			val = 1;
 			if(node['compliant']){
-				if(time_since_infection > 1*SIM_STEPS_PER_DAY){
+				if(time_since_infection > NUM_DAYS_TO_RECOG_SYMPTOMS*SIM_STEPS_PER_DAY){
 					val = 0.25;
 				}
 			}
@@ -284,7 +285,7 @@ function kappa_H(node, cur_time){
 			}
 			break;
 		case LOCKDOWN:
-			val = 1;
+			val = 1.25; //Social distancing increases household interactions by 25%
 			if(node['compliant']){
 				val=2;
 			}
@@ -518,11 +519,7 @@ function init_community(){
 			'Q_c': 1,
 			'scale': 0
 		};
-		var sum_value = 0;
-		for (var i=0; i<community['individuals'].length; i++){
-			sum_value += nodes[community['individuals'][i]]['funct_d_ck'];
-		}
-		//community['scale'] = BETA_C*community['Q_c']/sum_value;
+		
 		communities.push(community)
 	}
 	return communities;
@@ -565,7 +562,7 @@ function compute_community_distances(communities){
 
 	 var community_dist_matrix = math.zeros([communities.length,communities.length]);
 	/// console.log(community_dist_matrix)
-	
+	/*
 	 for (var c1 =0; c1< communities.length;c1++){
 		 for (var c2=c1+1; c2<communities.length;c2++){
 			/// console.log(communities[c1]['loc'],communities[c2]['loc'])
@@ -574,8 +571,8 @@ function compute_community_distances(communities){
 			 
 		 }
 	 }
-	
-	/* 
+	*/
+	 
 	 for (var c1 =0; c1< inter_ward_distances_json.length;c1++){
 		for (var c2=c1+1; c2<inter_ward_distances_json.length;c2++){
 		   /// console.log(communities[c1]['loc'],communities[c2]['loc'])
@@ -584,7 +581,7 @@ function compute_community_distances(communities){
 			
 		}
 	}
-	*/
+	
 
 	 return community_dist_matrix;
 }
@@ -595,13 +592,13 @@ function compute_community_distances(communities){
 function assign_individual_home_community(nodes,homes,workplaces,communities){
 	//Assign individuals to homes, workplace, community
 	for (var i=0; i < nodes.length; i++) {
-		if(nodes[i]['home']!== null) 	{
+		if(nodes[i]['home']!= null) 	{
 		
 			homes[nodes[i]['home']]['individuals'].push(i); //No checking for null as all individuals have a home
 			nodes[i]['compliant'] = homes[nodes[i]['home']]['compliant']; //All members of the household are set the same compliance value
 		}
-		if(nodes[i]['workplace']!== null)	{workplaces[nodes[i]['workplace']]['individuals'].push(i);}
-		if(nodes[i]['community']!== null) 	{communities[nodes[i]['community']]['individuals'].push(i);}
+		if(nodes[i]['workplace']!= null)	{workplaces[nodes[i]['workplace']]['individuals'].push(i);}
+		if(nodes[i]['community']!= null) 	{communities[nodes[i]['community']]['individuals'].push(i);}
 	}
 
 }
@@ -816,7 +813,7 @@ function get_infected_community(nodes, community){
 	return [infected_stat,affected_stat,hospitalised_stat,critical_stat,dead_stat];
 	// Populate it afterwards...
 }
-
+HOME_QUARANTINE_DAYS = 14
 function update_lambdas(node,homes,workplaces,communities,nodes,cur_time){
 	var temp = 0;
 	
@@ -829,8 +826,8 @@ function update_lambdas(node,homes,workplaces,communities,nodes,cur_time){
 			node_home_quarantined = node_home_quarantined || 
 			(	(nodes[house_members[l]]['infection_status']!=SUSCEPTIBLE) && 
 				(nodes[house_members[l]]['infection_status']!=EXPOSED) && 
-				(time_since_symptoms > 1*SIM_STEPS_PER_DAY) && 
-				(time_since_symptoms <= 15*SIM_STEPS_PER_DAY)	);
+				(time_since_symptoms > NUM_DAYS_TO_RECOG_SYMPTOMS*SIM_STEPS_PER_DAY) && 
+				(time_since_symptoms <= (NUM_DAYS_TO_RECOG_SYMPTOMS+HOME_QUARANTINE_DAYS)*SIM_STEPS_PER_DAY)	);
 		}
 	}
 
