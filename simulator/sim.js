@@ -239,7 +239,7 @@ function kappa_W(node, cur_time){
 		case CASE_ISOLATION:
 			val = 1;
 			if(node['compliant']){
-				if(time_since_infection > 1){ //The magic number 1 = time to recognise symptoms. 
+				if(time_since_infection > 1*SIM_STEPS_PER_DAY){ //The magic number 1 = time to recognise symptoms. 
 					val = 0.25;
 				}
 			}
@@ -247,7 +247,7 @@ function kappa_W(node, cur_time){
 		case HOME_QUARANTINE:
 			val = 1;
 			if(node['compliant']){
-				if(time_since_infection > 1){
+				if(time_since_infection > 1*SIM_STEPS_PER_DAY){
 					val = 0.25;
 				}
 			}
