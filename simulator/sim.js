@@ -381,14 +381,13 @@ function compute_scale_workplaces(workplaces){
 			workplaces[w]['scale'] = 0			
 		} else {
 			if(workplaces[w]['workplace_type']==1){
-				beta_workplace = BETA_W //workplace
+				beta_workplace = BETA_W; //workplace
 			} else if (workplaces[w]['workplace_type']==2){
-				beta_workplace = BETA_S //school
+				beta_workplace = BETA_S; //school
 			}
 			workplaces[w]['scale'] = beta_workplace*workplaces[w]['Q_w']/workplaces[w]['individuals'].length;
 		}
 	}
-	
 }
 
 
@@ -401,8 +400,7 @@ function compute_scale_communities(nodes, communities){
 			sum_value += nodes[communities[w]['individuals'][i]]['funct_d_ck'];
 		}
 		if(sum_value==0){
-			communities[w]['scale'] = 0
-			
+			communities[w]['scale'] = 0;
 		}
 		else communities[w]['scale'] = BETA_C*communities[w]['Q_c']/sum_value;
 		}
@@ -435,7 +433,7 @@ function init_homes(){
 	return homes;
 }
 
-
+// Both schools and offices are treated as workspaces with some differences
 function init_workplaces(){
 	var workplaces_json = JSON.parse(loadJSON_001('workplaces.json'));
 	var schools_json = JSON.parse(loadJSON_001('schools.json'));
@@ -443,7 +441,6 @@ function init_workplaces(){
 	NUM_WORKPLACES = workplaces_json.length;
 	NUM_SCHOOLS = schools_json.length;
 
-	
 	// console.log(NUM_WORKPLACES,NUM_SCHOOLS)
 
 	var workplaces = [];
@@ -456,7 +453,7 @@ function init_workplaces(){
 			'individuals': [], //get_individuals_at_workplace(nodes, w), // Populate with individuals in same workplace
 			'Q_w': 1,
 			'scale': 0,
-			'workplace_type': 2
+			'workplace_type': 2 //tells this workplace is a school
 		};
 		//workplace['scale'] = BETA_W*workplace['Q_w']/workplace['individuals'].length;
 		workplaces.push(workplace)
@@ -469,7 +466,7 @@ function init_workplaces(){
 			'individuals': [], //get_individuals_at_workplace(nodes, w), // Populate with individuals in same workplace
 			'Q_w': 1,
 			'scale': 0,
-			'workplace_type': 1
+			'workplace_type': 1//tells this workplace is an office
 		};
 		//workplace['scale'] = BETA_W*workplace['Q_w']/workplace['individuals'].length;
 		workplaces.push(workplace)
@@ -505,7 +502,6 @@ function init_community(){
 	var communities = [];
 	for (var c=0; c < NUM_COMMUNITIES; c++) {
 		var community = {
-			
 			'loc':  [communities_json[c]['lat'],communities_json[c]['lon']], // [lat, long]
 			'lambda_community': 0,
 			'lambda_community_global': 0,  
@@ -815,10 +811,9 @@ function update_lambdas(node,homes,workplaces,communities,nodes,cur_time){
 				(time_since_symptoms > 1*SIM_STEPS_PER_DAY) && 
 				(time_since_symptoms <= 15*SIM_STEPS_PER_DAY)	);
 		}
-
 	}
 
-	node['lambda_incoming']=[0,0,0]
+	node['lambda_incoming']=[0,0,0];
 	if(node['home']!=null) {
 		temp+=homes[node['home']]['lambda_home'];
 		node['lambda_incoming'][0] = homes[node['home']]['lambda_home'];
@@ -827,16 +822,12 @@ function update_lambdas(node,homes,workplaces,communities,nodes,cur_time){
 		if(!node_home_quarantined){
 			temp+= workplaces[node['workplace']]['lambda_workplace'];
 			node['lambda_incoming'][1] =  workplaces[node['workplace']]['lambda_workplace'];
-
 		} else{
 			temp+= 0.25*workplaces[node['workplace']]['lambda_workplace'];
 			node['lambda_incoming'][1] =  0.25*workplaces[node['workplace']]['lambda_workplace'];
-
-	
 		}
-
-		
 	}
+
 	if(node['community']!=null) {
 		if(!node_home_quarantined){
 			temp+=node['zeta_a']*node['funct_d_ck']*communities[node['community']]['lambda_community_global'];
@@ -844,7 +835,6 @@ function update_lambdas(node,homes,workplaces,communities,nodes,cur_time){
 		} else{
 			temp+=0.25*node['zeta_a']*node['funct_d_ck']*communities[node['community']]['lambda_community_global'];
 			node['lambda_incoming'][2] = 0.25*node['zeta_a']*node['funct_d_ck']*communities[node['community']]['lambda_community_global'];
-		
 		}
 	}
 
@@ -867,8 +857,8 @@ function get_lambda_stats(time,node,lambda_stats_variable){
 lambda_infection_stats=[] //global variable to track lambda evolution when a person gets infected
 
 function update_lambda_stats(node){
-	var sum_inv = 1/math.sum(node['lambda_incoming'])
-	var lambda_vector = []
+	var sum_inv = 1/math.sum(node['lambda_incoming']);
+	var lambda_vector = [];
 	for (var i= 0; i<node['lambda_incoming'].length; i++){
 		lambda_vector.push(node['lambda_incoming'][i]*sum_inv);
 	}
