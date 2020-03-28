@@ -198,11 +198,9 @@ function kappa_C(node, cur_time){
 		case CASE_ISOLATION:
 			val = 1;
 			if(node['compliant']){
-<<<<<<< HEAD
-				if(time_since_infection > 1*SIM_STEPS_PER_DAY){
-=======
-				if(time_since_infection > 1){ // The magin number 1 = time to recognise symptoms
->>>>>>> 6781307a66e396fb6e367f2f9b688175aae89d46
+
+				if(time_since_infection > 1*SIM_STEPS_PER_DAY){ // The magin number 1 = time to recognise symptoms
+
 					val = 0.25;
 				}
 			}
