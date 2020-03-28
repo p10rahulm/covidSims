@@ -3,6 +3,7 @@
 
 
 //simulation inputs
+
 NUM_DAYS = 500; //Number of days. Simulation duration
 SIM_STEPS_PER_DAY = 1; //Number of simulation steps per day.
 NUM_TIMESTEPS = NUM_DAYS*SIM_STEPS_PER_DAY; //
@@ -16,7 +17,7 @@ NUM_COMMUNITIES = 198; //Will change once file is read.
 NUM_SCHOOLS = 0;
 NUM_DISEASE_STATES = 7; //0-S, 1-E, 2-I, 3-Symp,4-R, 5-H, 6-C, 7-D
 
-
+//Various interventions. These will need to be generalised soon.
 const NO_INTERVENTION = 0
 const CASE_ISOLATION = 1
 const HOME_QUARANTINE = 2
@@ -24,7 +25,7 @@ const LOCKDOWN = 3
 
 INTERVENTION = NO_INTERVENTION; //run_and_plot() changes this
 
-
+//Disease progression in an individual
 const SUSCEPTIBLE = 0
 const EXPOSED = 1
 const INFECTIVE = 2
@@ -36,6 +37,7 @@ const DEAD = 7
 
 let csvContent = "data:text/csv;charset=utf-8,"; //for file dump
 
+//These are parameters associated with the disease progression
 const kappa_threshold1 = 4.5 * SIM_STEPS_PER_DAY; //OPTIMISE: Move this outside function call, compute only once.
 const kappa_threshold2 = 5 * SIM_STEPS_PER_DAY;
 const kappa_threshold3 = 10* SIM_STEPS_PER_DAY;
@@ -43,7 +45,7 @@ const kappa_threshold3 = 10* SIM_STEPS_PER_DAY;
 COMMUNITY_INFECTION_PROB=[];
 
 
-//age related transition probabilities
+//age related transition probabilities, symptomatic to hospitalised to critical to fatality.
 STATE_TRAN=[
    [0.0010000,   0.0500000,   0.4000000],
    [0.0030000,   0.0500000,   0.4000000],
@@ -68,6 +70,7 @@ ALPHA = 0.8 //exponent of number of people in a household while normalising infe
 
 //some required functions
 
+//To what extent does a family comply with an intervention? 1 = full compliance, 0 = no compliance.
 function compliance(){
 	var val = 1;
 	switch(INTERVENTION) {
@@ -89,7 +92,8 @@ function compliance(){
 	return val;
 }
 
-
+//This function seeds the infection based on ward-level probabilities.
+//Data can be taken from a json file.
 function compute_prob_infection_given_community(infection_probability){
 
 	var prob_infec_given_community = [];
@@ -98,14 +102,12 @@ function compute_prob_infection_given_community(infection_probability){
 	for (var w = 0; w < num_communities; w++){
 		prob_infec_given_community.push(infection_probability);
 		//prob_infec_given_community.push(infection_probability*ward_infection_distribution[w]/ward_population_distribution[w]);
-
 	}
 	return prob_infec_given_community;
 }
 
 
-
-
+// Initialise the nodes with various features.
 function init_nodes() {
 
 	const MAX_EXPOSED_DAYS_AT_START = 4.5; //at the start of sim, the oldest exposed limit
@@ -157,7 +159,7 @@ function init_nodes() {
 			node['workplace'] = null;
 		}
 		
-	    
+	    //Set infective status, set the time of infection, and other age-related factors
 	    node['infective'] = node['infection_status']==INFECTIVE?1:0; //initialise all infected individuals as infective 
 		node['time_of_infection'] = node['infection_status']==EXPOSED?(-MAX_EXPOSED_DAYS_AT_START*SIM_STEPS_PER_DAY*Math.random()):0;
 		node['zeta_a']=zeta(node['age']);
@@ -167,9 +169,8 @@ function init_nodes() {
 }
 
 
-
+// This is a multiplication factor that quantifies an individual's infective status given the infection state.
 function kappa_T(node, cur_time){
-
 	
 	if(node["infective"]!=1){
 		return 0;
@@ -184,7 +185,8 @@ function kappa_T(node, cur_time){
 	}	
 }
 
-
+// When interventions are applied, the multiplification factors may change based on the mixing space.
+// Adjustment function for intervention in community mixing space.
 function kappa_C(node, cur_time){
 
 	var val = 1;
@@ -194,10 +196,13 @@ function kappa_C(node, cur_time){
 			val = 1;
 			break;
 		case CASE_ISOLATION:
-			
 			val = 1;
 			if(node['compliant']){
+<<<<<<< HEAD
 				if(time_since_infection > 1*SIM_STEPS_PER_DAY){
+=======
+				if(time_since_infection > 1){ // The magin number 1 = time to recognise symptoms
+>>>>>>> 6781307a66e396fb6e367f2f9b688175aae89d46
 					val = 0.25;
 				}
 			}
@@ -220,11 +225,11 @@ function kappa_C(node, cur_time){
 			break;
 		default:
 			val = 1;
-
 	}
 	return val;
-   
 }
+
+// Adjustment function to handle interventions in workspaces
 function kappa_W(node, cur_time){
 
 	var val = 1;
@@ -234,10 +239,9 @@ function kappa_W(node, cur_time){
 			val = 1;
 			break;
 		case CASE_ISOLATION:
-			
 			val = 1;
 			if(node['compliant']){
-				if(time_since_infection > 1){
+				if(time_since_infection > 1){ //The magic number 1 = time to recognise symptoms. 
 					val = 0.25;
 				}
 			}
@@ -259,11 +263,11 @@ function kappa_W(node, cur_time){
 			break;
 		default:
 			val = 1;
-
 	}
 	return val;
-   
 }
+
+// Adjustment function to handle interventions at home
 function kappa_H(node, cur_time){
 
 	var val = 1;
@@ -289,12 +293,11 @@ function kappa_H(node, cur_time){
 			break;
 		default:
 			val = 1;
-
 	}
-	return val;
-   
+	return val; 
 }
 
+// Absenteeism parameter. This may depend on the workplace type.
 function psi_T(node, cur_time){
 	if(node["infective"]!=1){ //check if not infectious
 		return 0;
@@ -306,20 +309,18 @@ function psi_T(node, cur_time){
 	else if(node['workplace_type']==1) {scale_factor = 0.5} //office
 	if(time_since_infection < PSI_THRESHOLD){ return 0;}
 	else {return scale_factor;}	
-	
 }
 
 function f_kernel(d){
     var a = 4 //in kms
-    var b = 3.8 //both values are for Thailand
-	return 1;
-	//return 1/(1+Math.pow(d/a,b));
+    var b = 3.8 //both values are for Thailand, until we get a fit for India
+	return 1/(1+Math.pow(d/a,b))
+
 }
 
 
 function zeta(age){
-    
-    
+	// This might change based on better age-related interaction data.
     if(age < 5) {
     return 0.1;
     } else if(age < 10) {
@@ -382,7 +383,6 @@ function compute_scale_homes(homes){
 			homes[w]['scale'] = BETA_H*homes[w]['Q_h']/(Math.pow(homes[w]['individuals'].length, ALPHA));
 		}
 	}
-	
 }
 
 function compute_scale_workplaces(workplaces){
@@ -392,14 +392,13 @@ function compute_scale_workplaces(workplaces){
 			workplaces[w]['scale'] = 0			
 		} else {
 			if(workplaces[w]['workplace_type']==1){
-				beta_workplace = BETA_W //workplace
+				beta_workplace = BETA_W; //workplace
 			} else if (workplaces[w]['workplace_type']==2){
-				beta_workplace = BETA_S //school
+				beta_workplace = BETA_S; //school
 			}
 			workplaces[w]['scale'] = beta_workplace*workplaces[w]['Q_w']/workplaces[w]['individuals'].length;
 		}
 	}
-	
 }
 
 
@@ -412,8 +411,7 @@ function compute_scale_communities(nodes, communities){
 			sum_value += nodes[communities[w]['individuals'][i]]['funct_d_ck'];
 		}
 		if(sum_value==0){
-			communities[w]['scale'] = 0
-			
+			communities[w]['scale'] = 0;
 		}
 		else communities[w]['scale'] = BETA_C*communities[w]['Q_c']/sum_value;
 		}
@@ -446,7 +444,7 @@ function init_homes(){
 	return homes;
 }
 
-
+// Both schools and offices are treated as workspaces with some differences
 function init_workplaces(){
 	var workplaces_json = JSON.parse(loadJSON_001('workplaces.json'));
 	var schools_json = JSON.parse(loadJSON_001('schools.json'));
@@ -454,7 +452,6 @@ function init_workplaces(){
 	NUM_WORKPLACES = workplaces_json.length;
 	NUM_SCHOOLS = schools_json.length;
 
-	
 	// console.log(NUM_WORKPLACES,NUM_SCHOOLS)
 
 	var workplaces = [];
@@ -467,7 +464,7 @@ function init_workplaces(){
 			'individuals': [], //get_individuals_at_workplace(nodes, w), // Populate with individuals in same workplace
 			'Q_w': 1,
 			'scale': 0,
-			'workplace_type': 2
+			'workplace_type': 2 //tells this workplace is a school
 		};
 		//workplace['scale'] = BETA_W*workplace['Q_w']/workplace['individuals'].length;
 		workplaces.push(workplace)
@@ -480,7 +477,7 @@ function init_workplaces(){
 			'individuals': [], //get_individuals_at_workplace(nodes, w), // Populate with individuals in same workplace
 			'Q_w': 1,
 			'scale': 0,
-			'workplace_type': 1
+			'workplace_type': 1//tells this workplace is an office
 		};
 		//workplace['scale'] = BETA_W*workplace['Q_w']/workplace['individuals'].length;
 		workplaces.push(workplace)
@@ -516,7 +513,6 @@ function init_community(){
 	var communities = [];
 	for (var c=0; c < NUM_COMMUNITIES; c++) {
 		var community = {
-			
 			'loc':  [communities_json[c]['lat'],communities_json[c]['lon']], // [lat, long]
 			'lambda_community': 0,
 			'lambda_community_global': 0,  
@@ -838,10 +834,9 @@ function update_lambdas(node,homes,workplaces,communities,nodes,cur_time){
 				(time_since_symptoms > 1*SIM_STEPS_PER_DAY) && 
 				(time_since_symptoms <= 15*SIM_STEPS_PER_DAY)	);
 		}
-
 	}
 
-	node['lambda_incoming']=[0,0,0]
+	node['lambda_incoming']=[0,0,0];
 	if(node['home']!=null) {
 		temp+=homes[node['home']]['lambda_home'];
 		node['lambda_incoming'][0] = homes[node['home']]['lambda_home'];
@@ -850,16 +845,12 @@ function update_lambdas(node,homes,workplaces,communities,nodes,cur_time){
 		if(!node_home_quarantined){
 			temp+= workplaces[node['workplace']]['lambda_workplace'];
 			node['lambda_incoming'][1] =  workplaces[node['workplace']]['lambda_workplace'];
-
 		} else{
 			temp+= 0.25*workplaces[node['workplace']]['lambda_workplace'];
 			node['lambda_incoming'][1] =  0.25*workplaces[node['workplace']]['lambda_workplace'];
-
-	
 		}
-
-		
 	}
+
 	if(node['community']!=null) {
 		if(!node_home_quarantined){
 			temp+=node['zeta_a']*node['funct_d_ck']*communities[node['community']]['lambda_community_global'];
@@ -867,7 +858,6 @@ function update_lambdas(node,homes,workplaces,communities,nodes,cur_time){
 		} else{
 			temp+=0.25*node['zeta_a']*node['funct_d_ck']*communities[node['community']]['lambda_community_global'];
 			node['lambda_incoming'][2] = 0.25*node['zeta_a']*node['funct_d_ck']*communities[node['community']]['lambda_community_global'];
-		
 		}
 	}
 
@@ -890,8 +880,8 @@ function get_lambda_stats(time,node,lambda_stats_variable){
 lambda_infection_stats=[] //global variable to track lambda evolution when a person gets infected
 
 function update_lambda_stats(node){
-	var sum_inv = 1/math.sum(node['lambda_incoming'])
-	var lambda_vector = []
+	var sum_inv = 1/math.sum(node['lambda_incoming']);
+	var lambda_vector = [];
 	for (var i= 0; i<node['lambda_incoming'].length; i++){
 		lambda_vector.push(node['lambda_incoming'][i]*sum_inv);
 	}
@@ -919,7 +909,7 @@ function run_simulation() {
 	compute_scale_workplaces(workplaces)
 	compute_scale_communities(nodes, communities)
 	
-	get_init_stats(nodes,homes,workplaces,communities);
+	//get_init_stats(nodes,homes,workplaces,communities);
 
 	var days_num_infected = [];
 	var days_num_exposed = [];
@@ -1172,7 +1162,7 @@ function run_and_plot_2() {
 	plot_plotly([returned_values[0][0],returned_values[1][0],returned_values[2][0]],'num_infected_plot','Number Infected',legends);
 	plot_plotly([returned_values[0][1],returned_values[1][1],returned_values[2][1]],'num_exposed_plot','Number Exposed',legends);
 	plot_plotly([returned_values[0][2],returned_values[1][2],returned_values[2][2]],'num_hospitalised_plot','Number Hospitalised',legends);
-	plot_plotly([returned_values[0][3],returned_values[1][3],returned_values[2][3]],'num_critical_plot','Number Crtitical',legends);
+	plot_plotly([returned_values[0][3],returned_values[1][3],returned_values[2][3]],'num_critical_plot','Number Critical',legends);
 	plot_plotly([returned_values[0][4],returned_values[1][4],returned_values[2][4]],'num_fatalities_plot','Number Fatalities',legends);
 	plot_plotly([returned_values[0][5],returned_values[1][5],returned_values[2][5]],'num_recovered_plot','Number Recovered',legends);
 	
