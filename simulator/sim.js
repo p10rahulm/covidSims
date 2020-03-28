@@ -303,7 +303,7 @@ function psi_T(node, cur_time){
 	var PSI_THRESHOLD = SIM_STEPS_PER_DAY;	
 	var time_since_infection = cur_time - node["time_of_infection"];
 	var scale_factor = 0.5; 
-	if(node['workplace_type']==0) {scale_factor = 0.1} //school
+	if(node['workplace_type']==2) {scale_factor = 0.1} //school
 	else if(node['workplace_type']==1) {scale_factor = 0.5} //office
 	if(time_since_infection < PSI_THRESHOLD){ return 0;}
 	else {return scale_factor;}	
@@ -907,7 +907,7 @@ function run_simulation() {
 	compute_scale_workplaces(workplaces)
 	compute_scale_communities(nodes, communities)
 	
-	//get_init_stats(nodes,homes,workplaces,communities);
+	get_init_stats(nodes,homes,workplaces,communities);
 
 	var days_num_infected = [];
 	var days_num_exposed = [];
