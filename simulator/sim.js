@@ -3,7 +3,7 @@
 
 
 //simulation inputs
-NUM_DAYS = 200; //Number of days. Simulation duration
+NUM_DAYS = 500; //Number of days. Simulation duration
 SIM_STEPS_PER_DAY = 1; //Number of simulation steps per day.
 NUM_TIMESTEPS = NUM_DAYS*SIM_STEPS_PER_DAY; //
 INIT_FRAC_INFECTED = 0.0001; // Initial number of people infected
@@ -58,10 +58,10 @@ STATE_TRAN=[
 
 
 // Beta values
-BETA_H = 0.47 //Thailand data
-BETA_W = 0.47 //Thailand data
-BETA_S = 0.94 //Thailand data
-BETA_C = 0.097 //Thailand data
+BETA_H = 0.47 *1.0 //Thailand data
+BETA_W = 0.47 *1.0//Thailand data
+BETA_S = 0.94 *1.0//Thailand data
+BETA_C = 0.097*1.0//Thailand data
 
 
 ALPHA = 0.8 //exponent of number of people in a household while normalising infection rate in a household.
@@ -81,7 +81,7 @@ function compliance(){
 			val = (Math.random()<0.5)?1:0;
 			break;
 		case LOCKDOWN:
-			val = 1;
+			val = (Math.random()<1)?1:0;;
 			break;
 		default:
 			val = 1;
@@ -197,7 +197,7 @@ function kappa_C(node, cur_time){
 			
 			val = 1;
 			if(node['compliant']){
-				if(time_since_infection > 1){
+				if(time_since_infection > 1*SIM_STEPS_PER_DAY){
 					val = 0.25;
 				}
 			}
@@ -205,13 +205,18 @@ function kappa_C(node, cur_time){
 		case HOME_QUARANTINE:
 			val = 1;
 			if(node['compliant']){
-				if(time_since_infection > 1){
+				if(time_since_infection > 1*SIM_STEPS_PER_DAY){
 					val = 0.25;
 				}
 			}
 			break;
 		case LOCKDOWN:
-			val = 0.25;
+			val = 1;
+			if(node['compliant']){
+				
+					val = 0.25;
+				
+			}
 			break;
 		default:
 			val = 1;
@@ -307,7 +312,8 @@ function psi_T(node, cur_time){
 function f_kernel(d){
     var a = 4 //in kms
     var b = 3.8 //both values are for Thailand
-	return 1/(1+Math.pow(d/a,b))
+	return 1;
+	//return 1/(1+Math.pow(d/a,b));
 }
 
 
@@ -561,10 +567,11 @@ function euclidean(loc1,loc2) {
 
 
 function compute_community_distances(communities){
-	var inter_ward_distances_json = JSON.parse(loadJSON_001('commonArea.json'));
+	var inter_ward_distances_json = JSON.parse(loadJSON_001('wardCentreDistance.json'));
 
 	 var community_dist_matrix = math.zeros([communities.length,communities.length]);
 	/// console.log(community_dist_matrix)
+	
 	 for (var c1 =0; c1< communities.length;c1++){
 		 for (var c2=c1+1; c2<communities.length;c2++){
 			/// console.log(communities[c1]['loc'],communities[c2]['loc'])
@@ -573,7 +580,8 @@ function compute_community_distances(communities){
 			 
 		 }
 	 }
-	 /*
+	
+	/* 
 	 for (var c1 =0; c1< inter_ward_distances_json.length;c1++){
 		for (var c2=c1+1; c2<inter_ward_distances_json.length;c2++){
 		   /// console.log(communities[c1]['loc'],communities[c2]['loc'])
@@ -616,7 +624,17 @@ function update_individual_lambda_c(node){
 	return node['infective'] * node['kappa_T'] * node['infectiousness'] * node['funct_d_ck'] * (1 + node['severity'])*node['kappa_C'];
 	// optimised version: return node['lambda_h] * node['funct_d_ck']; 
 }
-
+function get_init_stats(nodes,homes,workplaces,communities){
+	for (var h = 0; h< homes.length;h++){
+		console.log("Home: ",h, " - ", homes[h]['individuals'].length)
+	}
+	for (var h = 0; h< workplaces.length;h++){
+		console.log("workplace: ",h, " - ", workplaces[h]['individuals'].length)
+	}
+	for (var h = 0; h< communities.length;h++){
+		console.log("Community: ",h, " - ", communities[h]['individuals'].length)
+	}
+}
 
 function update_infection(node,cur_time){
     
@@ -894,13 +912,15 @@ function run_simulation() {
 	var community_distance_matrix = compute_community_distances(communities);
 
 	//console.log(community_distance_matrix)
-	console.log(NUM_PEOPLE,NUM_HOMES, NUM_WORKPLACES,NUM_COMMUNITIES)
+	console.log(NUM_PEOPLE,NUM_HOMES, NUM_WORKPLACES,NUM_SCHOOLS,NUM_COMMUNITIES)
 
 	assign_individual_home_community(nodes,homes,workplaces,communities);
 	compute_scale_homes(homes)
 	compute_scale_workplaces(workplaces)
 	compute_scale_communities(nodes, communities)
 	
+	get_init_stats(nodes,homes,workplaces,communities);
+
 	var days_num_infected = [];
 	var days_num_exposed = [];
 	var days_num_hospitalised = [];
@@ -1178,5 +1198,5 @@ function run_and_plot_2() {
 
 //Main function
 
-run_and_plot(NO_INTERVENTION);
+run_and_plot(LOCKDOWN);
 //run_and_plot_2();
