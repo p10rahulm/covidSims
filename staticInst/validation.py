@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-""""
-Copyright [2020] [Indian Institute of Science, Bangalore]
-SPDX-License-Identifier: Apache-2.0
-""""
+#""""
+#Copyright [2020] [Indian Institute of Science, Bangalore]
+#SPDX-License-Identifier: Apache-2.0
+#""""
 __name__ = "validation script for data vs model validation"
 
 import numpy as np
