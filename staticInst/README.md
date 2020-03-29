@@ -19,10 +19,11 @@ The sub-directory structure followed for storing and processing of static data s
 |- data/
    |- base/                         # Raw data for each city
       |- bangalore/                  # Data for Banglore City
-         |- demographics.json       # demographic data about each ward 
+         |- demographics.csv       # demographic data about each ward 
          |- households_and_age.json # age and household-size distributions
-         |- common_areas.json       # location of places where people congrugate
+         |- common_areas.csv       # location of places where people congrugate
          |- city.geojson       # geographic boundaries of wards
+         |- employment.csv    # census data on employed people
 	 |- cityProfile.json       # processed demographic data dump for all wards
       |- chennai/
    |      
@@ -43,9 +44,7 @@ The following table gives a status of the data collection effort. The cells can 
 | City     | GeoJSON for city wards | Demographic Data of city wards | Age and Household-size Distributions for City | Points of Interests (Common Spaces) | 
 |----------|------------------------|--------------------------------|-----------------------------------------------|-------------------------------------|
 | Banglore | [Link to Raw GeoJSON](https://github.com/datameet/Municipal_Spatial_Data/raw/master/Bangalore/BBMP.GeoJSON) |[Link to 2011 Census Data](https://smartcities.data.gov.in/catalog/city-profile-bengaluru?filters%5Bfield_catalog_reference%5D=2916949&format=json&offset=0&limit=9&sort%5Bcreated%5D=desc) select `Demographic Profile Bengaluru As On 01-03-2011`|                [Link to 2011 Census Data](https://smartcities.data.gov.in/catalog/city-profile-bengaluru?filters%5Bfield_catalog_reference%5D=2916949&format=json&offset=0&limit=9&sort%5Bcreated%5D=desc) select  `Household Profile Bengaluru As On 01-03-2011`|                  |
-| Chennai  |                        |                                |                                               |                                     |             
+| New York  |                        |                                |                                               |                                     |             
 | Mumbai   |                        |                                |                                               |                                     |             
-| Kolkata  |                        |                                |                                               |                                     |             
-| Delhi    |                        |                                |                                               |                                     |             
-| Wuhan    |                        |                                |                                               |                                     |             
-|          |                        |                                |                                               |                                     |             
+| Bergamo  |                        |                                |                                               |                                     |             
+| Wuhan    |                        |                                |                                               

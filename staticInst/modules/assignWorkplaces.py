@@ -4,15 +4,34 @@
 Copyright [2020] [Indian Institute of Science, Bangalore]
 SPDX-License-Identifier: Apache-2.0
 """
-__name__ = "Module to assign individuals to workplaces or schools"
+__name__ = "Module to assign individuals to workplaces"
 
 import numpy as np
 import pandas as pd 
 import math
 import scipy.stats as stats
+from modules.processGeoData import workplaceLocation
 
 
 wards = None #global variable to hold the wards DF
+
+def workplaces_size_distribution(a=3.26, c=0.97, m_max=2870):  
+    count=1
+    a=3.26
+    c=0.97
+    m_max=2870
+    p_nplus = np.arange(float(m_max))
+    for m in range(m_max):
+        p_nplus[m] =  ((( (1+m_max/a)/(1+m/a))**c) -1) / (((1+m_max/a)**c) -1)
+
+    p_nminus = 1.0 - p_nplus
+    p_n = np.arange(float(m_max))
+    prev=0.0
+    for m in range(1, m_max):
+        p_n[m] = p_nminus[m] - prev
+        prev = p_nminus[m] 
+
+    return p_n/sum(p_n)
 
 # findout neighbours of a given ward
 def neighbouring_wards_ids(input_ward):
@@ -52,20 +71,29 @@ def possible_workplaces_ids(input_ward, workplaces):
     return temp
     
 
-def assign_workplaces(demographics,individuals):
-    workers_indices = np.where((individuals['work/school']==1).values)[0]
+def assign_workplaces(cityGeoDF, individuals, minWorkplaceDistance=0, maxWorkplaceDistance=35, maxWorkplaces=2870):
+    global m_min, m_max, a, b
+    m_min = minWorkplaceDistance
+    m_max = maxWorkplaceDistance
+    a = 4    #parameter in distribution for commuter distance - Thailand paper
+    b = 3.8  #parameter in distribution for commuter distance - Thailand paper
+
+    workers_indices = np.where((individuals['workplaceType']==1).values)[0]
     workplaces = pd.DataFrame({})
     capacities = []
     cumulative_capacity = 0
+    workplacesize_values = np.arange(maxWorkplaces)
+    workplacesize_distribution = workplaces_size_distribution()
     while len(workers_indices)>cumulative_capacity:
         workplaces = workplaces.append(workplaceLocation(cityGeoDF,  1),ignore_index=True)
         temp = np.random.choice(workplacesize_values,1,p=workplacesize_distribution)[0]
         capacities.append(temp)
         cumulative_capacity = cumulative_capacity + temp
-    workplaces.insert(3,'capacity',capacities)
-    workplaces.insert(4,'workforce',np.full(len(workplaces),0))
-    workplaces.insert(5,'workers',[[] for x in range(0,len(workplaces))])
-    workplaces.insert(6,'distances', [[] for x in range(0,len(workplaces))])
+
+    workplaces['capacity'] = capacities
+    workplaces['workforce'] = np.full(len(workplaces),0)
+    workplaces['workers'] = [[] for x in range(0,len(workplaces))]
+    workplaces['distances'] = [[] for x in range(0,len(workplaces))]
     workplaces['ID'] = np.arange(0,len(workplaces))
     workplace_distance_distribution = commuter_distance_distribution(m_min,m_max,a,b)
     

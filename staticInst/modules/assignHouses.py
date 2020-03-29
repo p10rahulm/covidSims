@@ -9,7 +9,7 @@ __name__ = "Module to assign individuals to houses"
 import numpy as np 
 import pandas as pd 
 
-def assign_individuals_to_houses(targetPopulation, wards, totalHousehold, ageDistribution=[0.073, 0.078, 0.083, 0.086, 0.102, 0.11, 0.098, 0.081, 0.071, 0.059, 0.049, 0.037, 0.03, 0.021, 0.01, 0.007, 0.005], householdDistribution=[0.0417, 0.1308, 0.2228, 0.3077, 0.1530, 0.0726, 0.0645, 0.0054, 0.0015]):
+def assign_individuals_to_houses(targetPopulation, wards, totalHousehold, ageDistribution, householdDistribution,unemployment_fraction):
     N = targetPopulation
     dictlist_individuals = [dict() for x in range(N)]
 
@@ -45,10 +45,22 @@ def assign_individuals_to_houses(targetPopulation, wards, totalHousehold, ageDis
     # create individuals with desired age distribution
     individuals = {'id': np.arange(0,N), 'age':np.random.choice(age_values,N,p=age_distribution), 'household':np.ones((1,N))[0]*-1}
     individuals = pd.DataFrame(individuals) #after households DF is ready - add lat, lon, ward no to individuals || call functions in workplace_assignment.py
+    individuals['workplaceType'] = np.full(N,0)
+    # index 2-school, 1-work
+    working_16_20 = np.setdiff1d((np.multiply(np.random.choice([0,1],len(np.where(np.logical_and(individuals['age']>=16, individuals['age']<=20).values)[0]),replace=True),np.where(np.logical_and(individuals['age']>=16, individuals['age']<=20).values)[0])),[0])
+    schooling_16_20 = np.setdiff1d( np.where(np.logical_and(individuals['age']>=16, individuals['age']<=20).values)[0] , working_16_20)
+    children_indices = np.where(np.logical_and(individuals['age']>=6, individuals['age']<=15).values)[0]
+    workers_indices  = np.unique(np.multiply(np.random.choice([0,1],len(np.where(np.logical_and(individuals['age']>=21, individuals['age']<=60).values)[0]),p=[unemployment_fraction,1-unemployment_fraction],replace=True),np.where(np.logical_and(individuals['age']>=21, individuals['age']<=60).values)[0]))
+   
+    individuals.at[schooling_16_20,'workplaceType'] = 2
+    individuals.at[working_16_20,'workplaceType'] = 1
+    individuals.at[children_indices,'workplaceType'] = 2
+    individuals.at[workers_indices,'workplaceType'] = 1
+
 
     # create households with desired household-size distribution
     #Ward No, Lat and Lon - would be city data (geojson of city)
-    households = {'id':np.arange(0,H), 'wardIndex': np.random.choice(np.arange(0,W),H), 'people staying':np.random.choice(household_sizes, H, p=household_distribution), 'individuals':[[] for x in range(0,H)],  'flag':[0 for x in range(0,H)]}
+    households = {'id':np.arange(0,H), 'wardNo': np.random.choice(np.arange(0,W),H), 'people staying':np.random.choice(household_sizes, H, p=household_distribution), 'individuals':[[] for x in range(0,H)],  'flag':[0 for x in range(0,H)]}
     households = pd.DataFrame(households)
 
 
@@ -512,6 +524,6 @@ def assign_individuals_to_houses(targetPopulation, wards, totalHousehold, ageDis
                 households.at[house_indices[j], 'individuals'].append(unassigned_individuals_ids[j])
 
     unassigned_households_ids = households.loc[households['flag']==0]['id'].values
-    # households = households.loc[households['flag']!=0]
+    households = households.loc[households['flag']!=0]
     individuals['household']=individuals['household'].astype(int)
     return individuals, households

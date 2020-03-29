@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Sun Mar 29 04:21:48 2020
-
-@author: sarathy
+Copyright [2020] [Indian Institute of Science, Bangalore]
+SPDX-License-Identifier: Apache-2.0
 """
+__name__ = "Module to assign individuals to schools"
+
 
 import os, sys
 import json
@@ -12,12 +13,25 @@ import pandas as pd
 import numpy as np
 
 #Data-processing Functions
-from modules.processDemographics import *
-from modules.processGeoData import *
+from modules.processGeoData import schoolLocation
 
-def assign_schools(individuals,cityGeoDF,schoolsize_values, schoolsize_distribution):
-    student_indices = np.where((individuals['work/school']==2).values)[0]
-    schools = pd.DataFrame({})
+def assign_schools(individuals, cityGeoDF, schoolDistribution):
+    # generate schools size distribution
+    schoolsize_values = np.arange(50,901,1)
+    schoolsize_distribution_over_gap100 = schoolDistribution # 50-99, 100-199, ..., 800 - 899, 900+
+    schoolsize_distribution = []
+    for i in range(1,len(schoolsize_distribution_over_gap100)-1):
+        for j in range(0,100):
+            schoolsize_distribution.append(schoolsize_distribution_over_gap100[i]/100)
+
+    for i in range(0,50):
+        schoolsize_distribution.insert(0,schoolsize_distribution_over_gap100[0]/50)
+
+    schoolsize_distribution.append(schoolsize_distribution_over_gap100[len(schoolsize_distribution_over_gap100)-1])
+    schoolsize_distribution = np.array(schoolsize_distribution)
+    schoolsize_distribution = schoolsize_distribution/np.sum(schoolsize_distribution)
+    student_indices = np.where((individuals['workplaceType']==2).values)[0]
+    schools = pd.DataFrame()
     capacities = []
     cumulative_capacity = 0
     while len(student_indices)>cumulative_capacity:
@@ -25,10 +39,11 @@ def assign_schools(individuals,cityGeoDF,schoolsize_values, schoolsize_distribut
         temp = np.random.choice(schoolsize_values,1,p=schoolsize_distribution)[0]
         capacities.append(temp)
         cumulative_capacity = cumulative_capacity + temp
-    schools.insert(3,'capacity',capacities)
-    schools.insert(4,'strength',np.full(len(schools),0))
-    schools.insert(5,'students',[[] for x in range(0,len(schools))])
     schools['ID'] = np.arange(0,len(schools))
+    schools['capacity'] = capacities
+    schools['strength'] = np.full(len(schools),0)
+    schools['students'] = [[] for x in range(0,len(schools))]
+    
     
     
     already_assigned_students = []
@@ -52,7 +67,7 @@ def assign_schools(individuals,cityGeoDF,schoolsize_values, schoolsize_distribut
     # check if schools are not full
     for i in range(0,len(schools)):
         if schools.loc[i,'capacity'] > schools.loc[i,'strength']:
-            print(i)
+            # print(i)
             d = schools.loc[i,'capacity'] - schools.loc[i,'strength']
             if len(np.setdiff1d(student_indices, already_assigned_students)) >=d:
                 add_to_school_id = np.random.choice(np.setdiff1d(student_indices, already_assigned_students), d, replace=False)
@@ -62,7 +77,6 @@ def assign_schools(individuals,cityGeoDF,schoolsize_values, schoolsize_distribut
                     schools.at[i,'students'].append(add_to_school_id[j])
                     schools.at[i,'strength'] = schools.loc[i,'strength']+1
             else:
-                print(1)
                 add_to_school_id = np.setdiff1d(student_indices, already_assigned_students)
                 for j in range(0,len(np.setdiff1d(student_indices, already_assigned_students))):
                     individuals.at[add_to_school_id[j],'school'] = schools.loc[i,'ID']
@@ -70,6 +84,5 @@ def assign_schools(individuals,cityGeoDF,schoolsize_values, schoolsize_distribut
                     schools.at[i,'students'].append(add_to_school_id[j])
                     schools.at[i,'strength'] = schools.loc[i,'strength']+1
  
-    
     return individuals, schools
     

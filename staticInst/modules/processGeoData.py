@@ -14,9 +14,6 @@ from random import choice, uniform
 from scipy.spatial.distance import pdist, squareform
 from shapely.geometry import Point, MultiPolygon
 import math
-#return geojson
-def getGeojson(geoDF, filepath):
-  geoDF.to_file(filepath, driver='GeoJSON')
 
 def polar_to_cartesian(row):
   R = 6371
@@ -54,12 +51,9 @@ def parse_geospatial_data(geojsonFile):
   geoDF = geoDF[['wardNo', 'wardName', 'geometry']]
   geoDF['wardBounds'] = geoDF.apply(lambda row: MultiPolygon(row['geometry']).bounds, axis=1)
   geoDF['wardCentre'] = geoDF.apply(lambda row: (MultiPolygon(row['geometry']).centroid.x, MultiPolygon(row['geometry']).centroid.y), axis=1)
-  geoDF["neighbors"] = geoDF.apply(lambda row: ", ".join([str(ward) for ward in geoDF[~geoDF.geometry.disjoint(row['geometry'])]['wardNo'].tolist()]) , axis=1)
-  geoDF = geoDF.sort_values(by=['wardNo']) #sort dataframe by wardNo
+  geoDF["neighbors"] = geoDF.apply(lambda row: ", ".join([str(ward) for ward in geoDF[~geoDF.geometry.disjoint(row['geometry'])]['wardNo'].tolist() if row['wardNo'] != ward]) , axis=1)
 
-  geoDF = geoDF.reset_index()
-  geoDF = geoDF.rename(columns={"index":"wardIndex"})
-  return geoDF[['wardIndex', 'wardNo', 'wardBounds', 'wardCentre', 'neighbors']]
+  return geoDF[['wardNo', 'wardBounds', 'wardCentre', 'neighbors']]
 
 #common areas are the ward centre
 def commonAreaLocation(geoDF):
@@ -74,21 +68,18 @@ def commonAreaLocation(geoDF):
   return cc
 
 #assign houses across the wards randomly per ward
-def houseLocation(demographics, individuals, households):
+def houseLocation(geoDF, individuals, households):
   houseNumbers = individuals['household'].values
-  #ward assignments based on ID column
-  wardBounds = demographics.copy()
+
   # wardBounds = wardBounds.rename(columns={"wardNo": "Ward No"})
-  wardBounds = wardBounds[['wardIndex','wardNo', 'wardBounds']] #sorted by ward numbers
-  # households = pd.merge(households, wardBounds, on=['wardNo'])
-  households = pd.merge(households, wardBounds, on=['wardIndex'], how="outer")
-  households = households.dropna()
+  wardBounds = geoDF[['wardNo', 'wardBounds']] #sorted by ward numbers
+  households = pd.merge(households, wardBounds, on=['wardNo'])
+
   households['location'] = households.apply(lambda row: (np.random.choice([row['wardBounds'][0],row['wardBounds'][2]]), np.random.choice([row['wardBounds'][1], row['wardBounds'][3]])), axis=1)
   households['lat'] = households.apply(lambda row: row['location'][1], axis=1)
   households['lon'] = households.apply(lambda row: row['location'][0], axis=1)
   households['household'] = households['id'].values
   individuals = pd.merge(individuals, households[['household', 'wardNo', 'lat', 'lon']], on='household')
-  # individuals = individuals.rename(columns={"Ward No": "ward"})
   individuals = individuals.sort_values(by=['id'])
   households = households.sort_values(by=['id'])
   return households, individuals
