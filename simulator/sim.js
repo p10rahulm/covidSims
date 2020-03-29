@@ -4,7 +4,7 @@
 
 //simulation inputs
 
-NUM_DAYS = 400; //Number of days. Simulation duration
+NUM_DAYS = 100; //Number of days. Simulation duration
 SIM_STEPS_PER_DAY = 4; //Number of simulation steps per day.
 NUM_TIMESTEPS = NUM_DAYS*SIM_STEPS_PER_DAY; //
 INIT_FRAC_INFECTED = 0.0001; // Initial number of people infected
@@ -991,40 +991,79 @@ function run_simulation() {
 		days_num_affected.push([i/SIM_STEPS_PER_DAY, n_affected]);
 
 		let row = [i/SIM_STEPS_PER_DAY,n_affected,n_recovered,n_infected,n_exposed,n_hospitalised,n_critical,n_fatalities].join(",");
-            csvContent_alltogether += row + "\r\n";
+			csvContent_alltogether += row + "\r\n";
+		if(lambda_infection_stats.length > 0){
+			lambda_evolution.push([i/SIM_STEPS_PER_DAY,math.mean(lambda_infection_stats,0)])
+		}
+		
 
 	}
 	console.log(math.mean(lambda_infection_stats,0))
-	return [days_num_infected,days_num_exposed,days_num_hospitalised,days_num_critical,days_num_fatalities,days_num_recovered,days_num_affected];
+	return [days_num_infected,days_num_exposed,days_num_hospitalised,days_num_critical,days_num_fatalities,days_num_recovered,days_num_affected,lambda_evolution];
 }
 
-function plot_lambda_evolution(lambda_evolution) {
-	google.charts.load('current', {packages: ['corechart', 'line']});
-	google.charts.setOnLoadCallback(drawBasic);
+function plot_lambda_evolution(data,plot_position,title_text,legends) {
+	var trace = [];
 
-	function drawBasic() {
-	    var data = new google.visualization.DataTable();
-	    data.addColumn('number', 'X');
-	    data.addColumn('number', title_1);
+	for (var count = 0; count < data.length;count++){
+		for (var lambda_length_count = 0; lambda_length_count < data[0][0][1].length;lambda_length_count++){
+			//iterate over lambda_h, lambda_w,lambda_c
+			var trace1 = {
+				x: [],
+				y: [],
+				mode: 'bar',
+				name: legends[lambda_length_count]
+			  };
+			  for (var count2 = 0; count2 < data[count].length;count2++){
+				  trace1.x.push(data[count][count2][0]);
+				  trace1.y.push(data[count][count2][1][lambda_length_count]);
+	
+			  }
+			  trace.push(trace1)
 
-	    data.addRows(days_num_infected);
-
-	    var options = {
-	        hAxis: {
-	            title: 'Days'
-	        },
-	        vAxis: {
-	            title: title_1
-	        },
-			title: title_2,
-			legend: {position:'none'}
-	    };
-
-	    var chart = new google.visualization.LineChart(document.getElementById(plot_element));
-
-		chart.draw(data, options);
+		}
 		
 	}
+	
+	  
+	  var data_plot = trace;
+	  
+	  var layout = {
+		
+		barmode: 'stack',
+		title: {
+		  text: title_text,
+		  font: {
+			family: 'Courier New, monospace',
+			size: 24
+		  },
+		  xref: 'paper',
+		  x: 0.05,
+		},
+		xaxis: {
+		  title: {
+			text: 'Days',
+			font: {
+			  family: 'Courier New, monospace',
+			  size: 18,
+			  color: '#7f7f7f'
+			}
+		  },
+		},
+		yaxis: {
+		  title: {
+			text: title_text,
+			font: {
+			  family: 'Courier New, monospace',
+			  size: 18,
+			  color: '#7f7f7f'
+			}
+		  }
+		}
+	  };
+	  
+	  
+	  Plotly.newPlot(plot_position, data_plot, layout);
 }
 
 
@@ -1070,7 +1109,8 @@ function run_and_plot(intervention) {
 	plot_plotly([returned_values[3]],'num_critical_plot_2','Number Crtitical','Evolution of Crtitical Population');
 	plot_plotly([returned_values[4]],'num_fatalities_plot_2','Number Fatalities','Evolution of Fatalities Population');
 	plot_plotly([returned_values[5]],'num_recovered_plot_2','Number Recovered','Evolution of Recovered Population');
-	
+	plot_lambda_evolution([returned_values[7]],'lambda_evolution','Lambda Evolution',['lambda_home','lambda_workplace','lambda_community'])
+
 	var encodedUri = encodeURI(csvContent);
     var link = document.createElement("a");
     link.setAttribute("href", encodedUri);
