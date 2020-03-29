@@ -97,14 +97,23 @@ function compliance(){
 
 //This function seeds the infection based on ward-level probabilities.
 //Data can be taken from a json file.
-function compute_prob_infection_given_community(infection_probability){
+function compute_prob_infection_given_community(infection_probability,set_uniform){
 
 	var prob_infec_given_community = [];
-	var communities_json = JSON.parse(loadJSON_001('commonArea.json'));
-	var num_communities = communities_json.length;
+	var communities_population_json = JSON.parse(loadJSON_001('fractionPopulation.json'));
+	var communities_frac_quarantined_json = JSON.parse(loadJSON_001('quarantinedPopulation.json'));
+	var num_communities = communities_population_json.length;
 	for (var w = 0; w < num_communities; w++){
-		prob_infec_given_community.push(infection_probability);
-		//prob_infec_given_community.push(infection_probability*ward_infection_distribution[w]/ward_population_distribution[w]);
+		if(set_uniform){
+			//set uniformly across wards. Ignore ward wise data.
+			prob_infec_given_community.push(infection_probability);
+		}
+		else{
+			//Use ward wise quarantine data
+			prob_infec_given_community.push(infection_probability*communities_frac_quarantined_json[w]['fracQuarantined']/communities_population_json[w]['fracPopulation']);
+
+		} 		
+		
 	}
 	return prob_infec_given_community;
 }
@@ -120,7 +129,7 @@ function init_nodes() {
 	NUM_WORKPLACES = workplace_json.length;
 	//console.log("Num People", NUM_PEOPLE, "Num Workspaces",NUM_WORKPLACES)
 	COMMUNITY_INFECTION_PROB = compute_prob_infection_given_community(INIT_FRAC_INFECTED)
-
+	console.log(COMMUNITY_INFECTION_PROB)
 	var nodes = [];
 	var stream1 = new Random(1234);
 
@@ -136,9 +145,9 @@ function init_nodes() {
 			'severity': (Math.random() <0.5)?1:0, // a.k.a. S_k
 			'home': individuals_json[i]['household'], 
 			'workplace': individuals_json[i]['workplaceType']==1? individuals_json[i]['workplace']:individuals_json[i]['school'],
-			'community': individuals_json[i]['wardNo'],
+			'community': individuals_json[i]['wardNo']-1, //minus one is temporary as the ward number indexing starts from 1,
 			'time_of_infection': 0,
-			'infection_status': (Math.random() <COMMUNITY_INFECTION_PROB[individuals_json[i]['wardNo']])?1:0, //random seeding
+			'infection_status': (Math.random() <COMMUNITY_INFECTION_PROB[individuals_json[i]['wardNo']-1])?1:0, //random seeding
 			'infective': 0,
 			'lambda_h': 0, //individuals contribution to his home cluster
 			'lambda_w': 0, //individuals contribution to his workplace cluster
