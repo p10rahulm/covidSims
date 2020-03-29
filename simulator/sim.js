@@ -787,9 +787,9 @@ function update_lambda_c_global(communities,community_distance_matrix){
 	for (var c1=0; c1<communities.length; c1++){
 		var temp = 0;
 		var temp2 = 0;
-		for (var c2 = 0;c2<communities.length;c2++){
+		for (var c2 = 0;c2<communities.length;c2++){			 
 			temp+=f_kernel(community_distance_matrix[c1][c2])*communities[c2]['lambda_community'];
-			temp2+=f_kernel(community_distance_matrix[c1][c2]);
+			temp2+=f_kernel(community_distance_matrix[c1][c2]);			
 			//console.log(c1,c2,f_kernel(community_distance_matrix[c1][c2])*communities[c2]['lambda_community'])
 		}
 		communities[c1]['lambda_community_global'] = temp/temp2;
@@ -1240,5 +1240,5 @@ function run_and_plot_2() {
 
 //Main function
 
-run_and_plot(LOCKDOWN);
+run_and_plot(NO_INTERVENTION);
 //run_and_plot_2();
