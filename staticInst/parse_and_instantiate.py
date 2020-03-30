@@ -74,7 +74,6 @@ def instantiate(city, targetPopulation, averageStudents, averageWorkforce):
 	# print(people_over_60, unemployed_fraction, employable_population, total_employable, total_unemployed, unemployed_but_employable )
 
 	totalNumberOfWards = len(demographicsData['Ward No.'].values)
-	averageHouseholds = totalPopulation / demographicsData['totalHouseholds'].values.sum()
 
 	commonArea = commonAreaLocation(cityGeoDF)
 	print("getting parameters ready completed in ", time.time() - start)
@@ -82,7 +81,7 @@ def instantiate(city, targetPopulation, averageStudents, averageWorkforce):
 	#assignment of individuals to households
 	print("instantiating individuals to households...")
 	start = time.time()
-	individuals, households = assign_individuals_to_houses(targetPopulation, totalNumberOfWards, averageHouseholds, ageDistribution, householdDistribution, unemployed_fraction)
+	individuals, households = assign_individuals_to_houses(targetPopulation, totalNumberOfWards, ageDistribution, householdDistribution, unemployed_fraction)
 	print("instantiating individuals to households completed in ", time.time() - start)
 	
 	print("instantiating individual location by house location...")

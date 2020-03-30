@@ -9,12 +9,9 @@ __name__ = "Module to assign individuals to houses"
 import numpy as np 
 import pandas as pd 
 
-def assign_individuals_to_houses(targetPopulation, wards, totalHousehold, ageDistribution, householdDistribution,unemployment_fraction):
+def assign_individuals_to_houses(targetPopulation, wards, ageDistribution, householdDistribution,unemployment_fraction):
     N = targetPopulation
     dictlist_individuals = [dict() for x in range(N)]
-
-    H = int(targetPopulation/totalHousehold)
-    dictlist_houses = [dict() for x in range(H)]
 
     W = wards
 
@@ -57,6 +54,8 @@ def assign_individuals_to_houses(targetPopulation, wards, totalHousehold, ageDis
     individuals.at[children_indices,'workplaceType'] = 2
     individuals.at[workers_indices,'workplaceType'] = 1
 
+    H = int(targetPopulation/mean_household_size)
+    dictlist_houses = [dict() for x in range(H)]
 
     # create households with desired household-size distribution
     #Ward No, Lat and Lon - would be city data (geojson of city)
