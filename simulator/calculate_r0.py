@@ -55,30 +55,30 @@ def calculate_r0(number_of_days,resolution):
         for i in range(0,len(i_data_nointervention)):
             itplusrt.append(i0*((param[0]*np.exp((param[0]-mu)*i)-mu))/(param[0]-mu))  
         itplusrt = np.array(itplusrt)
-        return (np.log10(itplusrt) - np.log10((i_data_nointervention)))
+        return (np.log10(itplusrt) - np.log10(i_data_nointervention))
     
     def objfn_itplusrt_hq(param):
         itplusrt = []
         for i in range(0,len(i_data_hq)):
             itplusrt.append(i0*((param[0]*np.exp((param[0]-mu)*i)-mu))/(param[0]-mu))  
         itplusrt = np.array(itplusrt)
-        return (itplusrt - (i_data_hq))
+        return (np.log10(itplusrt) - np.log10(i_data_hq))
     
     def objfn_itplusrt_ci(param):
         itplusrt = []
         for i in range(0,len(i_data_ci)):
             itplusrt.append(i0*((param[0]*np.exp((param[0]-mu)*i)-mu))/(param[0]-mu))  
         itplusrt = np.array(itplusrt)
-        return (np.log10(itplusrt) - np.log10((i_data_ci)))
+        return (np.log10(itplusrt) - np.log10(i_data_ci))
     
     def objfn_itplusrt_lockdown(param):
         itplusrt = []
         for i in range(0,len(i_data_lockdown)):
             itplusrt.append(i0*((param[0]*np.exp((param[0]-mu)*i)-mu))/(param[0]-mu))  
         itplusrt = np.array(itplusrt)
-        return (np.log10(itplusrt) - np.log10((i_data_lockdown)))
+        return (np.log10(itplusrt) - np.log10(i_data_lockdown))
     
-    param0=[1]
+    param0=[4*mu]
     
     #regression
     res_nointervention = least_squares(objfn_itplusrt_nointervention, param0, bounds=([0],[np.inf])) 
