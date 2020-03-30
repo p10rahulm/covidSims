@@ -25,6 +25,13 @@ def distance(lat1, lon1, lat2, lon2):
 
     return d
 
+def travel_distance_distribution(m_min,m_max,a,b):
+    temp = []
+    for d in np.arange(m_min,m_max,1):
+        temp.append(1/(1+(d/a)**b))
+    temp = np.array(temp)
+    return temp/np.sum(temp)
+
 def validate_distributions(ageDistribution,householdDistribution,schoolsizeDistribution):
 # age distribution
     age_values = np.arange(0,81,1)
@@ -68,7 +75,7 @@ def validate_distributions(ageDistribution,householdDistribution,schoolsizeDistr
     bzipf = stats.rv_discrete (name='bzipf', values=(workplace_sizes, p_n))
     
 
-    individuals = pd.read_json('./data/bangalore/individuals.json')
+    individuals = pd.read_json('./data/bangalore-100K-300students/individuals.json')
     
     age = {'id':np.unique(individuals['age'].values), 'number of people':[0 for i in range(0,len(np.unique(individuals['age'].values)))]}
     age = pd.DataFrame(age)
@@ -88,7 +95,8 @@ def validate_distributions(ageDistribution,householdDistribution,schoolsizeDistr
     workplaces = {'id':x, 'number of people': [0 for i in range(0,len(x))]}
     workplaces = pd.DataFrame(workplaces)
     workplace_distances = []    
-    wp = pd.read_json('./data/bangalore/workplaces.json')
+
+    wp = pd.read_json('./data/bangalore-100K-300students/workplaces.json')
     
     for i in range(0,len(individuals)):
         print(i/len(individuals))
@@ -100,8 +108,8 @@ def validate_distributions(ageDistribution,householdDistribution,schoolsizeDistr
             schools.at[schools['id']==individuals.loc[i,'school'],'number of people'] = 1+schools.loc[schools['id']==individuals.loc[i,'school'],'number of people']
             
         if not(np.isnan(individuals.loc[i,'workplace'])):
-            workplaces.at[workplaces['id']==individuals.loc[i,'workplace'],'number of people'] = 1+workplaces.loc[workplaces['id']==individuals.loc[i,'workplace'],'number of people']
-            workplace_distances.append(distance(individuals.loc[i,'lat'],individuals.loc[i,'lon'],wp.loc[wp['ID']==int(individuals.loc[i,'workplace']),'lat'],wp.loc[wp['ID']==int(individuals.loc[i,'workplace']),'lon']))
+            workplaces.at[workplaces.index==int(individuals.loc[i,'workplace']),'number of people'] = 1+workplaces.loc[workplaces.index==individuals.loc[i,'workplace'],'number of people']
+            workplace_distances.append(distance(individuals.loc[i,'lat'],individuals.loc[i,'lon'],wp.loc[wp.index==int(individuals.loc[i,'workplace']),'lat'],wp.loc[wp.index==int(individuals.loc[i,'workplace']),'lon']))
     # plot age distribution
     plt.plot(age['number of people'].values/(np.sum(age['number of people'].values)), 'r')
     plt.plot(age_distribution)
@@ -122,7 +130,7 @@ def validate_distributions(ageDistribution,householdDistribution,schoolsizeDistr
     HH_output_distribution = HH_numbers/sum(HH_numbers)
     plt.plot(HH_ranges,household_distribution)
     plt.plot(HH_ranges,HH_output_distribution,'r')
-    plt.xticks(np.arange(1,7,1), np.concatenate((np.array(household_sizes)[np.arange(0,5,1)], ['6+'])) )
+    plt.xticks(np.arange(1,16,1), np.concatenate((np.array(household_sizes)[np.arange(0,14,1)], ['15+'])) )
     plt.xlabel('Household size')
     plt.ylabel('Density')
     plt.title('Distribution of household size')
@@ -153,10 +161,21 @@ def validate_distributions(ageDistribution,householdDistribution,schoolsizeDistr
     plt.show()
     plt.close()
     
-    plt.hist(workplace_distances)
-    plt.xlabel('Workplace distances')
-    plt.ylabel('Density')
-    plt.title('Distribution of commuter ')
+    workplace_distance_empirical =  np.zeros((1,len(np.arange(m_min,m_max,1))))[0]
+    for j in range(0,len(workplace_distances)):
+        workplace_distance_empirical[int(workplace_distances[j])]+=1
+    workplace_distance_empirical = workplace_distance_empirical/np.sum(workplace_distance_empirical)
+    actual_dist=[]
+    actual_dist = travel_distance_distribution(m_min,m_max,4,3.8)
+    d = np.arange(0,35,1)
+    plt.plot(np.log10(d),np.log10(actual_dist))
+    plt.plot(np.log10(d),np.log10((workplace_distance_empirical)),'r')
+    plt.xlabel('Workplace distance (km) (log-scale)')
+    plt.ylabel('log-Density')
+    plt.title('Distribution of workplace distances')
+    plot_xlabel=[1,5,25,34]
+    plot_xlabel1 = np.log10(d)[plot_xlabel]
+    plt.xticks(plot_xlabel1,d[plot_xlabel])
     plt.grid(True)
     plt.savefig('workplace_distance')
     plt.show()
