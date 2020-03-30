@@ -75,7 +75,7 @@ def validate_distributions(ageDistribution,householdDistribution,schoolsizeDistr
     bzipf = stats.rv_discrete (name='bzipf', values=(workplace_sizes, p_n))
     
 
-    individuals = pd.read_json('./data/bangalore/individuals.json')
+    individuals = pd.read_json('./data/bangalore-100K-300students/individuals.json')
     
     age = {'id':np.unique(individuals['age'].values), 'number of people':[0 for i in range(0,len(np.unique(individuals['age'].values)))]}
     age = pd.DataFrame(age)
@@ -95,7 +95,7 @@ def validate_distributions(ageDistribution,householdDistribution,schoolsizeDistr
     workplaces = {'id':x, 'number of people': [0 for i in range(0,len(x))]}
     workplaces = pd.DataFrame(workplaces)
     workplace_distances = []    
-    wp = pd.read_json('./data/bangalore/workplaces.json')
+    wp = pd.read_json('./data/bangalore-100K-300students/workplaces.json')
     
     for i in range(0,len(individuals)):
         print(i/len(individuals))
@@ -104,10 +104,10 @@ def validate_distributions(ageDistribution,householdDistribution,schoolsizeDistr
         households.at[households['id']==individuals.loc[i,'household'],'number of people'] = 1+households.loc[households['id']==individuals.loc[i,'household'],'number of people']
     
         if not(np.isnan(individuals.loc[i,'school'])):
-            schools.at[schools['ID']==individuals.loc[i,'school'],'number of people'] = 1+schools.loc[schools['ID']==individuals.loc[i,'school'],'strength']
+            schools.at[schools['id']==individuals.loc[i,'school'],'number of people'] = 1+schools.loc[schools['id']==individuals.loc[i,'school'],'number of people']
             
         if not(np.isnan(individuals.loc[i,'workplace'])):
-            workplaces.at[workplaces.index==int(individuals.loc[i,'workplace']),'workforce'] = 1+workplaces.loc[workplaces.index==individuals.loc[i,'workplace'],'workforce']
+            workplaces.at[workplaces.index==int(individuals.loc[i,'workplace']),'number of people'] = 1+workplaces.loc[workplaces.index==individuals.loc[i,'workplace'],'number of people']
             workplace_distances.append(distance(individuals.loc[i,'lat'],individuals.loc[i,'lon'],wp.loc[wp.index==int(individuals.loc[i,'workplace']),'lat'],wp.loc[wp.index==int(individuals.loc[i,'workplace']),'lon']))
     # plot age distribution
     plt.plot(age['number of people'].values/(np.sum(age['number of people'].values)), 'r')
@@ -139,7 +139,7 @@ def validate_distributions(ageDistribution,householdDistribution,schoolsizeDistr
     plt.close()
     
     WP_ranges = workplace_sizes
-    WP_numbers = np.array([len(workplaces.loc[workplaces['workforce']==WP_ranges[i]]) for i in range(0,len(WP_ranges))])
+    WP_numbers = np.array([len(workplaces.loc[workplaces['number of people']==WP_ranges[i]]) for i in range(0,len(WP_ranges))])
     #WP_capacity = np.array([len(workplaces.loc[workplaces['capacity']==WP_ranges[i]]) for i in range(0,len(WP_ranges))])
     #WP_capacity = WP_capacity/sum(WP_capacity)
     WP_output_distribution = WP_numbers/sum(WP_numbers)
