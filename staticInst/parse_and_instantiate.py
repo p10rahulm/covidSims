@@ -12,6 +12,8 @@ import pandas as pd
 import warnings
 warnings.filterwarnings('ignore')
 import time
+from multiprocessing import Pool, Process
+
 #Data-processing Functions
 from modules.processDemographics import *
 from modules.processGeoData import *
@@ -74,6 +76,7 @@ def instantiate(city, targetPopulation, averageStudents, averageWorkforce):
 	# print(people_over_60, unemployed_fraction, employable_population, total_employable, total_unemployed, unemployed_but_employable )
 
 	totalNumberOfWards = len(demographicsData['Ward No.'].values)
+	averageHouseholds = totalPopulation / demographicsData['totalHouseholds'].values.sum()
 
 	commonArea = commonAreaLocation(cityGeoDF)
 	print("getting parameters ready completed in ", time.time() - start)
@@ -99,12 +102,11 @@ def instantiate(city, targetPopulation, averageStudents, averageWorkforce):
 	individuals, schools = assign_schools(individuals, cityGeoDF,  schoolDistribution)
 	print("instantiating individuals to schools completed in ", time.time() - start)
 
-
 	print("additonal data processing...")
 	start = time.time()
 	#associate individuals to common areas (by distance) and categorize workplace Type
 	def getDistances(row, cc):
-		findCommunityCentre = cc[int(row["wardNo"])]
+		findCommunityCentre = cc[int(row["wardIndex"])]
 		lat1 = row['lat']
 		lon1 = row['lon']
 
@@ -113,7 +115,7 @@ def instantiate(city, targetPopulation, averageStudents, averageWorkforce):
 
 		return distance(lat1, lon1, lat2, lon2)
 
-	individuals['CommunityCentreDistance'] = individuals.apply(getDistances, axis=1, args=(commonArea['location'].values,))
+	individuals['CommunityCentreDistance'] = individuals.apply(getDistances, axis=1, args=(commonArea['location'].values.tolist(),))
 
 	#Combining the IDs for schools and workplaces
 	schoolID = schools['ID'].values[-1]

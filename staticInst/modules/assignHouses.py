@@ -38,7 +38,7 @@ def assign_individuals_to_houses(targetPopulation, wards, ageDistribution, house
     household_distribution.append(household_dist[8])
     household_distribution = np.array(household_distribution)/np.sum(household_distribution)
     mean_household_size = np.matmul(household_sizes, household_distribution)    
-    
+    print("mean", mean_household_size)
     # create individuals with desired age distribution
     individuals = {'id': np.arange(0,N), 'age':np.random.choice(age_values,N,p=age_distribution), 'household':np.ones((1,N))[0]*-1}
     individuals = pd.DataFrame(individuals) #after households DF is ready - add lat, lon, ward no to individuals || call functions in workplace_assignment.py
@@ -54,12 +54,14 @@ def assign_individuals_to_houses(targetPopulation, wards, ageDistribution, house
     individuals.at[children_indices,'workplaceType'] = 2
     individuals.at[workers_indices,'workplaceType'] = 1
 
+
     H = int(targetPopulation/mean_household_size)
     dictlist_houses = [dict() for x in range(H)]
 
+
     # create households with desired household-size distribution
     #Ward No, Lat and Lon - would be city data (geojson of city)
-    households = {'id':np.arange(0,H), 'wardNo': np.random.choice(np.arange(0,W),H), 'people staying':np.random.choice(household_sizes, H, p=household_distribution), 'individuals':[[] for x in range(0,H)],  'flag':[0 for x in range(0,H)]}
+    households = {'id':np.arange(0,H), 'wardIndex': np.random.choice(np.arange(0,W),H), 'people staying':np.random.choice(household_sizes, H, p=household_distribution), 'individuals':[[] for x in range(0,H)],  'flag':[0 for x in range(0,H)]}
     households = pd.DataFrame(households)
 
 
@@ -523,6 +525,5 @@ def assign_individuals_to_houses(targetPopulation, wards, ageDistribution, house
                 households.at[house_indices[j], 'individuals'].append(unassigned_individuals_ids[j])
 
     unassigned_households_ids = households.loc[households['flag']==0]['id'].values
-    households = households.loc[households['flag']!=0]
     individuals['household']=individuals['household'].astype(int)
     return individuals, households

@@ -51,13 +51,16 @@ def parse_geospatial_data(geojsonFile):
   geoDF = geoDF[['wardNo', 'wardName', 'geometry']]
   geoDF['wardBounds'] = geoDF.apply(lambda row: MultiPolygon(row['geometry']).bounds, axis=1)
   geoDF['wardCentre'] = geoDF.apply(lambda row: (MultiPolygon(row['geometry']).centroid.x, MultiPolygon(row['geometry']).centroid.y), axis=1)
-  geoDF["neighbors"] = geoDF.apply(lambda row: ", ".join([str(ward) for ward in geoDF[~geoDF.geometry.disjoint(row['geometry'])]['wardNo'].tolist() if row['wardNo'] != ward]) , axis=1)
+  geoDF["neighbors"] = geoDF.apply(lambda row: ", ".join([str(ward) for ward in geoDF[~geoDF.geometry.disjoint(row['geometry'])]['wardNo'].tolist()]) , axis=1)
+  geoDF = geoDF.reset_index()
+  geoDF = geoDF.rename(columns={"index":"wardIndex"})
+  return geoDF[['wardIndex', 'wardNo', 'wardBounds', 'wardCentre', 'neighbors']]
 
-  return geoDF[['wardNo', 'wardBounds', 'wardCentre', 'neighbors']]
 
 #common areas are the ward centre
 def commonAreaLocation(geoDF):
   cc = pd.DataFrame()
+  cc['wardIndex'] = geoDF['wardIndex'].values
   cc['wardNo'] = geoDF['wardNo'].values
   cc['location'] = geoDF['wardCentre'].values
   cc['lat'] = cc.apply(lambda row: row['location'][1], axis=1)
@@ -72,14 +75,14 @@ def houseLocation(geoDF, individuals, households):
   houseNumbers = individuals['household'].values
 
   # wardBounds = wardBounds.rename(columns={"wardNo": "Ward No"})
-  wardBounds = geoDF[['wardNo', 'wardBounds']] #sorted by ward numbers
-  households = pd.merge(households, wardBounds, on=['wardNo'])
-
+  wardBounds = geoDF[['wardIndex', 'wardNo', 'wardBounds']] #sorted by ward numbers
+  households = pd.merge(households, wardBounds, on=['wardIndex'], how="outer")
+  # households = households.dropna()
   households['location'] = households.apply(lambda row: (np.random.choice([row['wardBounds'][0],row['wardBounds'][2]]), np.random.choice([row['wardBounds'][1], row['wardBounds'][3]])), axis=1)
   households['lat'] = households.apply(lambda row: row['location'][1], axis=1)
   households['lon'] = households.apply(lambda row: row['location'][0], axis=1)
   households['household'] = households['id'].values
-  individuals = pd.merge(individuals, households[['household', 'wardNo', 'lat', 'lon']], on='household')
+  individuals = pd.merge(individuals, households[['household', 'wardNo', 'wardIndex', 'lat', 'lon']], on='household')
   individuals = individuals.sort_values(by=['id'])
   households = households.sort_values(by=['id'])
   return households, individuals
