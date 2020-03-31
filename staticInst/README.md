@@ -1,14 +1,6 @@
 # README #
 This directory contains the mined, cleaned data for each city that is used to create the instantiations for the Markov chain simulator. The instantiated parameters are passed as JSON objects to the simulator.
 
-### Data Needs
-The following table lists the data needs for the instantiation script to run 
-| Dataset Description                                                       | Required Fields in the Data                                                                                                     | File Format |
-|---------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------|-------------|
-| Ward boundaries of a city                                                 | ward no, ward name, geometry(Multipolygon Geometry)                                                                             | GeoJSON     |
-| Demographic data for all wards with Age Distribution (bins of 5), household size distribution for the  city                          | ward no, total population in the ward, area of the ward, total number of households per ward                                    | JSON         |
-| Common Areas (or) Points of Interest in the City                          | latitude, longitude of common areas like transport communities, markets, restaurants, places of worship) per ward (if possible) | JSON         |
-
 ### Sub-Directory Structure
 The sub-directory structure followed for storing and processing of static data source used for instantiations is outlined as follows. 
 
@@ -37,6 +29,16 @@ The sub-directory structure followed for storing and processing of static data s
 ```
 
 **Suggestion**: For consistency, we can have naming convention in lowercase-only with underscore separators. 
+
+### Data Needs
+The following table lists the data needs for the instantiation script to run 
+| Dataset Description| Required Fields in the Data | File Format |
+|--------------------|-----------------------------|-------------|
+| Ward boundaries of a city | ward no, ward name, geometry(Multipolygon Geometry) | GeoJSON|
+| Age Distribution (bins of 5), household size distribution for the  city|   |JSON|
+|Demographic data for all wards of the city|ward no, total population in the ward, area of the ward, total number of households per ward                                    | CSV |
+|Employment data for all wards of the city|ward no, total population employed, total population unemployed| CSV |
+| Common Areas (or) Points of Interest in the City| latitude, longitude of common areas like transport communities, markets, restaurants, places of worship) per ward (if possible) | CSV|
 
 ### Status of Data Collection ###
 The following table gives a status of the data collection effort. The cells can be populated with the link of data sources used
