@@ -16,6 +16,7 @@ The source code is still under development, and we shall be updating this README
 
 ## Getting the source file
 The source code is maintained on BitBucket, but the process for working with the source code is just like using Github
+
 1. You clone this repository: `git clone https://<your bitbucket username>@bitbucket.org/iiscdsCov/markov_simuls.git`
 2. Switch to the directory containing the repository: `cd markov_simuls`
 
@@ -42,6 +43,7 @@ pip install numpy scipy pandas geopandas shapely matplotlib
 
 #### `staticInst/` - running the script to instantiate the city
 After setting up the environment, we are ready to run the script to instantiate a city. We will be creating a instantiate for Bangalore city for a population of 10,000 people with additional input parameters:
+
 - average number of students per school: 300
 - average number of people per workplace: 2
 

@@ -32,20 +32,21 @@ The sub-directory structure followed for storing and processing of static data s
 
 ### Data Needs
 The following table lists the data needs for the instantiation script to run 
+
 | Dataset Description| Required Fields in the Data | File Format |
 |--------------------|-----------------------------|-------------|
-| Ward boundaries of a city | ward no, ward name, geometry(Multipolygon Geometry) | GeoJSON|
-| Age Distribution (bins of 5), household size distribution for the  city|   |JSON|
-|Demographic data for all wards of the city|ward no, total population in the ward, area of the ward, total number of households per ward                                    | CSV |
+|Ward boundaries of a city | ward no, ward name, geometry(Multipolygon Geometry) | GeoJSON|
+|Age Distribution (bins of 5), household size distribution for the  city| -  |JSON|
+|Demographic data for all wards of the city|ward no, total population in the ward, area of the ward, total number of households per ward | CSV |
 |Employment data for all wards of the city|ward no, total population employed, total population unemployed| CSV |
-| Common Areas (or) Points of Interest in the City| latitude, longitude of common areas like transport communities, markets, restaurants, places of worship) per ward (if possible) | CSV|
+|Common Areas (or) Points of Interest in the City| latitude, longitude of common areas like transport communities, markets, restaurants, places of worship) per ward (if possible) | CSV|
 
 ### Status of Data Collection ###
 The following table gives a status of the data collection effort. The cells can be populated with the link of data sources used
 
-| City     | GeoJSON for city wards | Demographic Data of city wards | Age and Household-size Distributions for City | Points of Interests (Common Spaces) | 
-|----------|------------------------|--------------------------------|-----------------------------------------------|-------------------------------------|
-| Banglore | [Link to Raw GeoJSON](https://github.com/datameet/Municipal_Spatial_Data/raw/master/Bangalore/BBMP.GeoJSON) |[Link to 2011 Census Data](https://smartcities.data.gov.in/catalog/city-profile-bengaluru?filters%5Bfield_catalog_reference%5D=2916949&format=json&offset=0&limit=9&sort%5Bcreated%5D=desc) select `Demographic Profile Bengaluru As On 01-03-2011`|                [Link to 2011 Census Data](https://smartcities.data.gov.in/catalog/city-profile-bengaluru?filters%5Bfield_catalog_reference%5D=2916949&format=json&offset=0&limit=9&sort%5Bcreated%5D=desc) select  `Household Profile Bengaluru As On 01-03-2011`|                  |
+| City     | GeoJSON for city wards | Demographic Data of city wards | Age and Household-size Distributions for City |  Employment Data |Points of Interests (Common Spaces) | 
+|----------|------------------------|--------------------------------|-----------------------------------------------|-------------------------------------|--------------------------------|
+| Banglore | [Link to Raw GeoJSON](https://github.com/datameet/Municipal_Spatial_Data/raw/master/Bangalore/BBMP.GeoJSON) |[Link to 2011 Census Data](https://smartcities.data.gov.in/catalog/city-profile-bengaluru?filters%5Bfield_catalog_reference%5D=2916949&format=json&offset=0&limit=9&sort%5Bcreated%5D=desc) select `Demographic Profile: Bengaluru As On 01-03-2011`|                [Link to 2011 Census Data](https://smartcities.data.gov.in/catalog/city-profile-bengaluru?filters%5Bfield_catalog_reference%5D=2916949&format=json&offset=0&limit=9&sort%5Bcreated%5D=desc) select  `Household Profile Bengaluru As On 01-03-2011`| [Link to 2011 Census Data](https://smartcities.data.gov.in/catalog/city-profile-bengaluru?filters%5Bfield_catalog_reference%5D=2916949&format=json&offset=0&limit=9&sort%5Bcreated%5D=desc) select  `Unemployment Rate: Bengaluru As On 01-03-2011`           |                 |
 | New York  |                        |                                |                                               |                                     |             
 | Mumbai   |                        |                                |                                               |                                     |             
 | Bergamo  |                        |                                |                                               |                                     |             
