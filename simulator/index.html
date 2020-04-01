@@ -55,57 +55,67 @@ SPDX-License-Identifier: Apache-2.0-->
                 display: table;
                 clear: both;
             }
-            .slidecontainer {
-                width: 20%; /* Width of the outside container */
+            input[type="number"] {  
+                width: 30%;
+                display: inline-block;
+                margin-left:20px; 
                 }
-
-                /* The slider itself */
-            .slider {
-                -webkit-appearance: none;  /* Override default CSS styles */
-                appearance: none;
-                width: 100%; /* Full-width */
-                height: 25px; /* Specified height */
-                background: #d3d3d3; /* Grey background */
-                outline: none; /* Remove outline */
-                opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
-                -webkit-transition: .2s; /* 0.2 seconds transition on hover */
-                transition: opacity .2s;
-            }
-
-                /* Mouse-over effects */
-            .slider:hover {
-                opacity: 1; /* Fully shown on mouse-over */
-            }
-
-                /* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */
-            .slider::-webkit-slider-thumb {
-                -webkit-appearance: none; /* Override default look */
-                appearance: none;
-                width: 25px; /* Set a specific slider handle width */
-                height: 25px; /* Slider handle height */
-                background: #4CAF50; /* Green background */
-                cursor: pointer; /* Cursor on hover */
-            }
-
-            .slider::-moz-range-thumb {
-                width: 25px; /* Set a specific slider handle width */
-                height: 25px; /* Slider handle height */
-                background: #4CAF50; /* Green background */
-                cursor: pointer; /* Cursor on hover */
-            }
-
         </style>
     </head>
     <body>
         <div class="row">
             <h1>Coronavirus Pandemic Analysis</h1>
-            <div class="column">
+            <div class="column" id="controls">
+                <img src="bangalore-wards.png" alt="city map" width="50%" height="50%">
+
+                <label  for="numDays">Number of Days to Simulate</label>
+                <input  type="number" min="1" max="600" value="200" id="numDays"><br>
+
+                <label  for="initFrac">Fraction Infected</label>
+                <input type="number"  value="0.0001"  id="initFrac"><br>
+                   
+                <label  for="compliance">Compliance Probability</label>
+                <input  type="number" min="0" max="1" value="1"  id="compliance"><br>
+
+                <label  for="Incubation">Mean Incubation Period</label>
+                <input  type="number"  value="4.5"  id="Incubation"><br>
+              
+                <label  for="asymptoticMean">Mean Asymptomatic Period </label>
+                <input type="number"  value="0.5"  id="asymptoticMean"><br>
+
+                <label  for="symptoticMean">Mean Symptomatic Period </label>
+                <input type="number" value="5" id="symptoticMean"><br>
+
+                <label  for="betaHouse">Beta for Houses</label>
+                <input type="number" min="0" value="0.47" id="betaHouse"><br>
+
+                <label  for="betaWork">Beta for Workplaces</label>
+                <input type="number" min="0" value="0.376"  id="betaWork"><br>
+
+                <label  for="betaSchools">Beta for Schools</label>
+                <input type="number" min="0" value="0.752"  id="betaSchools"><br>
+
+                <label  for="betaCommunity">Beta for Community</label>
+                <input type="number" min="0" value="0.3395"  id="betaCommunity"> <br> 
+
+                <label  for="intervention">Select Intervention Method</label>
+                <select id="interventions" name="interventions">
+                    <option value="0">NO_INTERVENTION</option>
+                    <option value="1">CASE_ISOLATION</option>
+                    <option value="2">HOME_QUARANTINE</option>
+                    <option value="3">LOCKDOWN</option>
+                    <option value="4">CASE_ISOLATION_AND_HOME_QUARANTINE</option>
+                    <option value="5">CASE_ISOLATION_AND_HOME_QUARANTINE_SD_70_PLUS</option>   
+                    <option value="6">LOCKDOWN_21_CI_HQ_SD_70_PLUS_21_NO_INTERVENTION</option>   
+                </select><br>
+
+                <input type="submit" value="Run" onclick="runSimulations();">
+
+            </div>
+            <!-- <div class="column">
                 
                 <div id="status"></div>
-                <!--div class="slidecontainer">
-                    <input type="range" min="0" max="100" value="50" class="slider" id="myRange">
-                </div-->
-                <!--div id="slider_demo"></div-->
+
                 <div id="num_affected_plot"></div>
                 <div id="num_infected_plot"></div>
                 <div id="num_exposed_plot"></div>
@@ -114,7 +124,7 @@ SPDX-License-Identifier: Apache-2.0-->
                 <div id="num_fatalities_plot"></div>
                 <div id="num_recovered_plot"></div>
                 
-            </div>
+            </div> -->
             <div class="column">
                 
                 <div id="status"></div>

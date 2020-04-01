@@ -43,14 +43,20 @@ const DEAD = 7
 
 let csvContent = "data:text/csv;charset=utf-8,"; //for file dump
 
+INCUBATION_PERIOD = 2.29
+MEAN_ASYMPTOMATIC_PERIOD = 0.5
+MEAN_SYMPTOMATIC_PERIOD = 5
+
 //These are parameters associated with the disease progression
 const NUM_DAYS_TO_RECOG_SYMPTOMS = 1;
 const INCUBATION_PERIOD_SHAPE = 2;
-const INCUBATION_PERIOD_SCALE = 2.29*SIM_STEPS_PER_DAY; // 2.29 days
-const ASYMPTOMATIC_PERIOD = 0.5*SIM_STEPS_PER_DAY; // half a day
-const SYMPTOMATIC_PERIOD = 5*SIM_STEPS_PER_DAY; // 5 days
 const HOSPITAL_REGULAR_PERIOD = 8*SIM_STEPS_PER_DAY;
 const HOSPITAL_CRITICAL_PERIOD = 2*SIM_STEPS_PER_DAY;
+
+INCUBATION_PERIOD_SCALE = INCUBATION_PERIOD*SIM_STEPS_PER_DAY; // 2.29 days
+ASYMPTOMATIC_PERIOD = MEAN_ASYMPTOMATIC_PERIOD*SIM_STEPS_PER_DAY; // half a day
+SYMPTOMATIC_PERIOD = MEAN_SYMPTOMATIC_PERIOD*SIM_STEPS_PER_DAY; // 5 days
+
 
 COMMUNITY_INFECTION_PROB=[];
 
@@ -1158,6 +1164,7 @@ function plot_simulation(days_num_infected,plot_element,title_1,title_2) {
 function run_and_plot(intervention) {
 	var returned_values 
 	INTERVENTION = intervention
+	console.log(INTERVENTION, intervention)
 	returned_values = run_simulation();
 	
 	plot_plotly([returned_values[6]],'num_affected_plot_2','Number Affected','Evolution of Affected Population');
@@ -1286,8 +1293,30 @@ function run_and_plot_2() {
 }
 
 
-
 //Main function
+function runSimulations(){
+	//get the inputs from the HTML page
+	NUM_DAYS = document.getElementById("numDays").value; // == 0 ? NUM_DAYS : document.getElementById("numDays").value;
+	NUM_TIMESTEPS = NUM_DAYS*SIM_STEPS_PER_DAY;
 
-run_and_plot(LOCKDOWN_21_CI_HQ_SD_70_PLUS_21_NO_INTERVENTION);
+	INIT_FRAC_INFECTED = document.getElementById("initFrac").value;
+//	COMPLIANCE_PROBABILITY = document.getElementById("compliance").value;
+
+	INCUBATION_PERIOD = parseFloat(document.getElementById("Incubation").value)/2;
+	INCUBATION_PERIOD_SCALE = INCUBATION_PERIOD*SIM_STEPS_PER_DAY; // 2.29 days
+
+	MEAN_SYMPTOMATIC_PERIOD = document.getElementById("symptoticMean").value;
+	MEAN_ASYMPTOMATIC_PERIOD = document.getElementById("asymptoticMean").value;
+
+	BETA_H = document.getElementById("betaHouse").value;
+	BETA_W = document.getElementById("betaWork").value;
+	BETA_C = document.getElementById("betaCommunity").value;
+	BETA_S = document.getElementById("betaSchools").value;
+
+	INTERVENTION = parseInt(document.getElementById("interventions").value);
+
+	console.log(NUM_DAYS, INIT_FRAC_INFECTED, INTERVENTION)
+	//where simulation starts
+	run_and_plot(INTERVENTION); //run_and_plot(LOCKDOWN_21_CI_HQ_SD_70_PLUS_21_NO_INTERVENTION);
 //run_and_plot_2();
+}
