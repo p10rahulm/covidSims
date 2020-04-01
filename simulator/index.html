@@ -71,32 +71,40 @@ SPDX-License-Identifier: Apache-2.0-->
                 <label  for="numDays">Number of Days to Simulate</label>
                 <input  type="number" min="1" max="600" value="200" id="numDays"><br>
 
-                <label  for="initFrac">Fraction Infected</label>
-                <input type="number"  value="0.0001"  id="initFrac"><br>
-                   
-                <label  for="compliance">Compliance Probability</label>
-                <input  type="number" min="0" max="1" value="1"  id="compliance"><br>
-
+                <h3>Disease Progression</h3>
                 <label  for="Incubation">Mean Incubation Period</label>
                 <input  type="number"  value="4.5"  id="Incubation"><br>
               
-                <label  for="asymptoticMean">Mean Asymptomatic Period </label>
+                <label  for="asymptoticMean">Mean Asymptomatic/Pre-Symptomatic Period (days) </label>
                 <input type="number"  value="0.5"  id="asymptoticMean"><br>
 
-                <label  for="symptoticMean">Mean Symptomatic Period </label>
+                <label  for="symptoticMean">Mean Symptomatic Period (days)</label>
                 <input type="number" value="5" id="symptoticMean"><br>
 
-                <label  for="betaHouse">Beta for Houses</label>
+                <label  for="meanHospitalPeriod">Mean Hospital Stay (days)</label>
+                <input type="number" value="8" id="meanHospitalPeriod" readonly><br>
+
+                <label  for="meanICUPeriod">Mean ICU Stay (days)</label>
+                <input type="number" value="8" id="meanICUPeriod" readonly><br>
+
+                <h3>Transmission Coefficients</h3>
+                <label  for="betaHouse">Households</label>
                 <input type="number" min="0" value="0.47" id="betaHouse"><br>
 
-                <label  for="betaWork">Beta for Workplaces</label>
+                <label  for="betaWork">Workplaces</label>
                 <input type="number" min="0" value="0.376"  id="betaWork"><br>
 
-                <label  for="betaSchools">Beta for Schools</label>
+                <label  for="betaSchools">Schools</label>
                 <input type="number" min="0" value="0.752"  id="betaSchools"><br>
 
-                <label  for="betaCommunity">Beta for Community</label>
+                <label  for="betaCommunity">Community</label>
                 <input type="number" min="0" value="0.3395"  id="betaCommunity"> <br> 
+
+                <h3>Initialisation</h3>
+                <label  for="initFrac">Fraction Infected</label>
+                <input type="number"  min="0" max="1" value="0.0001"  id="initFrac"><br>
+                
+                <h3>Intervention</h3>
 
                 <label  for="intervention">Select Intervention Method</label>
                 <select id="interventions" name="interventions">
@@ -106,8 +114,12 @@ SPDX-License-Identifier: Apache-2.0-->
                     <option value="3">LOCKDOWN</option>
                     <option value="4">CASE_ISOLATION_AND_HOME_QUARANTINE</option>
                     <option value="5">CASE_ISOLATION_AND_HOME_QUARANTINE_SD_70_PLUS</option>   
-                    <option value="6">LOCKDOWN_21_CI_HQ_SD_70_PLUS_21_NO_INTERVENTION</option>   
+                    <option value="6">LOCKDOWN_21_CI_HQ_SD_70_PLUS_21_CI</option>   
                 </select><br>
+
+                <label  for="compliance">Compliance Probability</label>
+                <input  type="number" min="0" max="1" value="1"  id="compliance"><br>
+                <br>
 
                 <input type="submit" value="Run" onclick="runSimulations();">
 

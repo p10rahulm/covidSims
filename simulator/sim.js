@@ -24,7 +24,7 @@ const HOME_QUARANTINE = 2
 const LOCKDOWN = 3
 const CASE_ISOLATION_AND_HOME_QUARANTINE = 4
 const CASE_ISOLATION_AND_HOME_QUARANTINE_SD_70_PLUS = 5
-const LOCKDOWN_21_CI_HQ_SD_70_PLUS_21_NO_INTERVENTION = 6
+const LOCKDOWN_21_CI_HQ_SD_70_PLUS_21_CI = 6
 
 const HOME_QUARANTINE_DAYS = 14
 const SELF_ISOLATION_DAYS = 7
@@ -112,7 +112,7 @@ function compliance(){
 		case CASE_ISOLATION_AND_HOME_QUARANTINE_SD_70_PLUS:
 			val = (Math.random()<0.7)?1:0;
 			break;
-		case LOCKDOWN_21_CI_HQ_SD_70_PLUS_21_NO_INTERVENTION:
+		case LOCKDOWN_21_CI_HQ_SD_70_PLUS_21_CI:
 			val = (Math.random()<0.9)?1:0;
 			break;			
 		default:
@@ -948,8 +948,8 @@ function update_all_kappa(nodes,homes,workplaces,communities,cur_time){
 		case CASE_ISOLATION_AND_HOME_QUARANTINE_SD_70_PLUS:
 			get_kappa_CI_HQ_70P(nodes, homes, workplaces, communities,cur_time);
 			break;
-		case LOCKDOWN_21_CI_HQ_SD_70_PLUS_21_NO_INTERVENTION:
-			get_kappa_CI_LOCKDOWN_21_CI_HQ_SD_70_PLUS_21_NO_INTERVENTION(nodes, homes, workplaces, communities,cur_time);
+		case LOCKDOWN_21_CI_HQ_SD_70_PLUS_21_CI:
+			get_kappa_LOCKDOWN_21_CI_HQ_SD_70_PLUS_21_CI(nodes, homes, workplaces, communities,cur_time);
 			break;
 		default:
 			break;
@@ -1317,6 +1317,6 @@ function runSimulations(){
 
 	console.log(NUM_DAYS, INIT_FRAC_INFECTED, INTERVENTION)
 	//where simulation starts
-	run_and_plot(INTERVENTION); //run_and_plot(LOCKDOWN_21_CI_HQ_SD_70_PLUS_21_NO_INTERVENTION);
+	run_and_plot(INTERVENTION); //run_and_plot(LOCKDOWN_21_CI_HQ_SD_70_PLUS_21_CI);
 //run_and_plot_2();
 }
