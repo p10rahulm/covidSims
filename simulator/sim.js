@@ -1057,7 +1057,7 @@ function run_simulation() {
 			lambda_evolution.push([time_step/SIM_STEPS_PER_DAY,[LAMBDA_INFECTION_MEAN[0],LAMBDA_INFECTION_MEAN[1],LAMBDA_INFECTION_MEAN[2]]])
 		}
 		
-
+		//document.getElementById("status").innerHTML="Simulation Progress: " + String(time_step)+ " days.";
 	}
 	if(LAMBDA_INFECTION_STATS.length > 0){
 		console.log(math.mean(LAMBDA_INFECTION_STATS,0));
@@ -1167,14 +1167,14 @@ function run_and_plot(intervention) {
 	console.log(INTERVENTION, intervention)
 	returned_values = run_simulation();
 	
-	plot_plotly([returned_values[6]],'num_affected_plot_2','Number Affected','Evolution of Affected Population');
-	plot_plotly([returned_values[0]],'num_infected_plot_2','Number Infected','Evolution of Infected Population');
-	plot_plotly([returned_values[1]],'num_exposed_plot_2','Number Exposed','Evolution of Exposed Population');
-	plot_plotly([returned_values[2]],'num_hospitalised_plot_2','Number Hospitalised','Evolution of Hospitalised Population');
-	plot_plotly([returned_values[3]],'num_critical_plot_2','Number Crtitical','Evolution of Crtitical Population');
-	plot_plotly([returned_values[4]],'num_fatalities_plot_2','Number Fatalities','Evolution of Fatalities Population');
-	plot_plotly([returned_values[5]],'num_recovered_plot_2','Number Recovered','Evolution of Recovered Population');
-	plot_lambda_evolution([returned_values[7]],'lambda_evolution','Lambda Evolution',['lambda_home','lambda_workplace','lambda_community'])
+	plot_plotly([returned_values[6]],'num_affected_plot_2','Number Affected (cum.)','Evolution of Affected Population');
+	plot_plotly([returned_values[0]],'num_infected_plot_2','Number Infected (daily)','Evolution of Infected Population');
+	plot_plotly([returned_values[1]],'num_exposed_plot_2','Number Exposed (daily)','Evolution of Exposed Population');
+	plot_plotly([returned_values[2]],'num_hospitalised_plot_2','Number Hospitalised (daily)','Evolution of Hospitalised Population');
+	plot_plotly([returned_values[3]],'num_critical_plot_2','Number Critical (daily)','Evolution of Critical Population');
+	plot_plotly([returned_values[4]],'num_fatalities_plot_2','Number Fatalities (cum.)','Evolution of Fatalities Population');
+	plot_plotly([returned_values[5]],'num_recovered_plot_2','Number Recovered (cum.)','Evolution of Recovered Population');
+	plot_lambda_evolution([returned_values[7]],'lambda_evolution','Source of infection',['Home','School/Workplace','Community'])
 
 	var encodedUri = encodeURI(csvContent);
     var link = document.createElement("a");
@@ -1189,7 +1189,7 @@ function run_and_plot(intervention) {
     link.setAttribute("href", encodedUri);
     link.setAttribute("download", "my_data_all_together.csv");
     document.body.appendChild(link); // Required for FF
-
+	document.getElementById("status").innerHTML="Numbers plotted are per " + String(NUM_PEOPLE)+".";
 	link.click();	
 	
 
@@ -1218,15 +1218,15 @@ function plot_plotly(data,plot_position,title_text,legends){
 	  var data_plot = trace;
 	  
 	  var layout = {
-		title: {
-		  text: title_text,
-		  font: {
-			family: 'Courier New, monospace',
-			size: 24
-		  },
-		  xref: 'paper',
-		  x: 0.05,
-		},
+		// title: {
+		//   text: "Numbers plotted are per " + String(NUM_PEOPLE)+".",
+		//   font: {
+		// 	family: 'Courier New, monospace',
+		// 	size: 24
+		//   },
+		//   xref: 'paper',
+		//   x: 0.05,
+		// },
 		xaxis: {
 		  title: {
 			text: 'Days',
