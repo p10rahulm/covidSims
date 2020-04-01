@@ -188,3 +188,17 @@ function get_kappa_CI_HQ_70P(nodes, homes, workplaces, communities,cur_time){
 		} 		
 	}
 }
+
+function get_kappa_CI_LOCKDOWN_21_CI_HQ_SD_70_PLUS_21_NO_INTERVENTION(nodes, homes, workplaces, communities,cur_time){
+	const FIRST_PERIOD = 28;
+	const SECOND_PERIOD = 28;
+	if(cur_time < 10*SIM_STEPS_PER_DAY){
+		get_kappa_no_intervention(nodes, homes, workplaces, communities,cur_time);
+	}else if(cur_time < FIRST_PERIOD*SIM_STEPS_PER_DAY){
+		get_kappa_lockdown(nodes, homes, workplaces, communities,cur_time);
+	} else if(cur_time < SECOND_PERIOD*SIM_STEPS_PER_DAY){
+		get_kappa_CI_HQ_70P(nodes, homes, workplaces, communities,cur_time);
+	}else{
+		get_kappa_CI_HQ_70P(nodes, homes, workplaces, communities,cur_time);
+	}
+}

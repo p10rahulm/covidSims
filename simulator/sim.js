@@ -24,6 +24,7 @@ const HOME_QUARANTINE = 2
 const LOCKDOWN = 3
 const CASE_ISOLATION_AND_HOME_QUARANTINE = 4
 const CASE_ISOLATION_AND_HOME_QUARANTINE_SD_70_PLUS = 5
+const LOCKDOWN_21_CI_HQ_SD_70_PLUS_21_NO_INTERVENTION = 6
 
 const HOME_QUARANTINE_DAYS = 14
 const SELF_ISOLATION_DAYS = 7
@@ -105,6 +106,9 @@ function compliance(){
 		case CASE_ISOLATION_AND_HOME_QUARANTINE_SD_70_PLUS:
 			val = (Math.random()<0.7)?1:0;
 			break;
+		case LOCKDOWN_21_CI_HQ_SD_70_PLUS_21_NO_INTERVENTION:
+			val = (Math.random()<0.9)?1:0;
+			break;			
 		default:
 			val = 1;
 	}
@@ -659,7 +663,11 @@ function update_individual_lambda_c(node){
 }
 function get_init_stats(nodes,homes,workplaces,communities){
 	for (var h = 0; h< homes.length;h++){
-		console.log("Home: ",h, " - ", homes[h]['individuals'].length)
+		let working_count  = 0
+		for (var ind_count = 0; ind_count <  homes[h]['individuals'].length; ind_count++){
+			if(nodes[homes[h]['individuals'][ind_count]]['workplace_type']==1) working_count++;
+		}
+		console.log("Home: ",h, " - ", homes[h]['individuals'].length, ". Working individuals  = ", working_count);
 	}
 	for (var h = 0; h< workplaces.length;h++){
 		console.log("workplace: ",h, " - ", workplaces[h]['individuals'].length)
@@ -934,6 +942,9 @@ function update_all_kappa(nodes,homes,workplaces,communities,cur_time){
 		case CASE_ISOLATION_AND_HOME_QUARANTINE_SD_70_PLUS:
 			get_kappa_CI_HQ_70P(nodes, homes, workplaces, communities,cur_time);
 			break;
+		case LOCKDOWN_21_CI_HQ_SD_70_PLUS_21_NO_INTERVENTION:
+			get_kappa_CI_LOCKDOWN_21_CI_HQ_SD_70_PLUS_21_NO_INTERVENTION(nodes, homes, workplaces, communities,cur_time);
+			break;
 		default:
 			break;
 	}
@@ -1042,7 +1053,10 @@ function run_simulation() {
 		
 
 	}
-	console.log(math.mean(LAMBDA_INFECTION_STATS,0))
+	if(LAMBDA_INFECTION_STATS.length > 0){
+		console.log(math.mean(LAMBDA_INFECTION_STATS,0));
+	}
+	
 	return [days_num_infected,days_num_exposed,days_num_hospitalised,days_num_critical,days_num_fatalities,days_num_recovered,days_num_affected,lambda_evolution];
 }
 
@@ -1275,5 +1289,5 @@ function run_and_plot_2() {
 
 //Main function
 
-run_and_plot(CASE_ISOLATION);
+run_and_plot(LOCKDOWN_21_CI_HQ_SD_70_PLUS_21_NO_INTERVENTION);
 //run_and_plot_2();
