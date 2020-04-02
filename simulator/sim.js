@@ -1,7 +1,7 @@
 //Copyright [2020] [Indian Institute of Science, Bangalore]
 //SPDX-License-Identifier: Apache-2.0
 
-
+const WEBPAGE_VERSION = true;
 //simulation inputs
 
 NUM_DAYS = 400; //Number of days. Simulation duration
@@ -161,7 +161,7 @@ function init_nodes() {
 	NUM_PEOPLE =individuals_json.length;
 	NUM_WORKPLACES = workplace_json.length;
 	//console.log("Num People", NUM_PEOPLE, "Num Workspaces",NUM_WORKPLACES)
-	COMMUNITY_INFECTION_PROB = compute_prob_infection_given_community(INIT_FRAC_INFECTED,true);
+	COMMUNITY_INFECTION_PROB = compute_prob_infection_given_community(INIT_FRAC_INFECTED,false);
 	//console.log(COMMUNITY_INFECTION_PROB)
 	var nodes = [];
 	var stream1 = new Random(1234);
@@ -963,6 +963,7 @@ function update_all_kappa(nodes,homes,workplaces,communities,cur_time){
 	}
 }
 
+
 function run_simulation() {
 	
 	var homes = init_homes();
@@ -1064,7 +1065,8 @@ function run_simulation() {
 			lambda_evolution.push([time_step/SIM_STEPS_PER_DAY,[LAMBDA_INFECTION_MEAN[0],LAMBDA_INFECTION_MEAN[1],LAMBDA_INFECTION_MEAN[2]]])
 		}
 		
-		//document.getElementById("status").innerHTML="Simulation Progress: " + String(time_step)+ " days.";
+		//setTimeout(update_sim_progress_status,1000, time_step,SIM_STEPS_PER_DAY);
+		
 	}
 	if(LAMBDA_INFECTION_STATS.length > 0){
 		console.log(math.mean(LAMBDA_INFECTION_STATS,0));
@@ -1072,6 +1074,11 @@ function run_simulation() {
 	
 	return [days_num_infected,days_num_exposed,days_num_hospitalised,days_num_critical,days_num_fatalities,days_num_recovered,days_num_affected,lambda_evolution];
 }
+
+function update_sim_progress_status(time_step,sim_steps_per_day){
+	document.getElementById("sim_progress").innerHTML="Simulation Progress: " + String(time_step/sim_steps_per_day)+ " days.";
+}
+
 
 function plot_lambda_evolution(data,plot_position,title_text,legends) {
 	var trace = [];
@@ -1188,8 +1195,10 @@ function run_and_plot(intervention) {
     link.setAttribute("href", encodedUri);
     link.setAttribute("download", "my_data.csv");
     document.body.appendChild(link); // Required for FF
-
-	link.click();	//TODO: Instead of click link, add link for download on page.
+	if(!WEBPAGE_VERSION){
+		link.click();	//TODO: Instead of click link, add link for download on page.
+	}
+	
 
 	encodedUri = encodeURI(csvContent_alltogether);
     link = document.createElement("a");
@@ -1197,7 +1206,9 @@ function run_and_plot(intervention) {
     link.setAttribute("download", "my_data_all_together.csv");
     document.body.appendChild(link); // Required for FF
 	document.getElementById("status").innerHTML="Numbers plotted are per " + String(NUM_PEOPLE)+".";
-	link.click();	
+	if(!WEBPAGE_VERSION){
+		link.click();	//TODO: Instead of click link, add link for download on page.
+	}
 	
 
 }
@@ -1303,17 +1314,8 @@ function run_and_plot_2() {
 //Main function
 function runSimulations(){
 
-	 //clear previous plots
-	 document.getElementById("status").innerHTML = "";
-	 document.getElementById("num_affected_plot_2").innerHTML = "";
-	 document.getElementById("num_infected_plot_2").innerHTML = "";
-	 document.getElementById("num_exposed_plot_2").innerHTML = "";
-	 document.getElementById("num_hospitalised_plot_2").innerHTML = "";
-	 document.getElementById("num_critical_plot_2").innerHTML = "";
-	 document.getElementById("num_fatalities_plot_2").innerHTML = "";
-	 document.getElementById("num_recovered_plot_2").innerHTML = "";
-	 document.getElementById("lambda_evolution").innerHTML = "";
-	 
+	clear_plots();
+
 	//get the inputs from the HTML page
 	NUM_DAYS = document.getElementById("numDays").value; // == 0 ? NUM_DAYS : document.getElementById("numDays").value;
 	NUM_TIMESTEPS = NUM_DAYS*SIM_STEPS_PER_DAY;
@@ -1350,4 +1352,18 @@ function runSimulations(){
 	//where simulation starts
 	run_and_plot(INTERVENTION); //run_and_plot(LOCKDOWN_21_CI_HQ_SD_70_PLUS_21_CI);
 //run_and_plot_2();
+}
+
+function clear_plots(){
+	//clear previous plots
+	document.getElementById("status").innerHTML = "";
+	document.getElementById("num_affected_plot_2").innerHTML = "";
+	document.getElementById("num_infected_plot_2").innerHTML = "";
+	document.getElementById("num_exposed_plot_2").innerHTML = "";
+	document.getElementById("num_hospitalised_plot_2").innerHTML = "";
+	document.getElementById("num_critical_plot_2").innerHTML = "";
+	document.getElementById("num_fatalities_plot_2").innerHTML = "";
+	document.getElementById("num_recovered_plot_2").innerHTML = "";
+	document.getElementById("lambda_evolution").innerHTML = "";
+
 }
