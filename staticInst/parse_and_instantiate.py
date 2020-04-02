@@ -12,7 +12,7 @@ import pandas as pd
 import warnings
 warnings.filterwarnings('ignore')
 import time
-from multiprocessing import Pool, Process
+import matplotlib.pyplot as plt
 
 #Data-processing Functions
 from modules.processDemographics import *
@@ -22,7 +22,6 @@ from modules.processGeoData import *
 from modules.assignHouses import *
 from modules.assignSchools import *
 from modules.assignWorkplaces import *
-
 
 # get the city and target population as inputs
 def instantiate(city, targetPopulation, averageStudents, averageWorkforce):
@@ -53,7 +52,7 @@ def instantiate(city, targetPopulation, averageStudents, averageWorkforce):
 	start = time.time()
 	demographicsData = process_data(demographicsData, housesData, employmentData, targetPopulation, ageDistribution) 
 
-	totalPopulation = demographicsData['Total Population (in thousands)'].values.sum()
+	totalPopulation = demographicsData['totalPopulation'].values.sum()
 	people_over_60 = float(demographicsData[['age 60-64']].sum()) + float(demographicsData[['age 65-69']].sum()) + float(demographicsData[['age 70-74']].sum()) + float(demographicsData[['age 75-79']].sum()) + float(demographicsData[['age 80+']].sum())
 
 	population_over_60 = totalPopulation * (people_over_60/ totalPopulation)
@@ -71,11 +70,11 @@ def instantiate(city, targetPopulation, averageStudents, averageWorkforce):
 
 	total_unemployed = demographicsData['unemployed'].values.sum()
 	unemployed_but_employable = total_unemployed - population_over_60
-	unemployed_fraction = unemployed_but_employable  / (totalPopulation - float(demographicsData[['population - children aged 0-14 (in thousands)']].sum()) - population_over_60)
+	unemployed_fraction = unemployed_but_employable  / (totalPopulation - population_over_60)
 
 	# print(people_over_60, unemployed_fraction, employable_population, total_employable, total_unemployed, unemployed_but_employable )
 
-	totalNumberOfWards = len(demographicsData['Ward No.'].values)
+	totalNumberOfWards = len(demographicsData['wardNo'].values)
 	averageHouseholds = totalPopulation / demographicsData['totalHouseholds'].values.sum()
 
 	commonArea = commonAreaLocation(cityGeoDF)
@@ -123,8 +122,8 @@ def instantiate(city, targetPopulation, averageStudents, averageWorkforce):
 	workplaces['ID'] = workplaceID
 	workplaces = workplaces.sort_values(by=['ID'])
 
-	demographicsData['fracPopulation'] = demographicsData.apply(lambda row: row['Total Population (in thousands)']/demographicsData['Total Population (in thousands)'].values.sum(), axis=1)
-	demographicsData = demographicsData.rename(columns={"Ward No.": "wardNo"})
+	demographicsData['fracPopulation'] = demographicsData.apply(lambda row: row['totalPopulation']/demographicsData['totalPopulation'].values.sum(), axis=1)
+
 	print("additonal data processing completed in ", time.time() - start)
 
 	print("saving instantiations as JSON....")
@@ -135,6 +134,8 @@ def instantiate(city, targetPopulation, averageStudents, averageWorkforce):
 	workplaces[['ID', 'ward' ,'lat', 'lon']].to_json("data/"+city+"/workplaces.json", orient='records')
 	commonArea[['ID', 'wardNo' ,'lat', 'lon']].to_json("data/"+city+"/commonArea.json", orient='records')
 	computeWardCentreDistance(cityGeoDF, "data/"+city+"/wardCentreDistance.json")
-	demographicsData[['wardNo', 'Total Population (in thousands)', 'fracPopulation']].to_json("data/"+city+"/fractionPopulation.json", orient="records")
+	demographicsData[['wardNo', 'totalPopulation', 'fracPopulation']].to_json("data/"+city+"/fractionPopulation.json", orient="records")
 	print("saving instantiations as JSON completed in ", time.time() - start)
+
+	
 instantiate(city=sys.argv[1], targetPopulation=sys.argv[2], averageStudents=sys.argv[3], averageWorkforce=sys.argv[4])

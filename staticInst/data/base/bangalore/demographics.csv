@@ -1,199 +1,199 @@
-City Name,Zone Name,Ward Name,Ward No.,Area (in sq km),Total Population (in thousands),Population - Male (in thousands),Population - female (in thousands),population - children aged 0-14 (in thousands),Population - youth aged 15-24 (in thousands),Population - adults aged 25-60 (in thousands),Population - Senior citizens aged 60+ (in thousands)
-Bengaluru,Yelahanka,Kempegowda Ward,1,10.9,34783,18197,16586,3729,NA,NA,NA
-Bengaluru,Yelahanka,Chowdeswari Ward,2,6.5,36602,19060,17542,4420,NA,NA,NA
-Bengaluru,Yelahanka,Atturu,3,8.8,58129,30799,27330,6371,NA,NA,NA
-Bengaluru,Yelahanka,Yelahanka Satellite Town,4,4.6,41986,21799,20187,4190,NA,NA,NA
-Bengaluru,Yelahanka,Jakkuru,5,23.5,52025,27269,24756,6503,NA,NA,NA
-Bengaluru,Yelahanka,Thanisandra,6,10,71855,37680,34175,9542,NA,NA,NA
-Bengaluru,Yelahanka,Byatarayanapura,7,10,72154,37923,34231,7921,NA,NA,NA
-Bengaluru,Yelahanka,Kodigehalli,8,3.8,47546,24954,22592,5431,NA,NA,NA
-Bengaluru,Yelahanka,Vidyaranyapura,9,9.9,57195,29382,27813,5922,NA,NA,NA
-Bengaluru,Yelahanka,Dodda Bommasandra,10,4.2,36396,20076,16320,3341,NA,NA,NA
-Bengaluru,Yelahanka,Kuvempu Nagar,11,7.1,37128,18962,18166,4530,NA,NA,NA
-Bengaluru,Dasarahalli,Shettihalli,12,8.1,61071,32175,28896,6797,NA,NA,NA
-Bengaluru,Dasarahalli,Mallasandra,13,1.3,41482,21976,19506,4516,NA,NA,NA
-Bengaluru,Dasarahalli,Bagalakunte,14,4.3,65113,34008,31105,7073,NA,NA,NA
-Bengaluru,Dasarahalli,T Dasarahalli,15,0.9,33042,17783,15259,3431,NA,NA,NA
-Bengaluru,Rajarajeswari Nagar,Jalahalli,16,5.2,37959,20285,17674,3447,NA,NA,NA
-Bengaluru,Rajarajeswari Nagar,J P Park,17,2,49610,25404,24206,5250,NA,NA,NA
-Bengaluru,East,Radhakrishna Temple Ward,18,1.9,35122,18075,17047,3378,NA,NA,NA
-Bengaluru,East,SanJayanagar,19,1.5,32491,16697,15794,3250,NA,NA,NA
-Bengaluru,East,Ganga Nagar,20,2.3,27361,13973,13388,2842,NA,NA,NA
-Bengaluru,East,Hebbala,21,1.2,32516,16791,15725,3342,NA,NA,NA
-Bengaluru,East,Vishwanath Nagenahalli,22,1.5,51592,26928,24664,6024,NA,NA,NA
-Bengaluru,East,Nagavara,23,2.1,60483,30930,29553,8309,NA,NA,NA
-Bengaluru,East,HBR Layout,24,4.6,58967,30219,28748,7025,NA,NA,NA
-Bengaluru,Mahadevapura,Horamavu,25,17.5,95368,49512,45856,11453,NA,NA,NA
-Bengaluru,Mahadevapura,Ramamurthy Nagar,26,7.3,47358,24328,23030,6013,NA,NA,NA
-Bengaluru,East,Banasavadi,27,3.4,51268,25932,25336,5199,NA,NA,NA
-Bengaluru,East,Kammanahalli,28,1,47074,23710,23364,5026,NA,NA,NA
-Bengaluru,East,Kacharkanahalli,29,1.7,33588,16820,16768,3199,NA,NA,NA
-Bengaluru,East,Kadugondanahalli,30,0.7,45748,23145,22603,5917,NA,NA,NA
-Bengaluru,East,Kushal Nagar,31,0.6,41936,21320,20616,5728,NA,NA,NA
-Bengaluru,East,Kaval Bairasandra,32,1.6,39334,19877,19457,4420,NA,NA,NA
-Bengaluru,East,Manorayana Palya,33,0.8,47926,24755,23171,5951,NA,NA,NA
-Bengaluru,East,Gangenahalli,34,1.1,24308,12417,11891,2420,NA,NA,NA
-Bengaluru,West,Aramane Nagara,35,7.5,36738,19369,17369,2525,NA,NA,NA
-Bengaluru,West,Mattikere,36,0.9,37036,19134,17902,3761,NA,NA,NA
-Bengaluru,Rajarajeswari Nagar,Yeshwanthpura,37,0.8,41107,21293,19814,4140,NA,NA,NA
-Bengaluru,Rajarajeswari Nagar,HMT Ward,38,5.2,36879,19332,17547,3864,NA,NA,NA
-Bengaluru,Dasarahalli,Chokkasandra,39,3.8,59289,32904,26385,5953,NA,NA,NA
-Bengaluru,Rajarajeswari Nagar,Dodda Bidarakallu,40,12.9,72794,38471,34323,8580,NA,NA,NA
-Bengaluru,Dasarahalli,Peenya Industrial Area,41,5.5,57814,31652,26162,5942,NA,NA,NA
-Bengaluru,Rajarajeswari Nagar,Lakshmi Devi Nagar,42,1.5,41352,21707,19645,4833,NA,NA,NA
-Bengaluru,West,Nandini Layout,43,1.4,51200,26617,24583,5375,NA,NA,NA
-Bengaluru,West,Marappana Palya,44,2,40212,20754,19458,4199,NA,NA,NA
-Bengaluru,West,Malleshwaram,45,1.8,34196,17527,16669,3017,NA,NA,NA
-Bengaluru,East,Jayachamarajendra Nagar,46,0.9,31449,16046,15403,3197,NA,NA,NA
-Bengaluru,East,Devara Jeevanahalli,47,1.4,42135,21936,20199,5872,NA,NA,NA
-Bengaluru,East,Muneshwara Nagar,48,0.5,35814,18235,17579,4885,NA,NA,NA
-Bengaluru,East,Lingarajapura,49,0.9,37955,19056,18899,4176,NA,NA,NA
-Bengaluru,East,Benniganahalli,50,4.9,49094,26406,22688,5724,NA,NA,NA
-Bengaluru,Mahadevapura,Vijnanapura,51,2.1,46159,23667,22492,5391,NA,NA,NA
-Bengaluru,Mahadevapura,KR Puram,52,4.8,35168,18081,17087,3770,NA,NA,NA
-Bengaluru,Mahadevapura,Basavanapura,53,6.3,48585,25140,23445,5977,NA,NA,NA
-Bengaluru,Mahadevapura,Hudi,54,15,50191,28201,21990,6128,NA,NA,NA
-Bengaluru,Mahadevapura,Devasandra,55,3.5,33946,18302,15644,4051,NA,NA,NA
-Bengaluru,Mahadevapura,A Narayanapura,56,2.1,43443,22637,20806,5198,NA,NA,NA
-Bengaluru,East,C.V. Raman Nagar,57,3.6,58815,30553,28262,7422,NA,NA,NA
-Bengaluru,East,New Tippa Sandra,58,3.4,43983,22819,21164,4310,NA,NA,NA
-Bengaluru,East,Maruthi Seva Nagar,59,2.4,40362,19936,20426,3932,NA,NA,NA
-Bengaluru,East,Sagayara Puram,60,0.8,35334,17533,17801,4147,NA,NA,NA
-Bengaluru,East,SK Garden,61,1.3,38050,19413,18637,5122,NA,NA,NA
-Bengaluru,East,Ramaswamy Palya,62,0.8,34394,17305,17089,3947,NA,NA,NA
-Bengaluru,East,Jaya Mahal,63,1.4,21728,10720,11008,2062,NA,NA,NA
-Bengaluru,West,Raj Mahal Guttahalli,64,0.7,31118,15502,15616,2679,NA,NA,NA
-Bengaluru,West,Kadu Malleshwar Ward,65,1.4,35609,17558,18051,2485,NA,NA,NA
-Bengaluru,West,Subramanya Nagar,66,0.9,35709,17893,17816,2999,NA,NA,NA
-Bengaluru,West,Nagapura,67,1.8,34574,17397,17177,2666,NA,NA,NA
-Bengaluru,Yelahanka,Kempegowda Ward,68,0.9,44615,23091,21524,4497,NA,NA,NA
-Bengaluru,Yelahanka,Chowdeswari Ward,69,1.6,57077,29828,27249,6299,NA,NA,NA
-Bengaluru,Yelahanka,Atturu,70,2.2,61479,33139,28340,6850,NA,NA,NA
-Bengaluru,Yelahanka,Yelahanka Satellite Town,71,1.8,66314,35787,30527,7437,NA,NA,NA
-Bengaluru,Yelahanka,Jakkuru,72,7.8,62272,33066,29206,7339,NA,NA,NA
-Bengaluru,Yelahanka,Thanisandra,73,5.8,68922,36138,32784,7734,NA,NA,NA
-Bengaluru,Yelahanka,Byatarayanapura,74,0.7,43844,22480,21364,4423,NA,NA,NA
-Bengaluru,Yelahanka,Kodigehalli,75,1.1,48734,25246,23488,5112,NA,NA,NA
-Bengaluru,Yelahanka,Vidyaranyapura,76,0.6,33236,16934,16302,2742,NA,NA,NA
-Bengaluru,Yelahanka,Dodda Bommasandra,77,0.7,33388,17100,16288,2894,NA,NA,NA
-Bengaluru,Yelahanka,Kuvempu Nagar,78,1.7,28835,14431,14404,2808,NA,NA,NA
-Bengaluru,Dasarahalli,Shettihalli,79,3.6,37291,18906,18385,3851,NA,NA,NA
-Bengaluru,Dasarahalli,Mallasandra,80,2.1,35228,17474,17754,3315,NA,NA,NA
-Bengaluru,Dasarahalli,Bagalakunte,81,5.7,57062,29816,27246,7512,NA,NA,NA
-Bengaluru,Dasarahalli,T Dasarahalli,82,6.8,49631,27919,21712,6038,NA,NA,NA
-Bengaluru,Rajarajeswari Nagar,Jalahalli,83,11.2,43942,23604,20338,5368,NA,NA,NA
-Bengaluru,Rajarajeswari Nagar,J P Park,84,12.6,50556,26388,24168,6140,NA,NA,NA
-Bengaluru,East,Radhakrishna Temple Ward,85,12,63083,32888,30195,8852,NA,NA,NA
-Bengaluru,East,SanJayanagar,86,3.1,39768,22555,17213,4167,NA,NA,NA
-Bengaluru,East,Ganga Nagar,87,6.8,39926,20925,19001,5062,NA,NA,NA
-Bengaluru,East,Hebbala,88,1.9,38251,19425,18826,3973,NA,NA,NA
-Bengaluru,East,Vishwanath Nagenahalli,89,0.9,33793,16989,16804,3216,NA,NA,NA
-Bengaluru,East,Nagavara,90,1.7,35090,19627,15463,3005,NA,NA,NA
-Bengaluru,East,HBR Layout,91,0.8,32689,16493,16196,3421,NA,NA,NA
-Bengaluru,Mahadevapura,Horamavu,92,0.4,37506,19324,18182,4788,NA,NA,NA
-Bengaluru,Mahadevapura,Ramamurthy Nagar,93,3.1,22815,11039,11776,1575,NA,NA,NA
-Bengaluru,East,Banasavadi,94,1.9,31208,17306,13902,2653,NA,NA,NA
-Bengaluru,East,Kammanahalli,95,1.3,37693,19313,18380,3908,NA,NA,NA
-Bengaluru,East,Kacharkanahalli,96,0.8,38110,19481,18629,4153,NA,NA,NA
-Bengaluru,East,Kadugondanahalli,97,0.4,35721,18163,17558,3411,NA,NA,NA
-Bengaluru,East,Kushal Nagar,98,0.6,32913,16837,16076,3121,NA,NA,NA
-Bengaluru,East,Kaval Bairasandra,99,0.9,33084,16969,16115,3052,NA,NA,NA
-Bengaluru,East,Manorayana Palya,100,0.8,30333,15465,14868,2764,NA,NA,NA
-Bengaluru,East,Gangenahalli,101,0.9,30051,15700,14351,2882,NA,NA,NA
-Bengaluru,West,Aramane Nagara,102,1,50893,27129,23764,5361,NA,NA,NA
-Bengaluru,West,Mattikere,103,1.7,53532,28684,24848,5684,NA,NA,NA
-Bengaluru,Rajarajeswari Nagar,Yeshwanthpura,104,0.8,26873,13862,13011,2476,NA,NA,NA
-Bengaluru,Rajarajeswari Nagar,HMT Ward,105,0.8,28355,14614,13741,2684,NA,NA,NA
-Bengaluru,Dasarahalli,Chokkasandra,106,1,24181,12517,11664,2152,NA,NA,NA
-Bengaluru,Rajarajeswari Nagar,Dodda Bidarakallu,107,0.8,36461,19071,17390,3269,NA,NA,NA
-Bengaluru,Dasarahalli,Peenya Industrial Area,108,1.1,33866,17274,16592,2783,NA,NA,NA
-Bengaluru,Rajarajeswari Nagar,Lakshmi Devi Nagar,109,0.7,33292,17629,15663,3513,NA,NA,NA
-Bengaluru,West,Nandini Layout,110,4.4,27504,13999,13505,2472,NA,NA,NA
-Bengaluru,West,Marappana Palya,111,4,22995,11518,11477,1883,NA,NA,NA
-Bengaluru,West,Malleshwaram,112,1.7,30638,15497,15141,2622,NA,NA,NA
-Bengaluru,East,Jayachamarajendra Nagar,113,2.1,38108,19995,18113,3932,NA,NA,NA
-Bengaluru,East,Devara Jeevanahalli,114,11,36916,21259,15657,3066,NA,NA,NA
-Bengaluru,East,Muneshwara Nagar,115,0.8,37060,18685,18375,3770,NA,NA,NA
-Bengaluru,East,Lingarajapura,116,0.5,48534,25323,23211,6226,NA,NA,NA
-Bengaluru,East,Benniganahalli,117,2.7,42095,22237,19858,4102,NA,NA,NA
-Bengaluru,Mahadevapura,Vijnanapura,118,1,28784,14447,14337,3297,NA,NA,NA
-Bengaluru,Mahadevapura,KR Puram,119,1.1,27076,14156,12920,3058,NA,NA,NA
-Bengaluru,Mahadevapura,Basavanapura,120,0.8,37344,19213,18131,4071,NA,NA,NA
-Bengaluru,Mahadevapura,Hudi,121,0.8,37354,19156,18198,3701,NA,NA,NA
-Bengaluru,Mahadevapura,Devasandra,122,0.4,40032,20374,19658,4118,NA,NA,NA
-Bengaluru,Mahadevapura,A Narayanapura,123,0.7,40331,20905,19426,3928,NA,NA,NA
-Bengaluru,East,C.V. Raman Nagar,124,0.9,37347,18944,18403,3663,NA,NA,NA
-Bengaluru,East,New Tippa Sandra,125,0.7,21171,10838,10333,1811,NA,NA,NA
-Bengaluru,East,Maruthi Seva Nagar,126,0.8,29319,15225,14094,2792,NA,NA,NA
-Bengaluru,East,Sagayara Puram,127,1,43729,22625,21104,4791,NA,NA,NA
-Bengaluru,East,SK Garden,128,1.6,35780,18239,17541,4260,NA,NA,NA
-Bengaluru,East,Ramaswamy Palya,129,11.9,68132,35366,32766,7299,NA,NA,NA
-Bengaluru,East,Jaya Mahal,130,8.7,58199,30069,28130,6889,NA,NA,NA
-Bengaluru,West,Raj Mahal Guttahalli,131,2.1,42785,22051,20734,5299,NA,NA,NA
-Bengaluru,West,Kadu Malleshwar Ward,132,1.4,41487,21447,20040,4071,NA,NA,NA
-Bengaluru,West,Subramanya Nagar,133,1.1,35113,17900,17213,3395,NA,NA,NA
-Bengaluru,West,Nagapura,134,0.7,49484,25763,23721,6268,NA,NA,NA
-Bengaluru,Yelahanka,Kempegowda Ward,135,0.3,37599,19364,18235,5756,NA,NA,NA
-Bengaluru,Yelahanka,Chowdeswari Ward,136,0.6,38639,19773,18866,5335,NA,NA,NA
-Bengaluru,Yelahanka,Atturu,137,0.4,36039,18319,17720,4263,NA,NA,NA
-Bengaluru,Yelahanka,Yelahanka Satellite Town,138,0.4,24801,12533,12268,2979,NA,NA,NA
-Bengaluru,Yelahanka,Jakkuru,139,0.8,29344,15128,14216,3637,NA,NA,NA
-Bengaluru,Yelahanka,Thanisandra,140,1,32213,16436,15777,2931,NA,NA,NA
-Bengaluru,Yelahanka,Byatarayanapura,141,0.7,38825,19790,19035,4320,NA,NA,NA
-Bengaluru,Yelahanka,Kodigehalli,142,1.5,34666,17687,16979,2687,NA,NA,NA
-Bengaluru,Yelahanka,Vidyaranyapura,143,2.5,32462,16316,16146,2934,NA,NA,NA
-Bengaluru,Yelahanka,Dodda Bommasandra,144,0.7,34879,17622,17257,4515,NA,NA,NA
-Bengaluru,Yelahanka,Kuvempu Nagar,145,1.4,38309,19813,18496,3868,NA,NA,NA
-Bengaluru,Dasarahalli,Shettihalli,146,1.3,30667,15786,14881,3210,NA,NA,NA
-Bengaluru,Dasarahalli,Mallasandra,147,1.6,34299,17717,16582,3708,NA,NA,NA
-Bengaluru,Dasarahalli,Bagalakunte,148,1.9,47004,24717,22287,4643,NA,NA,NA
-Bengaluru,Dasarahalli,T Dasarahalli,149,28.3,54625,28959,25666,6877,NA,NA,NA
-Bengaluru,Rajarajeswari Nagar,Jalahalli,150,26.4,80180,44031,36149,10955,NA,NA,NA
-Bengaluru,Rajarajeswari Nagar,J P Park,151,3.7,38316,19397,18919,3557,NA,NA,NA
-Bengaluru,East,Radhakrishna Temple Ward,152,1.7,39997,21788,18209,3837,NA,NA,NA
-Bengaluru,East,SanJayanagar,153,2.5,38151,19276,18875,4118,NA,NA,NA
-Bengaluru,East,Ganga Nagar,154,1.2,32640,16222,16418,2425,NA,NA,NA
-Bengaluru,East,Hebbala,155,1,36982,18870,18112,3361,NA,NA,NA
-Bengaluru,East,Vishwanath Nagenahalli,156,0.8,41379,21222,20157,4005,NA,NA,NA
-Bengaluru,East,Nagavara,157,1.1,34653,17967,16686,3658,NA,NA,NA
-Bengaluru,East,HBR Layout,158,2.1,45928,24007,21921,5174,NA,NA,NA
-Bengaluru,Mahadevapura,Horamavu,159,5.1,40771,21051,19720,4281,NA,NA,NA
-Bengaluru,Mahadevapura,Ramamurthy Nagar,160,11.1,56897,29439,27458,5814,NA,NA,NA
-Bengaluru,East,Banasavadi,161,1.3,46805,25173,21632,4852,NA,NA,NA
-Bengaluru,East,Kammanahalli,162,1.8,43195,21843,21352,3678,NA,NA,NA
-Bengaluru,East,Kacharkanahalli,163,1.1,45572,23340,22232,3979,NA,NA,NA
-Bengaluru,East,Kadugondanahalli,164,1.2,43483,22546,20937,3869,NA,NA,NA
-Bengaluru,East,Kushal Nagar,165,1.6,25998,12983,13015,2162,NA,NA,NA
-Bengaluru,East,Kaval Bairasandra,166,1.1,27040,13619,13421,2473,NA,NA,NA
-Bengaluru,East,Manorayana Palya,167,1.2,32756,16532,16224,2604,NA,NA,NA
-Bengaluru,East,Gangenahalli,168,1.7,28353,14172,14181,2265,NA,NA,NA
-Bengaluru,West,Aramane Nagara,169,0.9,32066,16296,15770,3316,NA,NA,NA
-Bengaluru,West,Mattikere,170,1,33927,17282,16645,3550,NA,NA,NA
-Bengaluru,Rajarajeswari Nagar,Yeshwanthpura,171,0.7,48991,25325,23666,6622,NA,NA,NA
-Bengaluru,Rajarajeswari Nagar,HMT Ward,172,1.2,42624,23282,19342,4190,NA,NA,NA
-Bengaluru,Dasarahalli,Chokkasandra,173,1.5,33521,18009,15512,3224,NA,NA,NA
-Bengaluru,Rajarajeswari Nagar,Dodda Bidarakallu,174,7.1,63033,32656,30377,7796,NA,NA,NA
-Bengaluru,Dasarahalli,Peenya Industrial Area,175,1.8,43585,23005,20580,5041,NA,NA,NA
-Bengaluru,Rajarajeswari Nagar,Lakshmi Devi Nagar,176,2.1,52250,27937,24313,5420,NA,NA,NA
-Bengaluru,West,Nandini Layout,177,1.8,28846,14679,14167,2503,NA,NA,NA
-Bengaluru,West,Marappana Palya,178,1.3,31034,15864,15170,2590,NA,NA,NA
-Bengaluru,West,Malleshwaram,179,1.9,25871,13179,12692,1915,NA,NA,NA
-Bengaluru,East,Jayachamarajendra Nagar,180,0.7,42171,21525,20646,5303,NA,NA,NA
-Bengaluru,East,Devara Jeevanahalli,181,1.8,47182,24414,22768,4535,NA,NA,NA
-Bengaluru,East,Muneshwara Nagar,182,1.7,41037,20855,20182,3831,NA,NA,NA
-Bengaluru,East,Lingarajapura,183,1.1,43364,22206,21158,4392,NA,NA,NA
-Bengaluru,East,Benniganahalli,184,9.9,57209,29935,27274,6415,NA,NA,NA
-Bengaluru,Mahadevapura,Vijnanapura,185,1.6,46943,24623,22320,5450,NA,NA,NA
-Bengaluru,Mahadevapura,KR Puram,186,1.3,38294,20044,18250,4064,NA,NA,NA
-Bengaluru,Mahadevapura,Basavanapura,187,2.9,49207,25666,23541,5798,NA,NA,NA
-Bengaluru,Mahadevapura,Hudi,188,4.3,49884,26149,23735,5874,NA,NA,NA
-Bengaluru,Mahadevapura,Devasandra,189,2.1,68554,36812,31742,7498,NA,NA,NA
-Bengaluru,Mahadevapura,A Narayanapura,190,3.5,65890,35202,30688,8253,NA,NA,NA
-Bengaluru,East,C.V. Raman Nagar,191,9.7,71004,40347,30657,8108,NA,NA,NA
-Bengaluru,East,New Tippa Sandra,192,19,80037,42157,37880,10334,NA,NA,NA
-Bengaluru,East,Maruthi Seva Nagar,193,6.6,58355,30522,27833,7115,NA,NA,NA
-Bengaluru,East,Sagayara Puram,194,7.4,51911,26838,25073,5898,NA,NA,NA
-Bengaluru,East,SK Garden,195,3.4,57335,29504,27831,6662,NA,NA,NA
-Bengaluru,East,Ramaswamy Palya,196,11.4,45608,23474,22134,6245,NA,NA,NA
-Bengaluru,East,Jaya Mahal,197,5.7,62057,32212,29845,6676,NA,NA,NA
-Bengaluru,West,Raj Mahal Guttahalli,198,30.5,50440,26172,24268,5786,NA,NA,NA
+wardIndex,wardName,wardNo,area(sq km),totalPopulation
+0,Kempegowda Ward,1,10.9,38512
+1,Chowdeswari Ward,2,6.5,41022
+2,Atturu,3,8.8,64500
+3,Yelahanka Satellite Town,4,4.6,46176
+4,Jakkuru,5,23.5,58528
+5,Thanisandra,6,10.0,81397
+6,Byatarayanapura,7,10.0,80075
+7,Kodigehalli,8,3.8,52977
+8,Vidyaranyapura,9,9.9,63117
+9,Dodda Bommasandra,10,4.2,39737
+10,Kuvempu Nagar,11,7.1,41658
+11,Shettihalli,12,8.1,67868
+12,Mallasandra,13,1.3,45998
+13,Bagalakunte,14,4.3,72186
+14,T Dasarahalli,15,0.9,36473
+15,Jalahalli,16,5.2,41406
+16,J P Park,17,2.0,54860
+17,Radhakrishna Temple Ward,18,1.9,38500
+18,SanJayanagar,19,1.5,35741
+19,Ganga Nagar,20,2.3,30203
+20,Hebbala,21,1.2,35858
+21,Vishwanath Nagenahalli,22,1.5,57616
+22,Nagavara,23,2.1,68792
+23,HBR Layout,24,4.6,65992
+24,Horamavu,25,17.5,106821
+25,Ramamurthy Nagar,26,7.3,53371
+26,Banasavadi,27,3.4,56467
+27,Kammanahalli,28,1.0,52100
+28,Kacharkanahalli,29,1.7,36787
+29,Kadugondanahalli,30,0.7,51665
+30,Kushal Nagar,31,0.6,47664
+31,Kaval Bairasandra,32,1.6,43754
+32,Manorayana Palya,33,0.8,53877
+33,Gangenahalli,34,1.1,26728
+34,Aramane Nagara,35,7.5,39263
+35,Mattikere,36,0.9,40797
+36,Yeshwanthpura,37,0.8,45247
+37,HMT Ward,38,5.2,40743
+38,Chokkasandra,39,3.8,65242
+39,Dodda Bidarakallu,40,12.9,81374
+40,Peenya Industrial Area,41,5.5,63756
+41,Lakshmi Devi Nagar,42,1.5,46185
+42,Nandini Layout,43,1.4,56575
+43,Marappana Palya,44,2.0,44411
+44,Malleshwaram,45,1.8,37213
+45,Jayachamarajendra Nagar,46,0.9,34646
+46,Devara Jeevanahalli,47,1.4,48007
+47,Muneshwara Nagar,48,0.5,40699
+48,Lingarajapura,49,0.9,42131
+49,Benniganahalli,50,4.9,54818
+50,Vijnanapura,51,2.1,51550
+51,KR Puram,52,4.8,38938
+52,Basavanapura,53,6.3,54562
+53,Hudi,54,15.0,56319
+54,Devasandra,55,3.5,37997
+55,A Narayanapura,56,2.1,48641
+56,C.V. Raman Nagar,57,3.6,66237
+57,New Tippa Sandra,58,3.4,48293
+58,Maruthi Seva Nagar,59,2.4,44294
+59,Sagayara Puram,60,0.8,39481
+60,SK Garden,61,1.3,43172
+61,Ramaswamy Palya,62,0.8,38341
+62,Jaya Mahal,63,1.4,23790
+63,Raj Mahal Guttahalli,64,0.7,33797
+64,Kadu Malleshwar Ward,65,1.4,38094
+65,Subramanya Nagar,66,0.9,38708
+66,Nagapura,67,1.8,37240
+67,Kempegowda Ward,68,0.9,49112
+68,Chowdeswari Ward,69,1.6,63376
+69,Atturu,70,2.2,68329
+70,Yelahanka Satellite Town,71,1.8,73751
+71,Jakkuru,72,7.8,69611
+72,Thanisandra,73,5.8,76656
+73,Byatarayanapura,74,0.7,48267
+74,Kodigehalli,75,1.1,53846
+75,Vidyaranyapura,76,0.6,35978
+76,Dodda Bommasandra,77,0.7,36282
+77,Kuvempu Nagar,78,1.7,31643
+78,Shettihalli,79,3.6,41142
+79,Mallasandra,80,2.1,38543
+80,Bagalakunte,81,5.7,64574
+81,T Dasarahalli,82,6.8,55669
+82,Jalahalli,83,11.2,49310
+83,J P Park,84,12.6,56696
+84,Radhakrishna Temple Ward,85,12.0,71935
+85,SanJayanagar,86,3.1,43935
+86,Ganga Nagar,87,6.8,44988
+87,Hebbala,88,1.9,42224
+88,Vishwanath Nagenahalli,89,0.9,37009
+89,Nagavara,90,1.7,38095
+90,HBR Layout,91,0.8,36110
+91,Horamavu,92,0.4,42294
+92,Ramamurthy Nagar,93,3.1,24390
+93,Banasavadi,94,1.9,33861
+94,Kammanahalli,95,1.3,41601
+95,Kacharkanahalli,96,0.8,42263
+96,Kadugondanahalli,97,0.4,39132
+97,Kushal Nagar,98,0.6,36034
+98,Kaval Bairasandra,99,0.9,36136
+99,Manorayana Palya,100,0.8,33097
+100,Gangenahalli,101,0.9,32933
+101,Aramane Nagara,102,1.0,56254
+102,Mattikere,103,1.7,59216
+103,Yeshwanthpura,104,0.8,29349
+104,HMT Ward,105,0.8,31039
+105,Chokkasandra,106,1.0,26333
+106,Dodda Bidarakallu,107,0.8,39730
+107,Peenya Industrial Area,108,1.1,36649
+108,Lakshmi Devi Nagar,109,0.7,36805
+109,Nandini Layout,110,4.4,29976
+110,Marappana Palya,111,4.0,24878
+111,Malleshwaram,112,1.7,33260
+112,Jayachamarajendra Nagar,113,2.1,42040
+113,Devara Jeevanahalli,114,11.0,39982
+114,Muneshwara Nagar,115,0.8,40830
+115,Lingarajapura,116,0.5,54760
+116,Benniganahalli,117,2.7,46197
+117,Vijnanapura,118,1.0,32081
+118,KR Puram,119,1.1,30134
+119,Basavanapura,120,0.8,41415
+120,Hudi,121,0.8,41055
+121,Devasandra,122,0.4,44150
+122,A Narayanapura,123,0.7,44259
+123,C.V. Raman Nagar,124,0.9,41010
+124,New Tippa Sandra,125,0.7,22982
+125,Maruthi Seva Nagar,126,0.8,32111
+126,Sagayara Puram,127,1.0,48520
+127,SK Garden,128,1.6,40040
+128,Ramaswamy Palya,129,11.9,75431
+129,Jaya Mahal,130,8.7,65088
+130,Raj Mahal Guttahalli,131,2.1,48084
+131,Kadu Malleshwar Ward,132,1.4,45558
+132,Subramanya Nagar,133,1.1,38508
+133,Nagapura,134,0.7,55752
+134,Kempegowda Ward,135,0.3,43355
+135,Chowdeswari Ward,136,0.6,43974
+136,Atturu,137,0.4,40302
+137,Yelahanka Satellite Town,138,0.4,27780
+138,Jakkuru,139,0.8,32981
+139,Thanisandra,140,1.0,35144
+140,Byatarayanapura,141,0.7,43145
+141,Kodigehalli,142,1.5,37353
+142,Vidyaranyapura,143,2.5,35396
+143,Dodda Bommasandra,144,0.7,39394
+144,Kuvempu Nagar,145,1.4,42177
+145,Shettihalli,146,1.3,33877
+146,Mallasandra,147,1.6,38007
+147,Bagalakunte,148,1.9,51647
+148,T Dasarahalli,149,28.3,61502
+149,Jalahalli,150,26.4,91135
+150,J P Park,151,3.7,41873
+151,Radhakrishna Temple Ward,152,1.7,43834
+152,SanJayanagar,153,2.5,42269
+153,Ganga Nagar,154,1.2,35065
+154,Hebbala,155,1.0,40343
+155,Vishwanath Nagenahalli,156,0.8,45384
+156,Nagavara,157,1.1,38311
+157,HBR Layout,158,2.1,51102
+158,Horamavu,159,5.1,45052
+159,Ramamurthy Nagar,160,11.1,62711
+160,Banasavadi,161,1.3,51657
+161,Kammanahalli,162,1.8,46873
+162,Kacharkanahalli,163,1.1,49551
+163,Kadugondanahalli,164,1.2,47352
+164,Kushal Nagar,165,1.6,28160
+165,Kaval Bairasandra,166,1.1,29513
+166,Manorayana Palya,167,1.2,35360
+167,Gangenahalli,168,1.7,30618
+168,Aramane Nagara,169,0.9,35382
+169,Mattikere,170,1.0,37477
+170,Yeshwanthpura,171,0.7,55613
+171,HMT Ward,172,1.2,46814
+172,Chokkasandra,173,1.5,36745
+173,Dodda Bidarakallu,174,7.1,70829
+174,Peenya Industrial Area,175,1.8,48626
+175,Lakshmi Devi Nagar,176,2.1,57670
+176,Nandini Layout,177,1.8,31349
+177,Marappana Palya,178,1.3,33624
+178,Malleshwaram,179,1.9,27786
+179,Jayachamarajendra Nagar,180,0.7,47474
+180,Devara Jeevanahalli,181,1.8,51717
+181,Muneshwara Nagar,182,1.7,44868
+182,Lingarajapura,183,1.1,47756
+183,Benniganahalli,184,9.9,63624
+184,Vijnanapura,185,1.6,52393
+185,KR Puram,186,1.3,42358
+186,Basavanapura,187,2.9,55005
+187,Hudi,188,4.3,55758
+188,Devasandra,189,2.1,76052
+189,A Narayanapura,190,3.5,74143
+190,C.V. Raman Nagar,191,9.7,79112
+191,New Tippa Sandra,192,19.0,90371
+192,Maruthi Seva Nagar,193,6.6,65470
+193,Sagayara Puram,194,7.4,57809
+194,SK Garden,195,3.4,63997
+195,Ramaswamy Palya,196,11.4,51853
+196,Jaya Mahal,197,5.7,68733
+197,Raj Mahal Guttahalli,198,30.5,56226
