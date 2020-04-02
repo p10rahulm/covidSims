@@ -75,20 +75,23 @@ SPDX-License-Identifier: Apache-2.0-->
                 <input  type="number" min="1" max="600" value="200" id="numDays"><br>
 
                 <h3>Disease Progression</h3>
-                <label  for="Incubation">Mean Incubation Period</label>
+                <label  for="Incubation">Mean Incubation Period (days)</label>
                 <input  type="number"  value="4.5"  id="Incubation"><br>
               
-                <label  for="asymptoticMean">Mean Asymptomatic/Pre-Symptomatic Period (days) </label>
-                <input type="number"  value="0.5"  id="asymptoticMean"><br>
+                <label  for="asymptomaticMean">Mean Asymptomatic/Pre-Symptomatic Period (days) </label>
+                <input type="number"  value="0.5"  id="asymptomaticMean"><br>
 
-                <label  for="symptoticMean">Mean Symptomatic Period (days)</label>
-                <input type="number" value="5" id="symptoticMean"><br>
+                <label  for="symptomaticMean">Mean Symptomatic Period (days)</label>
+                <input type="number" value="5" id="symptomaticMean"><br>
+
+                <label  for="symtomaticFraction">Symptomatic Fraction </label>
+                <input type="number"  min="0" max="1" value="0.66" value="0.5"  id="symtomaticFraction"><br>
 
                 <label  for="meanHospitalPeriod">Mean Hospital Stay (days)</label>
-                <input type="number" value="8" id="meanHospitalPeriod" readonly><br>
+                <input type="number" value="8" id="meanHospitalPeriod" ><br>
 
                 <label  for="meanICUPeriod">Mean ICU Stay (days)</label>
-                <input type="number" value="8" id="meanICUPeriod" readonly><br>
+                <input type="number" value="8" id="meanICUPeriod" ><br>
 
                 <h3>Transmission Coefficients</h3>
                 <label  for="betaHouse">Households</label>
@@ -121,7 +124,7 @@ SPDX-License-Identifier: Apache-2.0-->
                 </select><br>
 
                 <label  for="compliance">Compliance Probability</label>
-                <input  type="number" min="0" max="1" value="1"  id="compliance"><br>
+                <input  type="number" min="0" max="1" value="0.9"  id="compliance" ><br>
                 <br>
 
                 <input type="submit" value="Run" onclick="runSimulations();">

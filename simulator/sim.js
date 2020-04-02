@@ -46,17 +46,19 @@ let csvContent = "data:text/csv;charset=utf-8,"; //for file dump
 INCUBATION_PERIOD = 2.29
 MEAN_ASYMPTOMATIC_PERIOD = 0.5
 MEAN_SYMPTOMATIC_PERIOD = 5
-
+MEAN_HOSPITAL_REGULAR_PERIOD = 8
+MEAN_HOSPITAL_CRITICAL_PERIOD = 8
 //These are parameters associated with the disease progression
 const NUM_DAYS_TO_RECOG_SYMPTOMS = 1;
 const INCUBATION_PERIOD_SHAPE = 2;
-const HOSPITAL_REGULAR_PERIOD = 8*SIM_STEPS_PER_DAY;
-const HOSPITAL_CRITICAL_PERIOD = 2*SIM_STEPS_PER_DAY;
+
 
 INCUBATION_PERIOD_SCALE = INCUBATION_PERIOD*SIM_STEPS_PER_DAY; // 2.29 days
 ASYMPTOMATIC_PERIOD = MEAN_ASYMPTOMATIC_PERIOD*SIM_STEPS_PER_DAY; // half a day
 SYMPTOMATIC_PERIOD = MEAN_SYMPTOMATIC_PERIOD*SIM_STEPS_PER_DAY; // 5 days
-
+HOSPITAL_REGULAR_PERIOD = MEAN_HOSPITAL_REGULAR_PERIOD*SIM_STEPS_PER_DAY;
+HOSPITAL_CRITICAL_PERIOD = MEAN_HOSPITAL_CRITICAL_PERIOD*SIM_STEPS_PER_DAY;
+SYMPTOMATIC_FRACTION = 2/3;
 
 COMMUNITY_INFECTION_PROB=[];
 
@@ -89,35 +91,40 @@ BETA_C = 0.097*3.5//Thailand data
 ALPHA = 0.8 //exponent of number of people in a household while normalising infection rate in a household.
 
 //some required functions
-
+COMPLIANCE_PROBABILITY = set_compliance();
 //To what extent does a family comply with an intervention? 1 = full compliance, 0 = no compliance.
-function compliance(){
+function set_compliance(){
 	var val = 1;
 	switch(INTERVENTION) {
 		case NO_INTERVENTION:
 			   val = 1;
 		  break;
 		case CASE_ISOLATION:
-			val = (Math.random()<0.7)?1:0;
+			val = 0.7;
 		  break;
 		case HOME_QUARANTINE:
-			val = (Math.random()<0.5)?1:0;
+			val = 0.5;
 			break;
 		case LOCKDOWN:
-			val = (Math.random()<0.9)?1:0;
+			val = 0.9;
 			break;
 		case CASE_ISOLATION_AND_HOME_QUARANTINE:
-			val = (Math.random()<0.7)?1:0;
+			val = 0.7;
 			break;
 		case CASE_ISOLATION_AND_HOME_QUARANTINE_SD_70_PLUS:
-			val = (Math.random()<0.7)?1:0;
+			val = 0.7;
 			break;
 		case LOCKDOWN_21_CI_HQ_SD_70_PLUS_21_CI:
-			val = (Math.random()<0.9)?1:0;
+			val = 0.9;
 			break;			
 		default:
 			val = 1;
 	}
+	return val;
+}
+
+function compliance(){
+	var val = (Math.random()<COMPLIANCE_PROBABILITY)?1:0;
 	return val;
 }
 
@@ -721,7 +728,7 @@ function update_infection(node,cur_time){
     	node['infective'] = 1;
 	}
 	else if(node['infection_status']==INFECTIVE && (cur_time - node['time_of_infection'] > (node['incubation_period']+node['asymptomatic_period']) )){
-    	if(Math.random() < 2/3){
+    	if(Math.random() < SYMPTOMATIC_FRACTION){
             	node['infection_status'] = SYMPTOMATIC;//move to symptomatic
             	node['infective'] = 1;
     	}
@@ -1295,6 +1302,18 @@ function run_and_plot_2() {
 
 //Main function
 function runSimulations(){
+
+	 //clear previous plots
+	 document.getElementById("status").innerHTML = "";
+	 document.getElementById("num_affected_plot_2").innerHTML = "";
+	 document.getElementById("num_infected_plot_2").innerHTML = "";
+	 document.getElementById("num_exposed_plot_2").innerHTML = "";
+	 document.getElementById("num_hospitalised_plot_2").innerHTML = "";
+	 document.getElementById("num_critical_plot_2").innerHTML = "";
+	 document.getElementById("num_fatalities_plot_2").innerHTML = "";
+	 document.getElementById("num_recovered_plot_2").innerHTML = "";
+	 document.getElementById("lambda_evolution").innerHTML = "";
+	 
 	//get the inputs from the HTML page
 	NUM_DAYS = document.getElementById("numDays").value; // == 0 ? NUM_DAYS : document.getElementById("numDays").value;
 	NUM_TIMESTEPS = NUM_DAYS*SIM_STEPS_PER_DAY;
@@ -1305,8 +1324,20 @@ function runSimulations(){
 	INCUBATION_PERIOD = parseFloat(document.getElementById("Incubation").value)/2;
 	INCUBATION_PERIOD_SCALE = INCUBATION_PERIOD*SIM_STEPS_PER_DAY; // 2.29 days
 
-	MEAN_SYMPTOMATIC_PERIOD = document.getElementById("symptoticMean").value;
-	MEAN_ASYMPTOMATIC_PERIOD = document.getElementById("asymptoticMean").value;
+	
+	MEAN_ASYMPTOMATIC_PERIOD = document.getElementById("asymptomaticMean").value;
+	MEAN_SYMPTOMATIC_PERIOD = document.getElementById("symptomaticMean").value;
+	SYMPTOMATIC_FRACTION = document.getElementById("symtomaticFraction").value;
+	MEAN_HOSPITAL_REGULAR_PERIOD = document.getElementById("meanHospitalPeriod").value;
+	MEAN_HOSPITAL_CRITICAL_PERIOD = document.getElementById("meanICUPeriod").value;
+	COMPLIANCE_PROBABILITY = document.getElementById("compliance").value;
+	
+
+
+	ASYMPTOMATIC_PERIOD = MEAN_ASYMPTOMATIC_PERIOD*SIM_STEPS_PER_DAY; 
+	SYMPTOMATIC_PERIOD = MEAN_SYMPTOMATIC_PERIOD*SIM_STEPS_PER_DAY; 
+	HOSPITAL_REGULAR_PERIOD = MEAN_HOSPITAL_REGULAR_PERIOD*SIM_STEPS_PER_DAY;
+	HOSPITAL_CRITICAL_PERIOD = MEAN_HOSPITAL_CRITICAL_PERIOD*SIM_STEPS_PER_DAY;
 
 	BETA_H = document.getElementById("betaHouse").value;
 	BETA_W = document.getElementById("betaWork").value;
