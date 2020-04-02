@@ -44,13 +44,13 @@ def assign_individuals_to_houses(targetPopulation, wards, ageDistribution, house
     individuals = pd.DataFrame(individuals) #after households DF is ready - add lat, lon, ward no to individuals || call functions in workplace_assignment.py
     individuals['workplaceType'] = np.full(N,0)
     # index 2-school, 1-work
-    working_16_20 = np.setdiff1d((np.multiply(np.random.choice([0,1],len(np.where(np.logical_and(individuals['age']>=16, individuals['age']<=20).values)[0]),replace=True),np.where(np.logical_and(individuals['age']>=16, individuals['age']<=20).values)[0])),[0])
-    schooling_16_20 = np.setdiff1d( np.where(np.logical_and(individuals['age']>=16, individuals['age']<=20).values)[0] , working_16_20)
-    children_indices = np.where(np.logical_and(individuals['age']>=6, individuals['age']<=15).values)[0]
-    workers_indices  = np.unique(np.multiply(np.random.choice([0,1],len(np.where(np.logical_and(individuals['age']>=21, individuals['age']<=60).values)[0]),p=[unemployment_fraction,1-unemployment_fraction],replace=True),np.where(np.logical_and(individuals['age']>=21, individuals['age']<=60).values)[0]))
+    working_15_19 = np.setdiff1d((np.multiply(np.random.choice([0,1],len(np.where(np.logical_and(individuals['age']>=15, individuals['age']<=19).values)[0]),replace=True),np.where(np.logical_and(individuals['age']>=15, individuals['age']<=19).values)[0])),[0])
+    schooling_15_19 = np.setdiff1d( np.where(np.logical_and(individuals['age']>=15, individuals['age']<=19).values)[0] , working_15_19)
+    children_indices = np.where(np.logical_and(individuals['age']>=5, individuals['age']<=14).values)[0]
+    workers_indices  = np.unique(np.multiply(np.random.choice([0,1],len(np.where(np.logical_and(individuals['age']>=20, individuals['age']<=59).values)[0]),p=[unemployment_fraction,1-unemployment_fraction],replace=True),np.where(np.logical_and(individuals['age']>=20, individuals['age']<=59).values)[0]))
    
-    individuals.at[schooling_16_20,'workplaceType'] = 2
-    individuals.at[working_16_20,'workplaceType'] = 1
+    individuals.at[schooling_15_19,'workplaceType'] = 2
+    individuals.at[working_15_19,'workplaceType'] = 1
     individuals.at[children_indices,'workplaceType'] = 2
     individuals.at[workers_indices,'workplaceType'] = 1
 
