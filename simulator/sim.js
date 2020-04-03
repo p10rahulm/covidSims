@@ -567,6 +567,9 @@ function init_workplaces(){
 		//workplace['scale'] = BETA_W*workplace['Q_w']/workplace['individuals'].length;
 		workplaces.push(workplace)
 	}
+	if(USE_AGE_DEPENDENT_MIXING){
+		get_age_dependent_mixing_matrix();
+	}
 	
 	return workplaces;
 }
@@ -1110,7 +1113,7 @@ function run_simulation() {
 	compute_scale_homes(homes)
 	compute_scale_workplaces(workplaces)
 	compute_scale_communities(nodes, communities)
-	get_age_dependent_mixing_matrix();
+	
 	//get_init_stats(nodes,homes,workplaces,communities);
 
 	var days_num_infected = [];
