@@ -4,7 +4,7 @@
 const WEBPAGE_VERSION = true;
 //simulation inputs
 
-NUM_DAYS = 400; //Number of days. Simulation duration
+NUM_DAYS = 200; //Number of days. Simulation duration
 SIM_STEPS_PER_DAY = 4; //Number of simulation steps per day.
 NUM_TIMESTEPS = NUM_DAYS*SIM_STEPS_PER_DAY; //
 INIT_FRAC_INFECTED = 0.0001; // Initial number of people infected
@@ -25,6 +25,7 @@ const LOCKDOWN = 3
 const CASE_ISOLATION_AND_HOME_QUARANTINE = 4
 const CASE_ISOLATION_AND_HOME_QUARANTINE_SD_70_PLUS = 5
 const LOCKDOWN_21_CI_HQ_SD_70_PLUS_21_CI = 6
+const LOCKDOWN_21 = 7
 
 const HOME_QUARANTINE_DAYS = 14
 const SELF_ISOLATION_DAYS = 7
@@ -43,7 +44,7 @@ const DEAD = 7
 
 let csvContent = "data:text/csv;charset=utf-8,"; //for file dump
 
-INCUBATION_PERIOD = 2.29
+INCUBATION_PERIOD = 2.25
 MEAN_ASYMPTOMATIC_PERIOD = 0.5
 MEAN_SYMPTOMATIC_PERIOD = 5
 MEAN_HOSPITAL_REGULAR_PERIOD = 8
@@ -58,7 +59,7 @@ ASYMPTOMATIC_PERIOD = MEAN_ASYMPTOMATIC_PERIOD*SIM_STEPS_PER_DAY; // half a day
 SYMPTOMATIC_PERIOD = MEAN_SYMPTOMATIC_PERIOD*SIM_STEPS_PER_DAY; // 5 days
 HOSPITAL_REGULAR_PERIOD = MEAN_HOSPITAL_REGULAR_PERIOD*SIM_STEPS_PER_DAY;
 HOSPITAL_CRITICAL_PERIOD = MEAN_HOSPITAL_CRITICAL_PERIOD*SIM_STEPS_PER_DAY;
-SYMPTOMATIC_FRACTION = 2/3;
+SYMPTOMATIC_FRACTION = 0.67;
 
 COMMUNITY_INFECTION_PROB=[];
 
@@ -113,7 +114,7 @@ function set_compliance(){
 	var val = 1;
 	switch(INTERVENTION) {
 		case NO_INTERVENTION:
-			   val = 1;
+			   val = 0.9; //No effect.
 		  break;
 		case CASE_ISOLATION:
 			val = 0.7;
@@ -131,6 +132,9 @@ function set_compliance(){
 			val = 0.7;
 			break;
 		case LOCKDOWN_21_CI_HQ_SD_70_PLUS_21_CI:
+			val = 0.9;
+			break;
+		case LOCKDOWN_21:
 			val = 0.9;
 			break;			
 		default:
@@ -1090,6 +1094,9 @@ function update_all_kappa(nodes,homes,workplaces,communities,cur_time){
 		case LOCKDOWN_21_CI_HQ_SD_70_PLUS_21_CI:
 			get_kappa_LOCKDOWN_21_CI_HQ_SD_70_PLUS_21_CI(nodes, homes, workplaces, communities,cur_time);
 			break;
+		case LOCKDOWN_21:
+			get_kappa_LOCKDOWN_21(nodes, homes, workplaces, communities,cur_time);
+			break;
 		default:
 			break;
 	}
@@ -1507,3 +1514,22 @@ function clear_plots(){
 	document.getElementById("lambda_evolution").innerHTML = "";
 
 }
+
+function set_default_values_html(){
+	document.getElementById("numDays").value = NUM_DAYS;
+	document.getElementById("initFrac").value = INIT_FRAC_INFECTED;
+	document.getElementById("Incubation").value= 2*INCUBATION_PERIOD;
+	document.getElementById("asymptomaticMean").value = MEAN_ASYMPTOMATIC_PERIOD;
+	document.getElementById("symptomaticMean").value=MEAN_SYMPTOMATIC_PERIOD;
+	document.getElementById("symtomaticFraction").value = SYMPTOMATIC_FRACTION;
+	document.getElementById("meanHospitalPeriod").value = MEAN_HOSPITAL_REGULAR_PERIOD;
+	document.getElementById("meanICUPeriod").value = MEAN_HOSPITAL_CRITICAL_PERIOD;
+	document.getElementById("compliance").value = COMPLIANCE_PROBABILITY;
+	document.getElementById("betaHouse").value = BETA_H;
+	document.getElementById("betaWork").value = BETA_W;
+	document.getElementById("betaCommunity").value =BETA_C;
+	document.getElementById("betaSchools").value = BETA_S;
+	document.getElementById("interventions").value = "0";
+}
+
+set_default_values_html()

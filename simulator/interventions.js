@@ -200,3 +200,12 @@ function get_kappa_LOCKDOWN_21_CI_HQ_SD_70_PLUS_21_CI(nodes, homes, workplaces, 
 		get_kappa_case_isolation(nodes, homes, workplaces, communities,cur_time);
 	}
 }
+
+function get_kappa_LOCKDOWN_21(nodes, homes, workplaces, communities,cur_time){
+	const FIRST_PERIOD = 21;
+	if(cur_time < FIRST_PERIOD*SIM_STEPS_PER_DAY){
+		get_kappa_lockdown(nodes, homes, workplaces, communities,cur_time);
+	}else{
+		get_kappa_no_intervention(nodes, homes, workplaces, communities,cur_time);
+	}
+}
