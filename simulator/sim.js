@@ -99,9 +99,9 @@ STATE_TRAN=[
 
 // Beta values
 BETA_H = 0.47 *1.0 //Thailand data
-BETA_W = 0.47 *0.8//Thailand data
-BETA_S = 0.94 *0.8//Thailand data
-BETA_C = 0.097*3.5//Thailand data
+BETA_W = 0.47 *2//Thailand data
+BETA_S = 0.94 *2//Thailand data
+BETA_C = 0.097*4.85// Thailand data. Product  = 0.47
 
 
 ALPHA = 0.8 //exponent of number of people in a household while normalising infection rate in a household.
