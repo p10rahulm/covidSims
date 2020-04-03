@@ -4,7 +4,7 @@
 const WEBPAGE_VERSION = true;
 //simulation inputs
 
-NUM_DAYS = 200; //Number of days. Simulation duration
+NUM_DAYS = 120; //Number of days. Simulation duration
 SIM_STEPS_PER_DAY = 4; //Number of simulation steps per day.
 NUM_TIMESTEPS = NUM_DAYS*SIM_STEPS_PER_DAY; //
 INIT_FRAC_INFECTED = 0.0001; // Initial number of people infected
