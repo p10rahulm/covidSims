@@ -1052,8 +1052,7 @@ function get_lambda_stats(time,node,lambda_stats_variable){
 	lambda_stats_variable.push(temp)
 }
 */
-LAMBDA_INFECTION_STATS=[] //global variable to track lambda evolution when a person gets infected
-LAMBDA_INFECTION_MEAN = [0, 0, 0];
+
 function update_lambda_stats(node){
 	var sum_inv = 1/math.sum(node['lambda_incoming']);
 	var lambda_vector = [];
@@ -1126,6 +1125,8 @@ function run_simulation() {
 	var plotly_test_plot = []
 	var infected_count= 0;
 	var lambda_evolution = []
+	LAMBDA_INFECTION_STATS=[] //global variable to track lambda evolution when a person gets infected
+	LAMBDA_INFECTION_MEAN = [0, 0, 0];
 	
 
 	for(var time_step = 0; time_step < NUM_TIMESTEPS; time_step++) {
