@@ -9,7 +9,7 @@ __name__ = "Module to assign individuals to houses"
 import numpy as np 
 import pandas as pd 
 
-def assign_individuals_to_houses(targetPopulation, wards, ageDistribution, householdDistribution,unemployment_fraction):
+def assign_individuals_to_houses(targetPopulation, wards, ageDistribution, householdSizes, householdDistribution,unemployment_fraction):
     N = targetPopulation
     dictlist_individuals = [dict() for x in range(N)]
 
@@ -28,15 +28,33 @@ def assign_individuals_to_houses(targetPopulation, wards, ageDistribution, house
     age_distribution = age_distribution/sum(age_distribution)
 
     # household size distributin
-    household_sizes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-    household_dist = householdDistribution  #1,2,3,4,5,6,7-10,11-14,15+
-    household_distribution = household_dist[0:6]
-    for i in range(0,4):
-        household_distribution.append(household_dist[6]/4)
-    for i in range(0,4):
-        household_distribution.append(household_dist[7]/4)
-    household_distribution.append(household_dist[8])
-    household_distribution = np.array(household_distribution)/np.sum(household_distribution)
+    household_sizes = [] #[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+    household_dist = []
+    for i in range(len(householdSizes)):
+        size = householdSizes[i]
+        if "-" in size:
+            size = size.split('-')
+            diff = int(size[1]) - int(size[0]) + 1 #inclusive difference where you want the first number to be present
+            for j in range(diff):
+                household_sizes.append(int(size[0])+j)
+                household_dist.append(householdDistribution[i]/diff)
+        elif "+" in size: #last index
+            size = int(size.split("+")[0])
+            household_sizes.append(size)
+            household_dist.append(householdDistribution[i])
+        else:
+            household_sizes.append(int(householdSizes[i]))
+            household_dist.append(householdDistribution[i])
+
+    # household_dist = householdDistribution  #1,2,3,4,5,6,7-10,11-14,15+
+    # household_distribution = household_dist[0:6]
+    # for i in range(0,4):
+    #     household_distribution.append(household_dist[6]/4)
+    # for i in range(0,4):
+    #     household_distribution.append(household_dist[7]/4)
+    # household_distribution.append(household_dist[8])
+    household_distribution = np.array(household_dist)/np.sum(household_dist)
+    del household_dist
     mean_household_size = np.matmul(household_sizes, household_distribution)    
     print("mean", mean_household_size)
     # create individuals with desired age distribution
