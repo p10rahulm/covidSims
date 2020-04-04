@@ -8,6 +8,7 @@ NUM_DAYS = 120; //Number of days. Simulation duration
 SIM_STEPS_PER_DAY = 4; //Number of simulation steps per day.
 NUM_TIMESTEPS = NUM_DAYS*SIM_STEPS_PER_DAY; //
 INIT_FRAC_INFECTED = 0.0001; // Initial number of people infected
+const SEED_INFECTION_FROM_FILE = false;
 
 //global variables. 
 NUM_PEOPLE = 100000; // Number of people. Will change once file is read.
@@ -82,7 +83,10 @@ U_MATRIX_SCHOOL = math.zeros([NUM_AGE_GROUPS,NUM_AGE_GROUPS]);
 V_MATRIX_SCHOOL = math.zeros([NUM_AGE_GROUPS,NUM_AGE_GROUPS]);
 SIGNIFICANT_EIGEN_VALUES_SCHOOL = 16; //NUM_AGE_GROUPS;
 
-
+SIGMA_H = math.zeros([NUM_AGE_GROUPS]);
+U_MATRIX_H = math.zeros([NUM_AGE_GROUPS,NUM_AGE_GROUPS]);
+V_MATRIX_H = math.zeros([NUM_AGE_GROUPS,NUM_AGE_GROUPS]);
+SIGNIFICANT_EIGEN_VALUES_H = 16; //NUM_AGE_GROUPS;
 
 //age related transition probabilities, symptomatic to hospitalised to critical to fatality.
 STATE_TRAN=[
@@ -245,7 +249,11 @@ function init_nodes() {
 	    node['infective'] = node['infection_status']==INFECTIVE?1:0; //initialise all infected individuals as infective 
 		node['time_of_infection'] = node['infection_status']==EXPOSED?(-node['incubation_period']*Math.random()):0;
 		node['zeta_a']=zeta(node['age']);
-	    nodes.push(node)
+		nodes.push(node)
+		if(SEED_INFECTION_FROM_FILE){
+			node['infection_status'] = individuals_json[i]['infection_status'];
+			node['time_of_infection'] = node['infection_status']==EXPOSED?(-individuals_json[i]['time_since_infected']):0;
+		}
 	}
 	return nodes;
 }
@@ -519,12 +527,16 @@ function init_homes(){
 			'Q_h': 1,
 			'scale': 0,
 			'compliant' : compliance(),
-			'quarantined' : false
+			'quarantined' : false,
+			'age_dependent_mixing': math.zeros([NUM_AGE_GROUPS])
 		};
 		//home['scale'] = BETA_H*home['Q_h']/(Math.pow(home['individuals'].length, ALPHA));
 		
 		homes.push(home)
 		
+	}
+	if(USE_AGE_DEPENDENT_MIXING){
+		get_age_dependent_mixing_matrix_household(); //get age dependent mixing matrix for households.
 	}
 	return homes;
 }
@@ -572,7 +584,7 @@ function init_workplaces(){
 		workplaces.push(workplace)
 	}
 	if(USE_AGE_DEPENDENT_MIXING){
-		get_age_dependent_mixing_matrix();
+		get_age_dependent_mixing_matrix_workplace();
 	}
 	
 	return workplaces;
@@ -826,7 +838,7 @@ function update_psi(node, cur_time){
 
 
 
-function update_lambda_h(nodes, home){
+function update_lambda_h_old(nodes, home){
 	var sum_value = 0
 	
 	for (var i=0; i<home['individuals'].length; i++){
@@ -838,6 +850,80 @@ function update_lambda_h(nodes, home){
 	return home['scale']*sum_value;
 	// Populate it afterwards...
 }
+
+
+function get_age_dependent_mixing_matrix_household(){
+	
+	var sigma_json = JSON.parse(loadJSON_001('Sigma_household.json'));
+	var U_matrix_json = JSON.parse(loadJSON_001('U_household.json'));
+	var V_matrix_json = JSON.parse(loadJSON_001('Vtranspose_household.json'));
+
+	SIGMA_H = math.zeros([NUM_AGE_GROUPS]);
+	U_MATRIX_H = math.zeros([NUM_AGE_GROUPS,NUM_AGE_GROUPS]);
+	V_MATRIX_H = math.zeros([NUM_AGE_GROUPS,NUM_AGE_GROUPS]);
+
+
+	for (var count = 0; count < NUM_AGE_GROUPS; count++){ 
+		//sigma_json is read as a diagonal matrix.
+		SIGMA_H[count] = sigma_json[count][count];
+	}
+	for (var count = 0; count < NUM_AGE_GROUPS; count++){
+		for (var count2 = 0;  count2 < NUM_AGE_GROUPS; count2++){
+			U_MATRIX_H[count][count2] = U_matrix_json[count2][count]; //After JSON parsing, what you get is the transposed version.
+			V_MATRIX_H[count][count2] = V_matrix_json[count2][count]; //V_MATRIX is the transpose of V in C = SUV'.
+		}	
+	}
+	
+	
+}
+
+function update_lambda_h(nodes,home){
+	//Compute age_group related mixing
+	var lambda_age_group = math.zeros([NUM_AGE_GROUPS]);
+
+	if(!USE_AGE_DEPENDENT_MIXING){
+		//////////////////////////
+		//Sanity test --- use old lambdas
+		var lambda_old = update_lambda_h_old(nodes,home)
+
+		
+		for (var count = 0; count < NUM_AGE_GROUPS;count++){
+			lambda_age_group[count] = lambda_old;
+		}
+	////////////////////////////
+
+	} else {
+
+	
+		var SIGMA = SIGMA_H;
+		var V_MATRIX = V_MATRIX_H;
+		var U_MATRIX = U_MATRIX_H;
+		var SIGNIFICANT_EIGEN_VALUES = SIGNIFICANT_EIGEN_VALUES_H
+
+		//add contributions to each age group
+		var age_components = math.zeros([NUM_AGE_GROUPS]);
+		for (var indv_count = 0; indv_count < home['individuals'].length;indv_count++){
+			var indv_age_group = nodes[home['individuals'][indv_count]]['age_group'];
+			age_components[indv_age_group]+=nodes[home['individuals'][indv_count]]['lambda_h'];		
+		}
+		//weighted sum of age contributions for each eigen component
+		var V_T_x = math.zeros([SIGNIFICANT_EIGEN_VALUES]);
+		for (var eigen_count = 0; eigen_count <SIGNIFICANT_EIGEN_VALUES_SCHOOL;eigen_count++){
+			for (var count = 0; count < NUM_AGE_GROUPS;count++){
+				V_T_x[eigen_count]+=V_MATRIX[eigen_count][count]*age_components[count];//Assumption is V_matrix is V' where C = USV'
+			}
+		}	
+
+		for (var count = 0; count < NUM_AGE_GROUPS;count++){
+			for (var eigen_count = 0; eigen_count <SIGNIFICANT_EIGEN_VALUES_SCHOOL;eigen_count++){		
+				lambda_age_group[count]+=home['scale']*SIGMA[eigen_count]*U_MATRIX[count][eigen_count]*V_T_x[eigen_count];
+			}
+		}
+	}
+	return lambda_age_group;
+}
+
+
 
 function update_lambda_w_old(nodes, workplace){
 	var sum_value = 0
@@ -854,7 +940,7 @@ function update_lambda_w_old(nodes, workplace){
 	// Populate it afterwards...
 }
 
-function get_age_dependent_mixing_matrix(){
+function get_age_dependent_mixing_matrix_workplace(){
 	var sigma_json = JSON.parse(loadJSON_001('input_files/Sigma_workplace.json'));
 	var U_matrix_json = JSON.parse(loadJSON_001('input_files/U_workplace.json'));
 	var V_matrix_json = JSON.parse(loadJSON_001('input_files/Vtranspose_workplace.json'));
@@ -1031,7 +1117,8 @@ function update_lambdas(node,homes,workplaces,communities,nodes,cur_time){
 	*/
 	node['lambda_incoming']=[0,0,0];
 	if(node['home']!=null &&  node['home']!=undefined) {
-		node['lambda_incoming'][0] = node['kappa_H_incoming']*homes[node['home']]['lambda_home'];
+		var age_group = node['age_group'];
+		node['lambda_incoming'][0] = node['kappa_H_incoming']*homes[node['home']]['age_dependent_mixing'][age_group];
 	}
 	if(node['workplace']!=null &&  node['workplace']!=undefined) {
 		var age_group = node['age_group'];
@@ -1146,7 +1233,7 @@ function run_simulation() {
 		}
 		update_all_kappa(nodes,homes,workplaces,communities,time_step)
 		for (var h=0; h<NUM_HOMES; h++){
-			homes[h]['lambda_home'] = update_lambda_h(nodes, homes[h]);
+			homes[h]['age_dependent_mixing'] = update_lambda_h(nodes, homes[h]);
 		}
 		for (var w=0; w<NUM_SCHOOLS+NUM_WORKPLACES; w++){
 			workplaces[w]['age_dependent_mixing'] = update_lambda_w(nodes, workplaces[w]);
@@ -1461,7 +1548,7 @@ function run_and_plot_2() {
 //Main function
 function runSimulations(){
 
-	clear_plots();
+	//clear_plots();
 
 	//get the inputs from the HTML page
 	NUM_DAYS = document.getElementById("numDays").value; // == 0 ? NUM_DAYS : document.getElementById("numDays").value;
@@ -1503,7 +1590,7 @@ function runSimulations(){
 
 function clear_plots(){
 	//clear previous plots
-	document.getElementById("status").innerHTML = "";
+	document.getElementById("status").innerHTML = "Simulation in Progress....";
 	document.getElementById("num_affected_plot_2").innerHTML = "";
 	document.getElementById("num_infected_plot_2").innerHTML = "";
 	document.getElementById("num_exposed_plot_2").innerHTML = "";
@@ -1513,6 +1600,7 @@ function clear_plots(){
 	document.getElementById("num_recovered_plot_2").innerHTML = "";
 	document.getElementById("lambda_evolution").innerHTML = "";
 
+	runSimulations();
 }
 
 function set_default_values_html(){
@@ -1533,3 +1621,4 @@ function set_default_values_html(){
 }
 
 set_default_values_html()
+
