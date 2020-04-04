@@ -1,0 +1,75 @@
+{
+    "stages":[
+        {
+            "HEALTHY": "0",
+            "DURATION": "-"
+        },
+        {
+            "EXPOSED": "1",
+            "DURATION": "4.5"
+        },
+        {
+            "INFECTED": "2",
+            "DURATION": "0.5"
+        },
+        {
+            "SYMPTOMATIC": "3",
+            "DURATION": "5"
+        },
+        {
+            "RECOVERED": "4",
+            "DURATION": "-"
+        },
+        {
+            "HOSPITALISED": "5",
+            "DURATION": "8"
+        },
+        {
+            "CRITICAL": "6",
+            "DURATION": "2"
+        },
+        {
+            "DEAD": "7",
+            "DURATION": "-"
+        }
+    ],
+    
+    "branching_probabilities":[
+        {
+            "Age": [0, 9],
+            "Branch": [0.33, 0.95, 0.5, 0.2]
+        },
+        {
+            "Age": [10, 19],
+            "Branch": [0.33, 0.95, 0.5, 0.2]
+        },
+        {
+            "Age": [20, 29],
+            "Branch": [0.33, 0.95, 0.5, 0.2]
+        },
+        {
+            "Age": [30, 39],
+            "Branch": [0.33, 0.95, 0.5, 0.2]
+        },
+        {
+            "Age": [40, 49],
+            "Branch": [0.33, 0.95, 0.5, 0.2]
+        },
+        {
+            "Age": [50, 59],
+            "Branch": [0.33, 0.95, 0.5, 0.2]
+        },
+        {
+            "Age": [60, 69],
+            "Branch": [0.33, 0.95, 0.5, 0.2]
+        },
+        {
+            "Age": [70, 79],
+            "Branch": [0.33, 0.95, 0.5, 0.2]
+        },
+        {
+            "Age": [80, 129],
+            "Branch": [0.33, 0.95, 0.5, 0.2]
+        }
+    ]
+}
