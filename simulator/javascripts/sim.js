@@ -208,7 +208,7 @@ function init_nodes() {
 			'age': individuals_json[i]['age'],
 			'age_group' : get_age_group(individuals_json[i]['age']),
 			'zeta_a': 1,
-			'infectiousness': stream1.gamma(1,1), // a.k.a. rho
+			'infectiousness': stream1.gamma(0.25,4), // a.k.a. rho
 			'severity': (Math.random() <0.5)?1:0, // a.k.a. S_k
 			'home': individuals_json[i]['household'], 
 			'workplace': individuals_json[i]['workplaceType']==1? individuals_json[i]['workplace']:individuals_json[i]['school'],
