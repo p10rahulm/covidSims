@@ -1289,7 +1289,7 @@ function run_simulation() {
 		var n_affected = nodes.reduce(function(partial_sum, node) {return partial_sum + ((node['infection_status']) ? 1 : 0);}, 0);
 		days_num_affected.push([time_step/SIM_STEPS_PER_DAY, n_affected]);
 
-		let row = [time_step/SIM_STEPS_PER_DAY,n_affected,n_recovered,n_infected,n_exposed,n_hospitalised,n_critical,n_fatalities].join(",");
+		let row = [time_step/SIM_STEPS_PER_DAY,n_affected,n_recovered,n_infected,n_exposed,n_hospitalised,n_critical,n_fatalities,LAMBDA_INFECTION_MEAN[0],LAMBDA_INFECTION_MEAN[1],LAMBDA_INFECTION_MEAN[2]].join(",");
 			csvContent_alltogether += row + "\r\n";
 		if(LAMBDA_INFECTION_STATS.length > 0){
 			lambda_evolution.push([time_step/SIM_STEPS_PER_DAY,[LAMBDA_INFECTION_MEAN[0],LAMBDA_INFECTION_MEAN[1],LAMBDA_INFECTION_MEAN[2]]])
