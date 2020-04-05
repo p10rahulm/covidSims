@@ -908,14 +908,14 @@ function update_lambda_h(nodes,home){
 		}
 		//weighted sum of age contributions for each eigen component
 		var V_T_x = math.zeros([SIGNIFICANT_EIGEN_VALUES]);
-		for (var eigen_count = 0; eigen_count <SIGNIFICANT_EIGEN_VALUES_SCHOOL;eigen_count++){
+		for (var eigen_count = 0; eigen_count <SIGNIFICANT_EIGEN_VALUES;eigen_count++){
 			for (var count = 0; count < NUM_AGE_GROUPS;count++){
 				V_T_x[eigen_count]+=V_MATRIX[eigen_count][count]*age_components[count];//Assumption is V_matrix is V' where C = USV'
 			}
 		}	
 
 		for (var count = 0; count < NUM_AGE_GROUPS;count++){
-			for (var eigen_count = 0; eigen_count <SIGNIFICANT_EIGEN_VALUES_SCHOOL;eigen_count++){		
+			for (var eigen_count = 0; eigen_count <SIGNIFICANT_EIGEN_VALUES;eigen_count++){		
 				lambda_age_group[count]+=home['scale']*SIGMA[eigen_count]*U_MATRIX[count][eigen_count]*V_T_x[eigen_count];
 			}
 		}
@@ -1023,14 +1023,14 @@ function update_lambda_w(nodes,workplace){
 		}
 		//weighted sum of age contributions for each eigen component
 		var V_T_x = math.zeros([SIGNIFICANT_EIGEN_VALUES]);
-		for (var eigen_count = 0; eigen_count <SIGNIFICANT_EIGEN_VALUES_SCHOOL;eigen_count++){
+		for (var eigen_count = 0; eigen_count <SIGNIFICANT_EIGEN_VALUES;eigen_count++){
 			for (var count = 0; count < NUM_AGE_GROUPS;count++){
 				V_T_x[eigen_count]+=V_MATRIX[eigen_count][count]*age_components[count];//Assumption is V_matrix is V' where C = USV'
 			}
 		}	
 
 		for (var count = 0; count < NUM_AGE_GROUPS;count++){
-			for (var eigen_count = 0; eigen_count <SIGNIFICANT_EIGEN_VALUES_SCHOOL;eigen_count++){		
+			for (var eigen_count = 0; eigen_count <SIGNIFICANT_EIGEN_VALUES;eigen_count++){		
 				lambda_age_group[count]+=workplace['scale']*SIGMA[eigen_count]*U_MATRIX[count][eigen_count]*V_T_x[eigen_count];
 			}
 		}
