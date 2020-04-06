@@ -15,7 +15,7 @@ import numpy as np
 #Data-processing Functions
 from modules.processGeoData import schoolLocation
 
-def assign_schools(individuals, cityGeoDF, schoolDistribution):
+def extrapolate_school_size_distribution(schoolDistribution):
     # generate schools size distribution
     schoolsize_values = np.arange(50,901,1)
     schoolsize_distribution_over_gap100 = schoolDistribution # 50-99, 100-199, ..., 800 - 899, 900+
@@ -30,7 +30,12 @@ def assign_schools(individuals, cityGeoDF, schoolDistribution):
     schoolsize_distribution.append(schoolsize_distribution_over_gap100[len(schoolsize_distribution_over_gap100)-1])
     schoolsize_distribution = np.array(schoolsize_distribution)
     schoolsize_distribution = schoolsize_distribution/np.sum(schoolsize_distribution)
-    student_indices = np.where((individuals['workplaceType']==2).values)[0]
+    return schoolsize_values, schoolsize_distribution
+
+def assign_schools(individuals, cityGeoDF, schoolDistribution):
+
+    schoolsize_values, schoolsize_distribution = extrapolate_school_size_distribution(schoolDistribution)
+    student_indices = individuals.index.values #np.where((individuals['workplaceType']==2).values)[0]
     schools = pd.DataFrame()
     capacities = []
     cumulative_capacity = 0

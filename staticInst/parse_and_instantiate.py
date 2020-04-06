@@ -40,7 +40,7 @@ def instantiate(city, targetPopulation, averageStudents, averageWorkforce):
 
 	if "cityProfile.json" in os.listdir("data/base/"+city):
 		cityProfile = "data/base/"+city+"/cityProfile.json"
-		ageDistribution, householdDistribution, schoolDistribution, householdSizes, unemployed_fraction = process_city_profile(cityProfile)
+		ageDistribution, householdDistribution, schoolDistribution, householdSizes, unemployed_fraction, maxWorkplaceDistance = process_city_profile(cityProfile)
 
 	demographicsData = pd.read_csv("data/base/"+city+"/demographics.csv")
 	housesData = pd.read_csv("data/base/"+city+"/households.csv")
@@ -73,8 +73,6 @@ def instantiate(city, targetPopulation, averageStudents, averageWorkforce):
 		unemployed_but_employable = total_unemployed - population_over_60
 		unemployed_fraction = unemployed_but_employable  / (totalPopulation - population_over_60)
 
-	# print(people_over_60, unemployed_fraction, employable_population, total_employable, total_unemployed, unemployed_but_employable )
-
 	totalNumberOfWards = len(demographicsData['wardNo'].values)
 	averageHouseholds = totalPopulation / demographicsData['totalHouseholds'].values.sum()
 
@@ -85,7 +83,7 @@ def instantiate(city, targetPopulation, averageStudents, averageWorkforce):
 	print("instantiating individuals to households...")
 	start = time.time()
 	print("computed unemployment fraction = ", unemployed_fraction)
-	individuals, households = assign_individuals_to_houses(targetPopulation, totalNumberOfWards, ageDistribution, householdSizes, householdDistribution, unemployed_fraction)
+	households, individuals = assign_individuals_to_houses(targetPopulation, totalNumberOfWards, ageDistribution, householdSizes, householdDistribution, unemployed_fraction)
 	print("instantiating individuals to households completed in ", time.time() - start)
 	
 	print("instantiating individual location by house location...")
@@ -93,15 +91,21 @@ def instantiate(city, targetPopulation, averageStudents, averageWorkforce):
 	households, individuals = houseLocation(cityGeoDF, individuals, households)
 	print("instantiating individual location by house location completed in ", time.time() - start)
 
+	#split the individuals by workplace type
+	individuals = {name: individuals.loc[individuals['workplaceType'] == name, :] for name in individuals['workplaceType'].unique()}
+
 	print("instantiating individuals to workplaces...")
 	start = time.time()
-	workplaces, individuals = assign_workplaces(cityGeoDF, individuals)
+	workplaces, individuals[1] = assign_workplaces(cityGeoDF, individuals[1], maxWorkplaceDistance)
 	print("instantiating individuals to workplaces completed in ", time.time() - start)
 
 	print("instantiating individuals to schools...")
 	start = time.time()
-	individuals, schools = assign_schools(individuals, cityGeoDF,  schoolDistribution)
+	individuals[2], schools = assign_schools(individuals[2], cityGeoDF,  schoolDistribution)
 	print("instantiating individuals to schools completed in ", time.time() - start)
+
+	#join the individuals
+	individuals = pd.concat(individuals.values(), ignore_index=True)
 
 	print("additonal data processing...")
 	start = time.time()

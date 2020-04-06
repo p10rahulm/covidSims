@@ -19,11 +19,15 @@ def process_city_profile(cityProFileFile):
     household_distribution = data['householdSize']['weights']
     household_values = data['householdSize']['bins']
     school_distribution = data['schoolsSize']['weights']
-
-    if 'unemployedfraction' in data.keys():
-        return age_distribution, household_distribution, school_distribution, household_values, data['unemployedfraction']
+    
+    if 'unemployedfraction' in data.keys() and 'maxWorkplaceDistance' in data.keys():
+        return age_distribution, household_distribution, school_distribution, household_values, data['unemployedfraction'], data['maxWorkplaceDistance']
+    elif 'unemployedfraction' not in data.keys() and 'maxWorkplaceDistance' in data.keys():
+        return age_distribution, household_distribution, school_distribution, household_values, 0, data['maxWorkplaceDistance']
+    elif 'unemployedfraction' in data.keys() and 'maxWorkplaceDistance' not in data.keys():
+        return age_distribution, household_distribution, school_distribution, household_values, data['unemployedfraction'], 0
     else:
-        return age_distribution, household_distribution, school_distribution, household_values, 0
+        return age_distribution, household_distribution, school_distribution, household_values, 0, 0
 
 def process_data(demographics, households, employmentData, targetPopulation, age_distribution):
     households = households.sort_values('wardNo')
