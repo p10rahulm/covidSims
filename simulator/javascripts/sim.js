@@ -10,8 +10,8 @@ NUM_TIMESTEPS = NUM_DAYS*SIM_STEPS_PER_DAY; //
 INIT_FRAC_INFECTED = 0.0001; // Initial number of people infected
 SEED_SCALING_FACTOR = 1.5;
 const RANDOM_SEEDING_WARDWISE = 0;
-const SEEDING_FROM_INDIVIDUALS_JSON = 1;
-const SEEDING_INFECTION_RATES = 2;
+const SEED_FROM_INDIVIDUALS_JSON = 1;
+const SEED_INFECTION_RATES = 2;
 SEEDING_MODE = RANDOM_SEEDING_WARDWISE;
 
 //global variables. 
@@ -257,7 +257,7 @@ function init_nodes() {
 		node['time_of_infection'] = node['infection_status']==EXPOSED?(-node['incubation_period']*Math.random()):0;
 		node['zeta_a']=zeta(node['age']);
 		nodes.push(node)
-		if(SEEDING_MODE==SEEDING_FROM_INDIVIDUALS_JSON){
+		if(SEEDING_MODE==SEED_FROM_INDIVIDUALS_JSON){
 			node['infection_status'] = individuals_json[i]['infection_status'];
 			node['time_of_infection'] = node['infection_status']==EXPOSED?(-individuals_json[i]['time_since_infected']):0;
 		}
@@ -1233,7 +1233,7 @@ function run_simulation() {
 	var nodes = init_nodes();
 	var community_distance_matrix = compute_community_distances(communities);
 	var seed_array = [];
-	if(SEEDING_MODE == SEEDING_INFECTION_RATES){
+	if(SEEDING_MODE == SEED_INFECTION_RATES){
 		seed_array = load_infection_seed_json(SEED_SCALING_FACTOR);
 	}
 	
@@ -1265,7 +1265,7 @@ function run_simulation() {
 
 	for(var time_step = 0; time_step < NUM_TIMESTEPS; time_step++) {
 		console.log(time_step/SIM_STEPS_PER_DAY);
-		if(SEEDING_MODE == SEEDING_INFECTION_RATES && time_step < seed_array.length){
+		if(SEEDING_MODE == SEED_INFECTION_RATES && time_step < seed_array.length){
 			infection_seeding(nodes,seed_array[time_step],time_step);
 		}
 		for (var j=0; j<NUM_PEOPLE; j++){
