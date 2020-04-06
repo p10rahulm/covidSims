@@ -8,7 +8,11 @@ NUM_DAYS = 120; //Number of days. Simulation duration
 SIM_STEPS_PER_DAY = 4; //Number of simulation steps per day.
 NUM_TIMESTEPS = NUM_DAYS*SIM_STEPS_PER_DAY; //
 INIT_FRAC_INFECTED = 0.0001; // Initial number of people infected
-const SEED_INFECTION_FROM_FILE = false;
+SEED_SCALING_FACTOR = 1.5;
+const RANDOM_SEEDING_WARDWISE = 0;
+const SEEDING_FROM_INDIVIDUALS_JSON = 1;
+const SEEDING_INFECTION_RATES = 2;
+SEEDING_MODE = RANDOM_SEEDING_WARDWISE;
 
 //global variables. 
 NUM_PEOPLE = 100000; // Number of people. Will change once file is read.
@@ -36,7 +40,7 @@ INTERVENTION = NO_INTERVENTION; //run_and_plot() changes this
 //Disease progression in an individual
 const SUSCEPTIBLE = 0
 const EXPOSED = 1
-const INFECTIVE = 2
+const PRE_SYMPTOMATIC = 2
 const SYMPTOMATIC = 3
 const RECOVERED = 4
 const HOSPITALISED = 5
@@ -104,9 +108,9 @@ STATE_TRAN=[
 
 // Beta values
 BETA_H = 0.47 *1.0 //Thailand data
-BETA_W = 0.47 *2//Thailand data
-BETA_S = 0.94 *2//Thailand data
-BETA_C = 0.097*4.85// Thailand data. Product  = 0.47
+BETA_W = 0.47 *1.0//Thailand data
+BETA_S = 0.94 *1.0//Thailand data
+BETA_C = 0.097*3.5// Thailand data. Product  = 0.47
 
 
 ALPHA = 0.8 //exponent of number of people in a household while normalising infection rate in a household.
@@ -161,16 +165,19 @@ function compute_prob_infection_given_community(infection_probability,set_unifor
 	var communities_frac_quarantined_json = JSON.parse(loadJSON_001('input_files/quarantinedPopulation.json'));
 	var num_communities = communities_population_json.length;
 	for (var w = 0; w < num_communities; w++){
-		if(set_uniform){
-			//set uniformly across wards. Ignore ward wise data.
-			prob_infec_given_community.push(infection_probability);
-		}
-		else{
-			//Use ward wise quarantine data
-			prob_infec_given_community.push(infection_probability*communities_frac_quarantined_json[w]['fracQuarantined']/communities_population_json[w]['fracPopulation']);
-
-		} 		
-		
+		if(SEEDING_MODE==RANDOM_SEEDING_WARDWISE){
+			if(set_uniform){
+				//set uniformly across wards. Ignore ward wise data.
+				prob_infec_given_community.push(infection_probability);
+			}
+			else{
+				//Use ward wise quarantine data
+				prob_infec_given_community.push(infection_probability*communities_frac_quarantined_json[w]['fracQuarantined']/communities_population_json[w]['fracPopulation']);
+	
+			} 		
+		} else{
+			prob_infec_given_community.push(0);
+		}	
 	}
 	return prob_infec_given_community;
 }
@@ -246,16 +253,44 @@ function init_nodes() {
 		}
 		
 	    //Set infective status, set the time of infection, and other age-related factors
-	    node['infective'] = node['infection_status']==INFECTIVE?1:0; //initialise all infected individuals as infective 
+	    node['infective'] = node['infection_status']==PRE_SYMPTOMATIC?1:0; //initialise all infected individuals as infective 
 		node['time_of_infection'] = node['infection_status']==EXPOSED?(-node['incubation_period']*Math.random()):0;
 		node['zeta_a']=zeta(node['age']);
 		nodes.push(node)
-		if(SEED_INFECTION_FROM_FILE){
+		if(SEEDING_MODE==SEEDING_FROM_INDIVIDUALS_JSON){
 			node['infection_status'] = individuals_json[i]['infection_status'];
 			node['time_of_infection'] = node['infection_status']==EXPOSED?(-individuals_json[i]['time_since_infected']):0;
 		}
 	}
 	return nodes;
+}
+
+function load_infection_seed_json(seed_scaling_factor){
+	var seed_array = [];
+	var infection_seeds_json = JSON.parse(loadJSON_001('input_files/infection_seeds.json'));
+	var infection_seeds_json_array = Object.values(infection_seeds_json['seed_fit']);
+	var num_seed_days = infection_seeds_json_array.length;
+	for (var count = 0; count < num_seed_days*SIM_STEPS_PER_DAY;count++){
+		var mean = (infection_seeds_json_array[Math.floor(count/SIM_STEPS_PER_DAY)]/SIM_STEPS_PER_DAY)*seed_scaling_factor;
+		//var random = d3.randomPoisson(mean);
+		//console.log(mean);
+		seed_array.push(d3.randomPoisson(mean)());
+	}
+	return seed_array;
+}
+
+function infection_seeding(nodes,seed_count,curr_time){
+	var num_individuals_to_seed = seed_count;
+	var num_seeded = 0;
+	while(num_seeded < num_individuals_to_seed){
+		let individual_index = d3.randomInt(0,NUM_PEOPLE)();
+		if(nodes[individual_index]['infection_status']==SUSCEPTIBLE){
+			nodes[individual_index]['infection_status']=EXPOSED;
+			nodes[individual_index]['time_of_infection'] = curr_time-nodes[individual_index]['incubation_period']; //*Math.random(); //TODO. Need to revisit.
+			num_seeded++;
+		}
+	}
+	console.log(curr_time/SIM_STEPS_PER_DAY,num_individuals_to_seed);
 }
 
 
@@ -770,11 +805,11 @@ function update_infection(node,cur_time){
 		node['infective'] = 0;
 		update_lambda_stats(node)		
 	}
-	else if(node['infection_status']==EXPOSED && (cur_time - node['time_of_infection'] > node['incubation_period'])){
-    	node['infection_status'] = INFECTIVE;//move to infective state
+	else if(node['infection_status']==EXPOSED && (cur_time - node['time_of_infection'] >= node['incubation_period'])){
+    	node['infection_status'] = PRE_SYMPTOMATIC;//move to infective state
     	node['infective'] = 1;
 	}
-	else if(node['infection_status']==INFECTIVE && (cur_time - node['time_of_infection'] > (node['incubation_period']+node['asymptomatic_period']) )){
+	else if(node['infection_status']==PRE_SYMPTOMATIC && (cur_time - node['time_of_infection'] >= (node['incubation_period']+node['asymptomatic_period']) )){
     	if(Math.random() < SYMPTOMATIC_FRACTION){
             	node['infection_status'] = SYMPTOMATIC;//move to symptomatic
             	node['infective'] = 1;
@@ -784,7 +819,7 @@ function update_infection(node,cur_time){
             node['infective'] = 0;
     	}
 	}
-	else if(node['infection_status']==SYMPTOMATIC && (cur_time - node['time_of_infection'] > (node['incubation_period']+node['asymptomatic_period']+node['symptomatic_period']))){
+	else if(node['infection_status']==SYMPTOMATIC && (cur_time - node['time_of_infection'] >= (node['incubation_period']+node['asymptomatic_period']+node['symptomatic_period']))){
     	if(Math.random() < STATE_TRAN[age_index][0]){
             	node['infection_status'] = HOSPITALISED;//move to hospitalisation
             	node['infective'] = 0;
@@ -794,7 +829,7 @@ function update_infection(node,cur_time){
             node['infective'] = 0;
     	}
 	}
-	else if(node['infection_status']==HOSPITALISED && (cur_time - node['time_of_infection'] > (node['incubation_period']+node['asymptomatic_period']+node['symptomatic_period']+node['hospital_regular_period']))){
+	else if(node['infection_status']==HOSPITALISED && (cur_time - node['time_of_infection'] >= (node['incubation_period']+node['asymptomatic_period']+node['symptomatic_period']+node['hospital_regular_period']))){
     	if(Math.random() < STATE_TRAN[age_index][1]){
             	node['infection_status'] = CRITICAL;//move to critical care
             	node['infective'] = 0;
@@ -804,7 +839,7 @@ function update_infection(node,cur_time){
             node['infective'] = 0;
     	}
 	}
-	else if(node['infection_status']==CRITICAL && (cur_time - node['time_of_infection'] > (node['incubation_period']+node['asymptomatic_period']+node['symptomatic_period']+node['hospital_regular_period']+node['hospital_critical_period']))){
+	else if(node['infection_status']==CRITICAL && (cur_time - node['time_of_infection'] >= (node['incubation_period']+node['asymptomatic_period']+node['symptomatic_period']+node['hospital_regular_period']+node['hospital_critical_period']))){
     	if(Math.random() < STATE_TRAN[age_index][2]){
             	node['infection_status'] = DEAD;//move to dead
             	node['infective'] = 0;
@@ -1087,7 +1122,7 @@ function get_infected_community(nodes, community){
 		if (nodes[community['individuals'][i]]['infection_status']==DEAD) {dead_stat+=1}
 
 
-		if (nodes[community['individuals'][i]]['infection_status']==INFECTIVE ||
+		if (nodes[community['individuals'][i]]['infection_status']==PRE_SYMPTOMATIC ||
     		nodes[community['individuals'][i]]['infection_status']==SYMPTOMATIC || 
     		nodes[community['individuals'][i]]['infection_status']==HOSPITALISED ||
     		nodes[community['individuals'][i]]['infection_status']==CRITICAL) {infected_stat+=1}
@@ -1197,6 +1232,11 @@ function run_simulation() {
 	var communities = init_community();
 	var nodes = init_nodes();
 	var community_distance_matrix = compute_community_distances(communities);
+	var seed_array = [];
+	if(SEEDING_MODE == SEEDING_INFECTION_RATES){
+		seed_array = load_infection_seed_json(SEED_SCALING_FACTOR);
+	}
+	
 
 	//console.log(community_distance_matrix)
 	console.log(NUM_PEOPLE,NUM_HOMES, NUM_WORKPLACES,NUM_SCHOOLS,NUM_COMMUNITIES)
@@ -1225,7 +1265,9 @@ function run_simulation() {
 
 	for(var time_step = 0; time_step < NUM_TIMESTEPS; time_step++) {
 		console.log(time_step/SIM_STEPS_PER_DAY);
-		
+		if(SEEDING_MODE == SEEDING_INFECTION_RATES && time_step < seed_array.length){
+			infection_seeding(nodes,seed_array[time_step],time_step);
+		}
 		for (var j=0; j<NUM_PEOPLE; j++){
 			update_infection(nodes[j],time_step);
 			//update_kappa(nodes[j], time_step);
@@ -1264,11 +1306,11 @@ function run_simulation() {
 		//lambda_current_stats_avg = math.mean(math.mean(lambda_current_stats, 0));
 		//lambda_evolution.push([i/SIM_STEPS_PER_DAY,lambda_current_stats_avg[2],lambda_current_stats_avg[3],lambda_current_stats_avg[4],lambda_current_stats_avg[5]]);
 		
-		var n_infected_wardwise = nodes.reduce(function(partial_sum, node) {return partial_sum + ((node['infection_status']==INFECTIVE||node['infection_status']==SYMPTOMATIC||node['infection_status']==HOSPITALISED||node['infection_status']==CRITICAL) ? 1 : 0);}, 0);
+		var n_infected_wardwise = nodes.reduce(function(partial_sum, node) {return partial_sum + ((node['infection_status']==PRE_SYMPTOMATIC||node['infection_status']==SYMPTOMATIC||node['infection_status']==HOSPITALISED||node['infection_status']==CRITICAL) ? 1 : 0);}, 0);
 		days_num_infected.push([time_step/SIM_STEPS_PER_DAY, n_infected]);
 		csvContent_ninfected = [time_step/SIM_STEPS_PER_DAY, n_infected].join(',')+"\r\n"
 		
-		var n_infected = nodes.reduce(function(partial_sum, node) {return partial_sum + ((node['infection_status']==INFECTIVE||node['infection_status']==SYMPTOMATIC||node['infection_status']==HOSPITALISED||node['infection_status']==CRITICAL) ? 1 : 0);}, 0);
+		var n_infected = nodes.reduce(function(partial_sum, node) {return partial_sum + ((node['infection_status']==PRE_SYMPTOMATIC||node['infection_status']==SYMPTOMATIC||node['infection_status']==HOSPITALISED||node['infection_status']==CRITICAL) ? 1 : 0);}, 0);
 		days_num_infected.push([time_step/SIM_STEPS_PER_DAY, n_infected]);
         
         var n_exposed = nodes.reduce(function(partial_sum, node) {return partial_sum + ((node['infection_status']==EXPOSED) ? 1 : 0);}, 0);
