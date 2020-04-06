@@ -1,7 +1,6 @@
 {
   "city": "wuhan",
-  "maxWorkplaceDistance": 96,
-  "unemployedfraction" : 0.049,
+  "maxWorkplaceDistance" : 96,
   "age": {
     "bins": [
       "0-4",
