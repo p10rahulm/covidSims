@@ -24,7 +24,7 @@ from scipy.optimize import least_squares
 def calculate_r0(threshold,number_of_days,resolution):
     # Process India data
     country='India'
-    infected = pd.read_csv('ecdp.csv')
+    infected = pd.read_csv('./data/ecdp.csv')
     infected.fillna('Nodata')
     infected = i = infected.iloc[::-1]
     
@@ -45,8 +45,8 @@ def calculate_r0(threshold,number_of_days,resolution):
     i_data = i_data[valid_indices]
     
     # Read output of simulation
-    infected_nointervenion = pd.read_csv('infected_mean.csv')
-    recovered_nointervention = pd.read_csv('recovered_mean.csv')
+    infected_nointervenion = pd.read_csv('./data/infected_mean.csv')
+    recovered_nointervention = pd.read_csv('./data/recovered_mean.csv')
     
     # Extract NumInfected+NumRecovered
     dates = infected_nointervenion['timestep'].values
@@ -94,7 +94,7 @@ def calculate_r0(threshold,number_of_days,resolution):
     plt.grid(axis='both')
     plt.legend()
     plt.title('No intervention')
-    plt.savefig('nointervention_logscale')
+    plt.savefig('./data/nointervention_logscale')
     plt.close()
 
     plot_xlabels = [0,10,20,26] #np.arange(0,int(len(iplusr_data_nointervention)/5),5)
@@ -108,7 +108,7 @@ def calculate_r0(threshold,number_of_days,resolution):
     plt.grid(axis='both')
     plt.legend()
     plt.title('No intervention')
-    plt.savefig('nointervention')
+    plt.savefig('./data/nointervention')
     plt.close()
     
     return res_nointervention.x[0]/mu
