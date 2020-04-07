@@ -18,8 +18,8 @@ recovered_mean.csv, and the India data file ecdp.csv in the present directory.
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
 from scipy.optimize import least_squares
-
 
 def calculate_r0(threshold,number_of_days,resolution):
     # Process India data
@@ -82,10 +82,16 @@ def calculate_r0(threshold,number_of_days,resolution):
     predicted_itplusrt = []
     for i in range(0,len(iplusr_data_nointervention)):
         predicted_itplusrt.append(res_nointervention.x[1]*((res_nointervention.x[0]*np.exp((res_nointervention.x[0]-mu)*i)-mu))/(res_nointervention.x[0]-mu))  
+    
+    shift_right = 0    
 
+    sns.set()
+    plt.figure(figsize=(13,5))
+    y_values_1 = np.log10(np.take(predicted_itplusrt,np.arange(0,len(predicted_itplusrt),4)))
+    y_values_2 = np.log10(np.take(iplusr_data_nointervention,np.arange(0,len(iplusr_data_nointervention),4)))
     plot_xlabels = [0,10,20,26] #np.arange(0,int(len(iplusr_data_nointervention)/5),5)
-    plt.plot(np.log10(np.take(predicted_itplusrt,np.arange(0,len(predicted_itplusrt),4))),'r', label='fit' )
-    plt.plot(np.log10(np.take(iplusr_data_nointervention,np.arange(0,len(iplusr_data_nointervention),4))),'bo-', label='simulation')
+    plt.plot(np.arange(shift_right, len(y_values_1)+shift_right), y_values_1, 'r', label='fit' )
+    plt.plot(np.arange(shift_right, len(y_values_2)+shift_right), y_values_2, 'bo-', label='simulation')
     plt.plot(np.log10(i_data),'go-', label='India Data')
     plt.xticks(plot_xlabels,["Mar 5", "Mar 15", "Mar 25", "Mar 31"])
     plt.xlabel('Date')
@@ -94,12 +100,16 @@ def calculate_r0(threshold,number_of_days,resolution):
     plt.grid(axis='both')
     plt.legend()
     plt.title('No intervention')
-    plt.savefig('./data/nointervention_logscale')
+    plt.savefig('./data/nointervention_logscale_shift_by_'+str(shift_right)+'_days')
     plt.close()
 
-    plot_xlabels = [0,10,20,26] #np.arange(0,int(len(iplusr_data_nointervention)/5),5)
-    plt.plot((np.take(predicted_itplusrt,np.arange(0,len(predicted_itplusrt),4))),'r', label='fit' )
-    plt.plot((np.take(iplusr_data_nointervention,np.arange(0,len(iplusr_data_nointervention),4))),'bo-', label='simulation')
+    sns.set()
+    plt.figure(figsize=(13,5))
+    y_values_1 = np.take(predicted_itplusrt,np.arange(0,len(predicted_itplusrt),4))     
+    y_values_2 = np.take(iplusr_data_nointervention,np.arange(0,len(iplusr_data_nointervention),4))
+    plot_xlabels = [0,10,20,26] #np.arange(0,int(len(iplusr_data_nointervention)/5),5  
+    plt.plot(np.arange(shift_right, len(y_values_1)+shift_right), y_values_1, 'r', label='fit' )
+    plt.plot(np.arange(shift_right, len(y_values_2)+shift_right), y_values_2, 'bo-', label='simulation')
     plt.plot((i_data),'go-', label='India Data')
     plt.xticks(plot_xlabels,["Mar 5", "Mar 15", "Mar 25", "Mar 31"])
     plt.xlabel('Date')
@@ -108,7 +118,10 @@ def calculate_r0(threshold,number_of_days,resolution):
     plt.grid(axis='both')
     plt.legend()
     plt.title('No intervention')
-    plt.savefig('./data/nointervention')
+    plt.savefig('./data/nointervention_shift_by_'+str(shift_right)+'_days')
     plt.close()
     
-    return res_nointervention.x[0]/mu
+    return (res_nointervention.x[0]/mu)
+
+sim_r0 = calculate_r0(10, 27, 4)
+print ('Simulated R0: ', sim_r0)
