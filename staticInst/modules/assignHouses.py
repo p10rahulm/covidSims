@@ -623,7 +623,8 @@ def hh_15_person(households, individuals, N):
                     already_assigned.append(int(possible_list4.iloc[choose_index[j]]['id']))
                     individuals.at[int(possible_list4.iloc[choose_index[j]]['id']),'household']=int(i)
                     households.at[i,'individuals'].append(int(possible_list4.iloc[choose_index[j]]['id']))
-                    households.at[i,'flag']=1                                                      
+                    households.at[i,'flag']=1     
+
     return households, individuals
 
 
@@ -664,5 +665,4 @@ def assign_unassigned_individuals(households, individuals):
                 households.at[house_indices[j], 'individuals'].append(unassigned_individuals_ids[j])
 
     unassigned_households_ids = households.loc[households['flag']==0]['id'].values
-    #individuals['household']=individuals['household'].astype(int)
     return individuals, households

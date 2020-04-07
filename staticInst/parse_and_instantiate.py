@@ -25,14 +25,15 @@ from modules.assignWorkplaces import *
 
 # get the city and target population as inputs
 def instantiate(city, targetPopulation, averageStudents, averageWorkforce):
+	#create directory to store parsed data
+	path = "data/%s_population%s_students%s"%(city, targetPopulation, averageStudents)
+	if not os.path.exists(path):
+		os.mkdir(path)   
+
 	targetPopulation = int(targetPopulation)
-	averageStudents = float(averageStudents)
+	averageStudents = int(averageStudents)
 	averageWorkforce = float(averageWorkforce)
 
-	#create directory to store parsed data
-	if not os.path.exists("data/"+city):
-		os.mkdir("data/"+city)   
-	
 	print("processing data ready ...")
 	start = time.time()
 	cityGeojson = "data/base/"+city+"/city.geojson"
@@ -40,7 +41,7 @@ def instantiate(city, targetPopulation, averageStudents, averageWorkforce):
 
 	if "cityProfile.json" in os.listdir("data/base/"+city):
 		cityProfile = "data/base/"+city+"/cityProfile.json"
-		ageDistribution, householdDistribution, schoolDistribution, householdSizes, unemployed_fraction, maxWorkplaceDistance = process_city_profile(cityProfile)
+		ageDistribution, householdDistribution, schoolDistribution, householdSizes, maxWorkplaceDistance = process_city_profile(cityProfile)
 
 	demographicsData = pd.read_csv("data/base/"+city+"/demographics.csv")
 	housesData = pd.read_csv("data/base/"+city+"/households.csv")
@@ -53,25 +54,8 @@ def instantiate(city, targetPopulation, averageStudents, averageWorkforce):
 	demographicsData = process_data(demographicsData, housesData, employmentData, targetPopulation, ageDistribution) 
 
 	totalPopulation = demographicsData['totalPopulation'].values.sum()
-	# if unemployed_fraction == 0:
-	# 	people_over_60 = float(demographicsData[['age 60-64']].sum()) + float(demographicsData[['age 65-69']].sum()) + float(demographicsData[['age 70-74']].sum()) + float(demographicsData[['age 75-79']].sum()) + float(demographicsData[['age 80+']].sum())
 
-	# 	population_over_60 = totalPopulation * (people_over_60/ totalPopulation)
-	# 	total_employable = (float(demographicsData[['age 15-19']].sum())+\
-	# 													float(demographicsData[['age 20-24']].sum()))+\
-	# 													float(demographicsData[['age 25-29']].sum())+\
-	# 													float(demographicsData[['age 30-34']].sum())+\
-	# 													float(demographicsData[['age 35-39']].sum())+\
-	# 													float(demographicsData[['age 40-44']].sum())+\
-	# 													float(demographicsData[['age 45-49']].sum())+\
-	# 													float(demographicsData[['age 50-54']].sum())+\
-	# 													float(demographicsData[['age 55-59']].sum())
-
-	# 	employable_population = totalPopulation * ((total_employable/totalPopulation)) + ((float(demographicsData[['age 15-19']].sum())/totalPopulation) * 0.5)
-
-	# 	total_unemployed = demographicsData['unemployed'].values.sum()
-	# 	unemployed_but_employable = total_unemployed - population_over_60
-		unemployed_fraction = demographicsData['unemployed'].values.sum()  / (demographicsData['employed'].values.sum() + demographicsData['unemployed'].values.sum())
+	unemployed_fraction = demographicsData['unemployed'].values.sum()  / (demographicsData['employed'].values.sum() + demographicsData['unemployed'].values.sum())
 
 	totalNumberOfWards = len(demographicsData['wardNo'].values)
 	averageHouseholds = totalPopulation / demographicsData['totalHouseholds'].values.sum()
@@ -91,24 +75,27 @@ def instantiate(city, targetPopulation, averageStudents, averageWorkforce):
 	households, individuals = houseLocation(cityGeoDF, individuals, households)
 	print("instantiating individual location by house location completed in ", time.time() - start)
 
+
 	#split the individuals by workplace type
 	individuals = {name: individuals.loc[individuals['workplaceType'] == name, :] for name in individuals['workplaceType'].unique()}
-
+	
 	print("instantiating individuals to workplaces...")
 	start = time.time()
 	workplaces, individuals[1] = assign_workplaces(cityGeoDF, individuals[1], maxWorkplaceDistance)
 	print("instantiating individuals to workplaces completed in ", time.time() - start)
-
+	
+	
 	print("instantiating individuals to schools...")
 	start = time.time()
 	individuals[2], schools = assign_schools(individuals[2], cityGeoDF,  schoolDistribution)
 	print("instantiating individuals to schools completed in ", time.time() - start)
-
+	
+	
 	#join the individuals
 	individuals = pd.concat(individuals.values(), ignore_index=True)
-
 	print("additonal data processing...")
 	start = time.time()
+	
 	#associate individuals to common areas (by distance) and categorize workplace Type
 	def getDistances(row, cc):
 		findCommunityCentre = cc[int(row["wardIndex"])]
@@ -120,7 +107,6 @@ def instantiate(city, targetPopulation, averageStudents, averageWorkforce):
 
 		return distance(lat1, lon1, lat2, lon2)
 
-	individuals['CommunityCentreDistance'] = individuals.apply(getDistances, axis=1, args=(commonArea['location'].values.tolist(),))
 
 	#Combining the IDs for schools and workplaces
 	schoolID = schools['ID'].values[-1]
@@ -131,17 +117,26 @@ def instantiate(city, targetPopulation, averageStudents, averageWorkforce):
 	demographicsData['fracPopulation'] = demographicsData.apply(lambda row: row['totalPopulation']/demographicsData['totalPopulation'].values.sum(), axis=1)
 
 	print("additonal data processing completed in ", time.time() - start)
+	flag = (len(np.where(pd.isnull(individuals.loc[individuals['workplaceType']<0.5,'school'])==False)[0])==0 and \
+	len(np.where(pd.isnull(individuals.loc[individuals['workplaceType']<0.5,'workplace'])==False)[0])==0 and \
+	len(np.where(pd.isnull(individuals.loc[individuals['workplaceType']>1.5,'workplace'])==False)[0])==0 and \
+	len(np.where(pd.isnull(individuals.loc[individuals['workplaceType']<1.5,'school'])==False)[0])==0 and \
+	len(np.where(pd.isnull(individuals.loc[individuals['workplaceType']>1.5,'school'])==True)[0])==0 and \
+	len(np.where(pd.isnull(individuals.loc[individuals['workplaceType']==1,'workplace'])==True)[0])==0)
 
-	print("saving instantiations as JSON....")
-	start = time.time()
-	individuals.to_json("data/"+city+"/individuals.json", orient='records')
-	households[['id', 'wardNo' ,'lat', 'lon']].to_json("data/"+city+"/houses.json", orient='records')
-	schools[['ID', 'ward' ,'lat', 'lon']].to_json("data/"+city+"/schools.json", orient='records')
-	workplaces[['ID', 'ward' ,'lat', 'lon']].to_json("data/"+city+"/workplaces.json", orient='records')
-	commonArea[['ID', 'wardNo' ,'lat', 'lon']].to_json("data/"+city+"/commonArea.json", orient='records')
-	computeWardCentreDistance(cityGeoDF, "data/"+city+"/wardCentreDistance.json")
-	demographicsData[['wardNo', 'totalPopulation', 'fracPopulation']].to_json("data/"+city+"/fractionPopulation.json", orient="records")
-	print("saving instantiations as JSON completed in ", time.time() - start)
 
+	if(flag):
+		print("saving instantiations as JSON....")
+		start = time.time()
+		individuals.to_json(path+"/individuals.json", orient='records')
+		households[['id', 'wardNo' ,'lat', 'lon']].to_json(path+"/houses.json", orient='records')
+		schools[['ID', 'ward' ,'lat', 'lon']].to_json(path+"/schools.json", orient='records')
+		workplaces[['ID', 'ward' ,'lat', 'lon']].to_json(path+"/workplaces.json", orient='records')
+		commonArea[['ID', 'wardNo' ,'lat', 'lon']].to_json(path+"/commonArea.json", orient='records')
+		computeWardCentreDistance(cityGeoDF, path+"/wardCentreDistance.json")
+		demographicsData[['wardNo', 'totalPopulation', 'fracPopulation']].to_json(path+"/fractionPopulation.json", orient="records")
+		print("saving instantiations as JSON completed in ", time.time() - start)
+	else:
+		print("instantiation failed, please re-run")
 	
 instantiate(city=sys.argv[1], targetPopulation=sys.argv[2], averageStudents=sys.argv[3], averageWorkforce=sys.argv[4])
