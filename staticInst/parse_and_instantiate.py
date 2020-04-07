@@ -75,6 +75,13 @@ def instantiate(city, targetPopulation, averageStudents, averageWorkforce):
 	households, individuals = houseLocation(cityGeoDF, individuals, households)
 	print("instantiating individual location by house location completed in ", time.time() - start)
 
+	individuals = individuals.sort_values("id")
+	individuals = individuals.drop_duplicates()
+	households = households.sort_values("id")
+
+	individuals.to_json(path+"/individuals.json", orient='records')
+	households[['id', 'wardNo' ,'lat', 'lon']].to_json(path+"/houses.json", orient='records')
+	exit()
 
 	#split the individuals by workplace type
 	individuals = {name: individuals.loc[individuals['workplaceType'] == name, :] for name in individuals['workplaceType'].unique()}
@@ -112,8 +119,14 @@ def instantiate(city, targetPopulation, averageStudents, averageWorkforce):
 	schoolID = schools['ID'].values[-1]
 	workplaceID = [schoolID+1 + index for index in workplaces['ID'].values]
 	workplaces['ID'] = workplaceID
-	workplaces = workplaces.sort_values(by=['ID'])
+	
 
+	individuals = individuals.sort_values("id")
+	households = households.sort_values("id")
+	workplaces = workplaces.sort_values("ID")
+	schools = schools.sort_values("ID")
+	commonArea = commonArea.sort_values("ID")
+	
 	demographicsData['fracPopulation'] = demographicsData.apply(lambda row: row['totalPopulation']/demographicsData['totalPopulation'].values.sum(), axis=1)
 
 	print("additonal data processing completed in ", time.time() - start)
@@ -124,8 +137,8 @@ def instantiate(city, targetPopulation, averageStudents, averageWorkforce):
 	len(np.where(pd.isnull(individuals.loc[individuals['workplaceType']>1.5,'school'])==True)[0])==0 and \
 	len(np.where(pd.isnull(individuals.loc[individuals['workplaceType']==1,'workplace'])==True)[0])==0)
 
-
-	if(flag):
+	print((len(individuals) == int(targetPopulation)))
+	if(flag) and (len(individuals) == int(targetPopulation)):
 		print("saving instantiations as JSON....")
 		start = time.time()
 		individuals.to_json(path+"/individuals.json", orient='records')

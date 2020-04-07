@@ -99,42 +99,73 @@ def assign_individuals_to_houses(targetPopulation, wards, ageDistribution, house
 
     #split households by the number of people staying
     households = {name: households.loc[households['people staying'] == name, :] for name in households['people staying'].unique()}
+    individualsDict = {}
 
     ## TODO: parallelize household assignment based on the number of people of staying
     for houseSize in households:
         if houseSize == 1:
-            households[1], individuals = hh_1_person(households[1], individuals, targetPopulation)
+            households[1], individualsDF = hh_1_person(households[1], individuals, targetPopulation)
+            individualsDict.update({1: individualsDF})
         if houseSize == 2:
-            households[2], individuals = hh_2_person(households[2], individuals, targetPopulation)
+            households[2], individualsDF = hh_2_person(households[2], individuals, targetPopulation)
+            individualsDict.update({2: individualsDF})
+
         if houseSize == 3:
-            households[3], individuals = hh_3_person(households[3], individuals, targetPopulation)
+            households[3], individualsDF = hh_3_person(households[3], individuals, targetPopulation)
+            individualsDict.update({3: individualsDF})
+
         if houseSize == 4:
-            households[4], individuals = hh_4_person(households[4], individuals, targetPopulation)
+            households[4], individualsDF = hh_4_person(households[4], individuals, targetPopulation)
+            individualsDict.update({4: individualsDF})
+
         if houseSize == 5:
-            households[5], individuals = hh_5_person(households[5], individuals, targetPopulation)
+            households[5], individualsDF = hh_5_person(households[5], individuals, targetPopulation)
+            individualsDict.update({5: individualsDF})
+
         if houseSize == 6:
-            households[6], individuals = hh_6_person(households[6], individuals, targetPopulation)
+            households[6], individualsDF = hh_6_person(households[6], individuals, targetPopulation)
+            individualsDict.update({6: individualsDF})
+
         if houseSize == 7:
-            households[7], individuals = hh_7_person(households[7], individuals, targetPopulation)
+            households[7], individualsDF = hh_7_person(households[7], individuals, targetPopulation)
+            individualsDict.update({7: individualsDF})
+
         if houseSize == 8:
-            households[8], individuals = hh_8_person(households[8], individuals, targetPopulation)
+            households[8], individualsDF = hh_8_person(households[8], individuals, targetPopulation)
+            individualsDict.update({8: individualsDF})
+
         if houseSize == 9:
-            households[9], individuals = hh_9_person(households[9], individuals, targetPopulation)
+            households[9], individualsDF = hh_9_person(households[9], individuals, targetPopulation)
+            individualsDict.update({9: individualsDF})
+
         if houseSize == 10:
-            households[10], individuals = hh_10_person(households[10], individuals, targetPopulation)
+            households[10], individualsDF = hh_10_person(households[10], individuals, targetPopulation)
+            individualsDict.update({10: individualsDF})
+
         if houseSize == 11:
-            households[11], individuals = hh_11_person(households[11], individuals, targetPopulation)
+            households[11], individualsDF = hh_11_person(households[11], individuals, targetPopulation)
+            individualsDict.update({11: individualsDF})
+
         if houseSize == 12:
-            households[12], individuals = hh_12_person(households[12], individuals, targetPopulation)
+            households[12], individualsDF = hh_12_person(households[12], individuals, targetPopulation)
+            individualsDict.update({12: individualsDF})
+
         if houseSize == 13:
-            households[13], individuals = hh_13_person(households[13], individuals, targetPopulation)
+            households[13], individualsDF = hh_13_person(households[13], individuals, targetPopulation)
+            individualsDict.update({13: individualsDF})
+
         if houseSize == 14:
-            households[14], individuals = hh_14_person(households[14], individuals, targetPopulation)
+            households[14], individualsDF = hh_14_person(households[14], individuals, targetPopulation)
+            individualsDict.update({14: individualsDF})
+
         if houseSize == 15:
-            households[15], individuals = hh_15_person(households[15], individuals, targetPopulation)
+            households[15], individualsDF = hh_15_person(households[15], individuals, targetPopulation)
+            individualsDict.update({15: individualsDF})
+
 
     #Join the  dict of dataframes
     households = pd.concat(households.values(), ignore_index=True)
+    individuals = pd.concat(individualsDict.values(), ignore_index=False)
 
     #assign previously unassigned individuals  
     individuals, households = assign_unassigned_individuals(households, individuals)
