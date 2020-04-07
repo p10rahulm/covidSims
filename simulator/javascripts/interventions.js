@@ -6,10 +6,12 @@ function get_kappa_no_intervention(nodes, homes, workplaces, communities,cur_tim
 		nodes[count]['kappa_H'] = 1;
 		nodes[count]['kappa_W'] = 1;
 		nodes[count]['kappa_C'] = 1;
+		nodes[count]['kappa_PT'] = 1;
 		nodes[count]['quarantined'] = false;
 		nodes[count]['kappa_H_incoming'] = 1;
 		nodes[count]['kappa_W_incoming'] = 1;
 		nodes[count]['kappa_C_incoming'] = 1;
+		nodes[count]['kappa_PT_incoming'] = 1;
 	}
 
 }
@@ -21,10 +23,13 @@ function get_kappa_case_isolation(nodes, homes, workplaces, communities,cur_time
 		nodes[count]['kappa_H'] = 1;
 		nodes[count]['kappa_W'] = 1;
 		nodes[count]['kappa_C'] = 1;
+		nodes[count]['kappa_PT'] = 1;
 		nodes[count]['quarantined'] = false;
 		nodes[count]['kappa_H_incoming'] = 1;
 		nodes[count]['kappa_W_incoming'] = 1; 
 		nodes[count]['kappa_C_incoming'] = 1;
+		nodes[count]['kappa_PT_incoming'] = 1;
+
 
 		if((nodes[count]['compliant']) && 
 		 (time_since_symptoms > NUM_DAYS_TO_RECOG_SYMPTOMS*SIM_STEPS_PER_DAY) && 
@@ -32,8 +37,10 @@ function get_kappa_case_isolation(nodes, homes, workplaces, communities,cur_time
 			nodes[count]['quarantined'] = true;
 			nodes[count]['kappa_W'] = 0.25;
 			nodes[count]['kappa_C'] = 0.25;
+			nodes[count]['kappa_PT'] = 0.25;
 			nodes[count]['kappa_W_incoming'] = 0.25; 
 			nodes[count]['kappa_C_incoming'] = 0.25;
+			nodes[count]['kappa_PT_incoming'] = 0.25;
 		}
 	}
 }
@@ -58,19 +65,23 @@ function get_kappa_home_quarantine(nodes, homes, workplaces, communities,cur_tim
 		nodes[count]['kappa_H'] = 1;
 		nodes[count]['kappa_W'] = 1;
 		nodes[count]['kappa_C'] = 1;
+		nodes[count]['kappa_PT'] = 1;
 		nodes[count]['quarantined'] = false;
 		nodes[count]['kappa_H_incoming'] = 1;
 		nodes[count]['kappa_W_incoming'] = 1;
 		nodes[count]['kappa_C_incoming'] = 1;
+		nodes[count]['kappa_PT_incoming'] = 1;
 
 		if(homes[nodes[count]['home']]['quarantined']){
 			nodes[count]['quarantined'] = true;
 			nodes[count]['kappa_H'] = 2;
 			nodes[count]['kappa_W'] = 0.25;
 			nodes[count]['kappa_C'] = 0.25;
+			nodes[count]['kappa_PT'] = 0.25;
 			nodes[count]['kappa_H_incoming'] = 1;
 			nodes[count]['kappa_W_incoming'] = 0.25;
 			nodes[count]['kappa_C_incoming'] = 0.25;
+			nodes[count]['kappa_PT_incoming'] = 0.25;
 		} 		
 	}
 }
@@ -87,9 +98,11 @@ function get_kappa_lockdown(nodes, homes, workplaces, communities,cur_time){
 			nodes[count]['kappa_C_incoming'] = 0.25;
 			if(nodes[count]['workplace_type']==WTYPE_OFFICE){
 				nodes[count]['kappa_W'] = 0.25;
+				nodes[count]['kappa_PT'] = 0.25;
 			}
 			else{
 				nodes[count]['kappa_W'] = 0;
+				nodes[count]['kappa_PT'] = 0;
 			}		
 		}
 		else{ //non-compliant
@@ -101,10 +114,14 @@ function get_kappa_lockdown(nodes, homes, workplaces, communities,cur_time){
 			if(nodes[count]['workplace_type']==WTYPE_OFFICE){
 				nodes[count]['kappa_W'] = 0.25;
 				nodes[count]['kappa_W_incoming'] = 0.25;
+				nodes[count]['kappa_PT'] = 0.25;
+				nodes[count]['kappa_PT_incoming'] = 0.25;
 			}
 			else{
 				nodes[count]['kappa_W'] = 0;
 				nodes[count]['kappa_W_incoming'] = 0;
+				nodes[count]['kappa_PT'] = 0;
+				nodes[count]['kappa_PT_incoming'] = 0;
 			}
 		}		
 	}
@@ -130,19 +147,23 @@ function get_kappa_CI_HQ(nodes, homes, workplaces, communities,cur_time){
 		nodes[count]['kappa_H'] = 1;
 		nodes[count]['kappa_W'] = 1;
 		nodes[count]['kappa_C'] = 1;
+		nodes[count]['kappa_PT'] = 1;
 		nodes[count]['quarantined'] = false;
 		nodes[count]['kappa_H_incoming'] = 1;
 		nodes[count]['kappa_W_incoming'] = 1;
 		nodes[count]['kappa_C_incoming'] = 1;
+		nodes[count]['kappa_PT_incoming'] = 1;
 
 		if(homes[nodes[count]['home']]['quarantined']){
 			nodes[count]['quarantined'] = true;
 			nodes[count]['kappa_H'] = 1; //case isolation reduces 
 			nodes[count]['kappa_W'] = 0.25;
 			nodes[count]['kappa_C'] = 0.25;
+			nodes[count]['kappa_PT'] = 0.25;
 			nodes[count]['kappa_H_incoming'] = 1;
 			nodes[count]['kappa_W_incoming'] = 0.25;
 			nodes[count]['kappa_C_incoming'] = 0.25;
+			nodes[count]['kappa_PT_incoming'] = 0.25;
 		} 		
 	}
 }
@@ -167,23 +188,28 @@ function get_kappa_CI_HQ_70P(nodes, homes, workplaces, communities,cur_time){
 		nodes[count]['kappa_H'] = 1;
 		nodes[count]['kappa_W'] = 1;
 		nodes[count]['kappa_C'] = 1;
+		nodes[count]['kappa_PT'] = 1;
 		nodes[count]['quarantined'] = false;
 		nodes[count]['kappa_H_incoming'] = 1;
 		nodes[count]['kappa_W_incoming'] = 1;
 		nodes[count]['kappa_C_incoming'] = 1;
+		nodes[count]['kappa_PT_incoming'] = 1;
 
 		if(homes[nodes[count]['home']]['quarantined']){
 			nodes[count]['quarantined'] = true;
 			nodes[count]['kappa_H'] = 1;
 			nodes[count]['kappa_W'] = 0.25;
 			nodes[count]['kappa_C'] = 0.25;
+			nodes[count]['kappa_PT'] = 0.25;
 			nodes[count]['kappa_H_incoming'] = 1;
 			nodes[count]['kappa_W_incoming'] = 0.25;
 			nodes[count]['kappa_C_incoming'] = 0.25;
+			nodes[count]['kappa_PT_incoming'] = 0.25;
 		}
 		if(nodes[count]['age']>= 70 && nodes[count]['compliant']){
 			nodes[count]['kappa_W_incoming'] = 0.25;
 			nodes[count]['kappa_C_incoming'] = 0.25;
+			nodes[count]['kappa_PT_incoming'] = 0.25;
 
 		} 		
 	}
