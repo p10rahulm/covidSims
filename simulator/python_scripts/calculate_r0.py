@@ -4,173 +4,124 @@
 Created on Thu Mar 26 08:08:41 2020
 
 Description: Calculates R0 value from the infected time series as well as 
-plots the model against the simulation. Returns R0 for
-all intervention strategies as well as no intervention and writes them into 
-the csv file r0_values.csv.
-Input: t0 - time series will be considered from 0 to t0 for R0 computation.
+plots the model against the simulation. Returns R0 for no intervention strategy.
+
+Inputs:
+threshold: Start when the actual data is more than this threshold.
+number of days - number of days for calibration starting from threshold.
 resolution: number of steps in a day. resolution=1 means that 1 data point per day.
-The script assumes the files my_data_all_together_no_intervention.csv,
-my_data_all_together_HQ
-my_data_all_together_case_isolation
-my_data_all_together_lockdown
-in the present directory.
+The script assumes the simulator output files infected_mean.csv and
+recovered_mean.csv, and the India data file ecdp.csv in the present directory.
 
 """
 
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
 from scipy.optimize import least_squares
 
+def calculate_r0(threshold,number_of_days,resolution):
+    # Process India data
+    country='India'
+    infected = pd.read_csv('./data/ecdp.csv')
+    infected.fillna('Nodata')
+    infected = i = infected.iloc[::-1]
+    
+    # read infected and recoverd population
+    i = infected.loc[infected['countriesAndTerritories']==country]
+    
+    dates1 =  np.array(infected.loc[infected['countriesAndTerritories']==country]['dateRep'].values)
+    i_data = []
+    
+    i_data.append(i['cases'].values[0])
+    for j in range(1,len(dates1)):
+        i_data.append(i_data[j-1] + i['cases'].values[j])
+    
+    i_data = np.array(i_data)
+    # can thoreshold i(t):
+    
+    valid_indices = i_data>=threshold
+    i_data = i_data[valid_indices]
+    
+    # Read output of simulation
+    infected_nointervenion = pd.read_csv('./data/infected_mean.csv')
+    recovered_nointervention = pd.read_csv('./data/recovered_mean.csv')
+    
+    # Extract NumInfected+NumRecovered
+    dates = infected_nointervenion['timestep'].values
+    i_data_nointervention =  infected_nointervenion['infected'].values
+    r_data_nointervention = recovered_nointervention['recovered'].values
+    iplusr_nointervention = i_data_nointervention + r_data_nointervention
+    #iplusr_nointervention = np.repeat(i_data,4) # regress on the India data
+    
+    # Start the simulation from the point where it crosses i_data[0]
+    start_index = np.min(np.where(iplusr_nointervention>=i_data[0]))
+    # take data from start_index to t0
+    t0 = start_index + number_of_days*resolution
 
-def calculate_r0(number_of_days,resolution):
-    
-    t0 = number_of_days*resolution
-    
-    # read data
-    infected_nointervenion = pd.read_csv('./my_data_all_together_no_intervention.csv',header=None)
-    infected_hq = pd.read_csv('./my_data_all_together_HQ.csv',header=None)
-    infected_ci = pd.read_csv('./my_data_all_together_case_isolation.csv',header=None)
-    infected_lockdown = pd.read_csv('./my_data_all_together_lockdown.csv',header=None)
-    
-    # extract NumInfected for each intervention strategy
-    dates = infected_nointervenion[0].values
-    i_data_nointervention =  infected_nointervenion[1].values
-    i_data_hq =  infected_hq[1].values
-    i_data_ci =  infected_ci[1].values
-    i_data_lockdown =  infected_lockdown[1].values
-    
-    # take data from 0 to t0
     dates = dates[0:t0]
-    i_data_nointervention =  i_data_nointervention[0:t0]
-    i_data_hq =  i_data_hq[0:t0]
-    i_data_ci =  i_data_ci[0:t0]
-    i_data_lockdown = i_data_lockdown[0:t0]
-    
+    iplusr_data_nointervention =  iplusr_nointervention[start_index:t0]
+     
     mu=0.1/resolution # recovery rate
-    i0=10 # initial condition
+
     # objective function for regression
     def objfn_itplusrt_nointervention(param):
         itplusrt = []
-        for i in range(0,len(i_data_nointervention)):
-            itplusrt.append(i0*((param[0]*np.exp((param[0]-mu)*i)-mu))/(param[0]-mu))  
+        for i in range(0,len(iplusr_data_nointervention)):
+            itplusrt.append(param[1]*((param[0]*np.exp((param[0]-mu)*i)-mu))/(param[0]-mu))  
         itplusrt = np.array(itplusrt)
-        return (np.log10(itplusrt) - np.log10(i_data_nointervention))
+        return (np.log10(itplusrt) - np.log10(iplusr_data_nointervention))
     
-    def objfn_itplusrt_hq(param):
-        itplusrt = []
-        for i in range(0,len(i_data_hq)):
-            itplusrt.append(i0*((param[0]*np.exp((param[0]-mu)*i)-mu))/(param[0]-mu))  
-        itplusrt = np.array(itplusrt)
-        return (np.log10(itplusrt) - np.log10(i_data_hq))
     
-    def objfn_itplusrt_ci(param):
-        itplusrt = []
-        for i in range(0,len(i_data_ci)):
-            itplusrt.append(i0*((param[0]*np.exp((param[0]-mu)*i)-mu))/(param[0]-mu))  
-        itplusrt = np.array(itplusrt)
-        return (np.log10(itplusrt) - np.log10(i_data_ci))
-    
-    def objfn_itplusrt_lockdown(param):
-        itplusrt = []
-        for i in range(0,len(i_data_lockdown)):
-            itplusrt.append(i0*((param[0]*np.exp((param[0]-mu)*i)-mu))/(param[0]-mu))  
-        itplusrt = np.array(itplusrt)
-        return (np.log10(itplusrt) - np.log10(i_data_lockdown))
-    
-    param0=[4*mu]
+    param0=[4*mu,10]
     
     #regression
-    res_nointervention = least_squares(objfn_itplusrt_nointervention, param0, bounds=([0],[np.inf])) 
-    res_hq = least_squares(objfn_itplusrt_hq, param0, bounds=([0],[np.inf])) 
-    res_ci = least_squares(objfn_itplusrt_ci, param0, bounds=([0],[np.inf])) 
-    res_lockdown = least_squares(objfn_itplusrt_lockdown, param0, bounds=([0],[np.inf])) 
+    res_nointervention = least_squares(objfn_itplusrt_nointervention, param0, bounds=([0,0],[np.inf,np.inf])) 
     
     predicted_itplusrt = []
-    for i in range(0,t0):
-        predicted_itplusrt.append(i0*((res_nointervention.x[0]*np.exp((res_nointervention.x[0]-mu)*i)-mu))/(res_nointervention.x[0]-mu))  
+    for i in range(0,len(iplusr_data_nointervention)):
+        predicted_itplusrt.append(res_nointervention.x[1]*((res_nointervention.x[0]*np.exp((res_nointervention.x[0]-mu)*i)-mu))/(res_nointervention.x[0]-mu))  
     
-    plot_xlabels = np.arange(0,len(dates),int(np.floor(len(dates)/4)))
-    plt.plot(np.log10(predicted_itplusrt),'r', label='fit' )
-    plt.plot(np.log10(i_data_nointervention),'bo-', label='simulation')
-    plt.xticks(plot_xlabels, dates[plot_xlabels])
+    shift_right = 0    
+
+    sns.set()
+    plt.figure(figsize=(13,5))
+    y_values_1 = np.log10(np.take(predicted_itplusrt,np.arange(0,len(predicted_itplusrt),4)))
+    y_values_2 = np.log10(np.take(iplusr_data_nointervention,np.arange(0,len(iplusr_data_nointervention),4)))
+    plot_xlabels = [0,10,20,26] #np.arange(0,int(len(iplusr_data_nointervention)/5),5)
+    plt.plot(np.arange(shift_right, len(y_values_1)+shift_right), y_values_1, 'r', label='fit' )
+    plt.plot(np.arange(shift_right, len(y_values_2)+shift_right), y_values_2, 'bo-', label='simulation')
+    plt.plot(np.log10(i_data),'go-', label='India Data')
+    plt.xticks(plot_xlabels,["Mar 5", "Mar 15", "Mar 25", "Mar 31"])
     plt.xlabel('Date')
-    plt.ylabel('log-i(t)')
+    plt.ylabel('log_10 NumInfected+NumRecovered')
 
     plt.grid(axis='both')
     plt.legend()
     plt.title('No intervention')
-    plt.savefig('nointervention')
+    plt.savefig('./data/nointervention_logscale_shift_by_'+str(shift_right)+'_days')
     plt.close()
-    
-    predicted_itplusrt = []
-    for i in range(0,t0):
-        predicted_itplusrt.append(i0*((res_hq.x[0]*np.exp((res_hq.x[0]-mu)*i)-mu))/(res_hq.x[0]-mu))  
-    
-    plot_xlabels = np.arange(0,len(dates),int(np.floor(len(dates)/4)))
-    plt.plot(np.log10(predicted_itplusrt),'r', label='fit' )
-    plt.plot(np.log10(i_data_hq),'bo-', label='simulation')
-    plt.xticks(plot_xlabels, dates[plot_xlabels])
+
+    sns.set()
+    plt.figure(figsize=(13,5))
+    y_values_1 = np.take(predicted_itplusrt,np.arange(0,len(predicted_itplusrt),4))     
+    y_values_2 = np.take(iplusr_data_nointervention,np.arange(0,len(iplusr_data_nointervention),4))
+    plot_xlabels = [0,10,20,26] #np.arange(0,int(len(iplusr_data_nointervention)/5),5  
+    plt.plot(np.arange(shift_right, len(y_values_1)+shift_right), y_values_1, 'r', label='fit' )
+    plt.plot(np.arange(shift_right, len(y_values_2)+shift_right), y_values_2, 'bo-', label='simulation')
+    plt.plot((i_data),'go-', label='India Data')
+    plt.xticks(plot_xlabels,["Mar 5", "Mar 15", "Mar 25", "Mar 31"])
     plt.xlabel('Date')
-    plt.ylabel('log-i(t)')
+    plt.ylabel('NumInfected+NumRecovered')
 
     plt.grid(axis='both')
     plt.legend()
-    plt.title('Home quarantine')
-    plt.savefig('hq')
+    plt.title('No intervention')
+    plt.savefig('./data/nointervention_shift_by_'+str(shift_right)+'_days')
     plt.close()
     
-    predicted_itplusrt = []
-    for i in range(0,t0):
-        predicted_itplusrt.append(i0*((res_ci.x[0]*np.exp((res_ci.x[0]-mu)*i)-mu))/(res_ci.x[0]-mu))  
-    
-    plot_xlabels = np.arange(0,len(dates),int(np.floor(len(dates)/4)))
-    plt.plot(np.log10(predicted_itplusrt),'r', label='fit' )
-    plt.plot(np.log10(i_data_ci),'bo-', label='simulation')
-    plt.xticks(plot_xlabels, dates[plot_xlabels])
-    plt.xlabel('Date')
-    plt.ylabel('log-i(t)')
+    return (res_nointervention.x[0]/mu)
 
-    plt.grid(axis='both')
-    plt.legend()
-    plt.title('Case isolation')
-    plt.savefig('ci')
-    plt.close()
-    
-    predicted_itplusrt = []
-    for i in range(0,t0):
-        predicted_itplusrt.append(i0*((res_lockdown.x[0]*np.exp((res_lockdown.x[0]-mu)*i)-mu))/(res_lockdown.x[0]-mu))  
-    
-    plot_xlabels = np.arange(0,len(dates),int(np.floor(len(dates)/4)))
-    plt.plot(np.log10(predicted_itplusrt),'r', label='fit' )
-    plt.plot(np.log10(i_data_lockdown),'bo-', label='simulation')
-    plt.xticks(plot_xlabels, dates[plot_xlabels])
-    plt.xlabel('Date')
-    plt.ylabel('log-i(t)')
-
-    plt.grid(axis='both')
-    plt.legend()
-    plt.title('Lock down')
-    plt.savefig('lockdown')
-    plt.close()
-    
-    # all data plots on one graph
-    plot_xlabels = np.arange(0,len(dates),int(np.floor(len(dates)/4)))
-    plt.plot(np.log10(i_data_nointervention),'bo-', label='NoIntervention')
-    plt.plot(np.log10(i_data_hq),'ro-', label='HomeQuarantine')
-    plt.plot(np.log10(i_data_ci),'go-', label='CaseIsolation')
-    plt.plot(np.log10(i_data_lockdown),'yo-', label='LockDown')
-    plt.xticks(plot_xlabels, dates[plot_xlabels])
-    plt.xlabel('Date')
-    plt.ylabel('log-i(t)')
-
-    plt.grid(axis='both')
-    plt.legend()
-    plt.title('Comparison')
-    plt.savefig('allplots')
-    plt.close()
-    
-    column_names = ['NoIntervention', 'HQ', 'CI', 'LockDown']
-    pd.DataFrame([[res_nointervention.x[0]/mu, res_hq.x[0]/mu, res_ci.x[0]/mu, res_lockdown.x[0]/mu]], columns = column_names).to_csv('./r0_values.csv', index = False)
-    
-    return [res_nointervention.x[0]/mu, res_hq.x[0]/mu, res_ci.x[0]/mu, res_lockdown.x[0]/mu]
+sim_r0 = calculate_r0(10, 27, 4)
+print ('Simulated R0: ', sim_r0)

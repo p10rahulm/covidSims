@@ -23,6 +23,7 @@ def polar_to_cartesian(row):
   y = R*math.cos(lat)*math.sin(lon)
   z = R*math.sin(lat)
   return x, y, z
+  
 #compute ward-centre distance matrix
 def computeWardCentreDistance(geoDF, filepath):
   R = 6371
