@@ -114,7 +114,7 @@ BETA_H = 0.47 *1.0 //Thailand data
 BETA_W = 0.47 *2.0//Thailand data
 BETA_S = 0.94 *2.0//Thailand data
 BETA_C = 0.097*3.5// Thailand data. Product  = 0.47
-BETA_PT = 0.01;
+BETA_PT = 0.1;
 
 ALPHA = 0.8 //exponent of number of people in a household while normalising infection rate in a household.
 
@@ -1437,7 +1437,7 @@ function run_simulation() {
 		let row = [time_step/SIM_STEPS_PER_DAY,n_affected,n_recovered,n_infected,n_exposed,n_hospitalised,n_critical,n_fatalities,LAMBDA_INFECTION_MEAN[0],LAMBDA_INFECTION_MEAN[1],LAMBDA_INFECTION_MEAN[2]].join(",");
 			csvContent_alltogether += row + "\r\n";
 		if(LAMBDA_INFECTION_STATS.length > 0){
-			lambda_evolution.push([time_step/SIM_STEPS_PER_DAY,[LAMBDA_INFECTION_MEAN[0],LAMBDA_INFECTION_MEAN[1],LAMBDA_INFECTION_MEAN[2]]])
+			lambda_evolution.push([time_step/SIM_STEPS_PER_DAY,[LAMBDA_INFECTION_MEAN[0],LAMBDA_INFECTION_MEAN[1],LAMBDA_INFECTION_MEAN[2],LAMBDA_INFECTION_MEAN[3]]])
 		}
 		
 		///update_sim_progress_status(time_step,NUM_TIMESTEPS);
@@ -1567,7 +1567,7 @@ function run_and_plot(intervention) {
 	plot_plotly([returned_values[3]],'num_critical_plot_2','Number Critical (daily)','Evolution of Critical Population');
 	plot_plotly([returned_values[4]],'num_fatalities_plot_2','Number Fatalities (cum.)','Evolution of Fatalities Population');
 	plot_plotly([returned_values[5]],'num_recovered_plot_2','Number Recovered (cum.)','Evolution of Recovered Population');
-	plot_lambda_evolution([returned_values[7]],'lambda_evolution','Source of infection',['Home','School/Workplace','Community'])
+	plot_lambda_evolution([returned_values[7]],'lambda_evolution','Source of infection',['Home','School/Workplace','Community','Public Transport'])
 
 	var encodedUri = encodeURI(csvContent);
     var link = document.createElement("a");
@@ -1724,6 +1724,7 @@ function runSimulations(){
 	BETA_W = document.getElementById("betaWork").value;
 	BETA_C = document.getElementById("betaCommunity").value;
 	BETA_S = document.getElementById("betaSchools").value;
+	BETA_PT = document.getElementById("betaPT").value;
 
 	INTERVENTION = parseInt(document.getElementById("interventions").value);
 
@@ -1762,6 +1763,7 @@ function set_default_values_html(){
 	document.getElementById("betaWork").value = BETA_W;
 	document.getElementById("betaCommunity").value =BETA_C;
 	document.getElementById("betaSchools").value = BETA_S;
+	document.getElementById("betaPT").value = BETA_PT;
 	document.getElementById("interventions").value = "0";
 }
 
