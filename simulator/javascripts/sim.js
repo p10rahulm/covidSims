@@ -118,7 +118,7 @@ NUM_AFFECTED_COUNT = 0;
 BETA_H = 0.67; //0.47 *1.0 //Thailand data
 BETA_W = 0.50; //0.47 *1.0//Thailand data
 BETA_S = 1.00; //0.94 *1.0//Thailand data
-BETA_C = 0.17; //0.097*1// Thailand data. Product  = 0.47
+BETA_C = 0.15; //0.097*1// Thailand data. Product  = 0.47
 BETA_PT = 0;
 
 ALPHA = 0.8 //exponent of number of people in a household while normalising infection rate in a household.
