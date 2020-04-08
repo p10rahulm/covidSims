@@ -1,4 +1,4 @@
-cityName,NAME3,wardName,wardNo,numUnemployed,numEmployed,workForce,workingAgePop
+cityName,NAME3,wardName,wardNo,Unemployment,Employed,workForce,totalWorkForce
 wuhan,HongShanQu,DongHuKaiFaQuZuoLingZhen,1,393,14738,15132,24767
 wuhan,QingShanQu,GongRenCunJieDaoBanShiChu,2,201,7533,7735,12660
 wuhan,HongShanQu,HePingJieDaoBanShiChu,3,1532,57406,58939,96464
