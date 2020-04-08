@@ -45,33 +45,30 @@ def calculate_r0(threshold,number_of_days,resolution):
     i_data = i_data[valid_indices]
     
     # Read output of simulation
-    infected_nointervenion = pd.read_csv('./data/infected_mean.csv')
-    recovered_nointervention = pd.read_csv('./data/recovered_mean.csv')
+    affected_nointervenion = pd.read_csv('./data/affected_mean.csv')
     
-    # Extract NumInfected+NumRecovered
-    dates = infected_nointervenion['timestep'].values
-    i_data_nointervention =  infected_nointervenion['infected'].values
-    r_data_nointervention = recovered_nointervention['recovered'].values
-    iplusr_nointervention = i_data_nointervention + r_data_nointervention
-    #iplusr_nointervention = np.repeat(i_data,4) # regress on the India data
+    # Extract NumAffected
+    dates = affected_nointervenion['timestep'].values
+    affected_nointervention =  affected_nointervenion['affected'].values
+    #affected_nointervention = np.repeat(i_data,4) # regress on the India data
     
     # Start the simulation from the point where it crosses i_data[0]
-    start_index = np.min(np.where(iplusr_nointervention>=i_data[0]))
+    start_index = np.min(np.where(affected_nointervention>=i_data[0]))
     # take data from start_index to t0
     t0 = start_index + number_of_days*resolution
 
     dates = dates[0:t0]
-    iplusr_data_nointervention =  iplusr_nointervention[start_index:t0]
+    affected_data_nointervention =  affected_nointervention[start_index:t0]
      
     mu=0.1/resolution # recovery rate
 
     # objective function for regression
     def objfn_itplusrt_nointervention(param):
         itplusrt = []
-        for i in range(0,len(iplusr_data_nointervention)):
+        for i in range(0,len(affected_data_nointervention)):
             itplusrt.append(param[1]*((param[0]*np.exp((param[0]-mu)*i)-mu))/(param[0]-mu))  
         itplusrt = np.array(itplusrt)
-        return (np.log10(itplusrt) - np.log10(iplusr_data_nointervention))
+        return (np.log10(itplusrt) - np.log10(affected_data_nointervention))
     
     
     param0=[4*mu,10]
@@ -80,7 +77,7 @@ def calculate_r0(threshold,number_of_days,resolution):
     res_nointervention = least_squares(objfn_itplusrt_nointervention, param0, bounds=([0,0],[np.inf,np.inf])) 
     
     predicted_itplusrt = []
-    for i in range(0,len(iplusr_data_nointervention)):
+    for i in range(0,len(affected_data_nointervention)):
         predicted_itplusrt.append(res_nointervention.x[1]*((res_nointervention.x[0]*np.exp((res_nointervention.x[0]-mu)*i)-mu))/(res_nointervention.x[0]-mu))  
     
     shift_right = 0    
@@ -88,14 +85,14 @@ def calculate_r0(threshold,number_of_days,resolution):
     sns.set()
     plt.figure(figsize=(13,5))
     y_values_1 = np.log10(np.take(predicted_itplusrt,np.arange(0,len(predicted_itplusrt),4)))
-    y_values_2 = np.log10(np.take(iplusr_data_nointervention,np.arange(0,len(iplusr_data_nointervention),4)))
-    plot_xlabels = [0,10,20,26] #np.arange(0,int(len(iplusr_data_nointervention)/5),5)
+    y_values_2 = np.log10(np.take(affected_data_nointervention,np.arange(0,len(affected_data_nointervention),4)))
+    plot_xlabels = [0,10,20,26] #np.arange(0,int(len(affected_data_nointervention)/5),5)
     plt.plot(np.arange(shift_right, len(y_values_1)+shift_right), y_values_1, 'r', label='fit' )
     plt.plot(np.arange(shift_right, len(y_values_2)+shift_right), y_values_2, 'bo-', label='simulation')
     plt.plot(np.log10(i_data),'go-', label='India Data')
     plt.xticks(plot_xlabels,["Mar 5", "Mar 15", "Mar 25", "Mar 31"])
     plt.xlabel('Date')
-    plt.ylabel('log_10 NumInfected+NumRecovered')
+    plt.ylabel('log_10 NumAffected')
 
     plt.grid(axis='both')
     plt.legend()
@@ -106,14 +103,14 @@ def calculate_r0(threshold,number_of_days,resolution):
     sns.set()
     plt.figure(figsize=(13,5))
     y_values_1 = np.take(predicted_itplusrt,np.arange(0,len(predicted_itplusrt),4))     
-    y_values_2 = np.take(iplusr_data_nointervention,np.arange(0,len(iplusr_data_nointervention),4))
-    plot_xlabels = [0,10,20,26] #np.arange(0,int(len(iplusr_data_nointervention)/5),5  
+    y_values_2 = np.take(affected_data_nointervention,np.arange(0,len(affected_data_nointervention),4))
+    plot_xlabels = [0,10,20,26] #np.arange(0,int(len(affected_data_nointervention)/5),5  
     plt.plot(np.arange(shift_right, len(y_values_1)+shift_right), y_values_1, 'r', label='fit' )
     plt.plot(np.arange(shift_right, len(y_values_2)+shift_right), y_values_2, 'bo-', label='simulation')
     plt.plot((i_data),'go-', label='India Data')
     plt.xticks(plot_xlabels,["Mar 5", "Mar 15", "Mar 25", "Mar 31"])
     plt.xlabel('Date')
-    plt.ylabel('NumInfected+NumRecovered')
+    plt.ylabel('NumAffected')
 
     plt.grid(axis='both')
     plt.legend()
