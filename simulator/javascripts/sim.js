@@ -470,8 +470,8 @@ function psi_T(node, cur_time){
 }
 
 function f_kernel(d){
-    var a = 4 //in kms
-    var b = 3.8 //both values are for Thailand, until we get a fit for India
+    var a = 10.751 //4. in kms
+    var b = 5.384 //3.8. both values are for Thailand, until we get a fit for India
 	return 1/(1+Math.pow(d/a,b))
 
 }
@@ -801,11 +801,11 @@ function compute_community_distances(communities){
 function compute_individual_community_distance(nodes,communities){
 	//Assign individuals to homes, workplace, community
 	for (var i=0; i < nodes.length; i++) {
-		
+		/*
 		if(i < 100){
 			console.log("Current value: ", nodes[i]['funct_d_ck'], ". Computed Value = ",(euclidean(nodes[i]['loc'],communities[nodes[i]['community']]['loc'])));
 		}
-		
+		*/
 		nodes[i]['funct_d_ck'] = f_kernel(euclidean(nodes[i]['loc'],communities[nodes[i]['community']]['loc']));
 	}
 
@@ -1396,7 +1396,7 @@ function run_simulation() {
 	
 
 	for(var time_step = 0; time_step < NUM_TIMESTEPS; time_step++) {
-		console.log(time_step/SIM_STEPS_PER_DAY);
+		//console.log(time_step/SIM_STEPS_PER_DAY);
 		if(SEEDING_MODE == SEED_INFECTION_RATES && time_step < seed_array.length){
 			infection_seeding(nodes,seed_array[time_step],time_step);
 		}
