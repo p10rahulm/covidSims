@@ -7,7 +7,7 @@ const WEBPAGE_VERSION = true;
 NUM_DAYS = 120; //Number of days. Simulation duration
 SIM_STEPS_PER_DAY = 4; //Number of simulation steps per day.
 NUM_TIMESTEPS = NUM_DAYS*SIM_STEPS_PER_DAY; //
-INIT_FRAC_INFECTED = 0.0001; // Initial number of people infected
+INIT_FRAC_INFECTED = 0.001; // Initial number of people infected
 SEED_SCALING_FACTOR = 1.5;
 const RANDOM_SEEDING_WARDWISE = 0;
 const SEED_FROM_INDIVIDUALS_JSON = 1;
@@ -32,6 +32,9 @@ const CASE_ISOLATION_AND_HOME_QUARANTINE = 4
 const CASE_ISOLATION_AND_HOME_QUARANTINE_SD_70_PLUS = 5
 const LOCKDOWN_21_CI_HQ_SD_70_PLUS_21_CI = 6
 const LOCKDOWN_21 = 7
+const LD_21_CI_HQ_SD70_SC_21_SC_42 = 8
+const LD_21_CI_HQ_SD70_SC_21 = 9
+const LD_21_CI_HQ_SD70_SC_OE_30 = 10
 
 const HOME_QUARANTINE_DAYS = 14
 const SELF_ISOLATION_DAYS = 7
@@ -110,11 +113,11 @@ STATE_TRAN=[
 
 
 // Beta values
-BETA_H = 0.47 *1.0 //Thailand data
-BETA_W = 0.47 *2.0//Thailand data
-BETA_S = 0.94 *2.0//Thailand data
-BETA_C = 0.097*3.5// Thailand data. Product  = 0.47
-BETA_PT = 0.1;
+BETA_H = 0.67; //0.47 *1.0 //Thailand data
+BETA_W = 0.50; //0.47 *1.0//Thailand data
+BETA_S = 1.00; //0.94 *1.0//Thailand data
+BETA_C = 0.17; //0.097*1// Thailand data. Product  = 0.47
+BETA_PT = 0;
 
 ALPHA = 0.8 //exponent of number of people in a household while normalising infection rate in a household.
 
@@ -146,6 +149,15 @@ function set_compliance(){
 			val = 0.9;
 			break;
 		case LOCKDOWN_21:
+			val = 0.9;
+			break;
+		case LD_21_CI_HQ_SD70_SC_21_SC_42: 
+			val = 0.9;
+			break;
+		case LD_21_CI_HQ_SD70_SC_21:
+			val = 0.9;
+			break;
+		case LD_21_CI_HQ_SD70_SC_OE_30:
 			val = 0.9;
 			break;			
 		default:
@@ -234,7 +246,7 @@ function init_nodes() {
 			'kappa_T': 1,
 			'psi_T': 0,
 			'public_transport': (Math.random() < PUBLIC_TRANSPORT_FRACTION)?0:null,
-			'funct_d_ck': f_kernel(individuals_json[i]['CommunityCentreDistance']), // TODO: need to use the kernel function. function of distance from community...
+			'funct_d_ck': 1,//f_kernel(individuals_json[i]['CommunityCentreDistance']), // TODO: need to use the kernel function. function of distance from community...f_kernel
 			'dist_hw' : 1,
 			'workplace_type':  individuals_json[i]['workplaceType'], //either school or office
 			'lambda_incoming': [0,0,0,0], //infectiousness from home, workplace, community as seen by individual
@@ -274,9 +286,8 @@ function init_nodes() {
 
 		if(SEEDING_MODE==SEED_FROM_INDIVIDUALS_JSON){
 			node['infection_status'] = individuals_json[i]['infection_status'];
-			node['time_of_infection'] = node['infection_status']==EXPOSED?(-individuals_json[i]['time_since_infected']):0;
-		}
-		
+			node['time_of_infection'] = node['infection_status']==EXPOSED?(individuals_json[i]['time_since_infected']*SIM_STEPS_PER_DAY-node['incubation_period']):0;
+		}		
 		nodes.push(node)
 	
 	}
@@ -785,7 +796,18 @@ function compute_community_distances(communities){
 	 return community_dist_matrix;
 }
 
+function compute_individual_community_distance(nodes,communities){
+	//Assign individuals to homes, workplace, community
+	for (var i=0; i < nodes.length; i++) {
+		/*
+		if(i < 100){
+			console.log("Current value: ", nodes[i]['funct_d_ck'], ". Computed Value = ",(euclidean(nodes[i]['loc'],communities[nodes[i]['community']]['loc'])));
+		}
+		*/
+		nodes[i]['funct_d_ck'] = f_kernel(euclidean(nodes[i]['loc'],communities[nodes[i]['community']]['loc']));
+	}
 
+}
 
 
 function assign_individual_home_community(nodes,homes,workplaces,communities){
@@ -1259,11 +1281,7 @@ function update_lambdas(node,homes,workplaces,communities,public_transports,node
 	}
 
 	node['lambda'] = node['lambda_incoming'][0]+node['lambda_incoming'][1]+node['lambda_incoming'][2]+node['lambda_incoming'][3];
-	/*if(node['lambda']>0.0001){
-		console.log(node['lambda'], node['lambda_incoming'])
-	}
-	*/
-	
+
 }
 /*
 function get_lambda_stats(time,node,lambda_stats_variable){
@@ -1316,6 +1334,15 @@ function update_all_kappa(nodes,homes,workplaces,communities,cur_time){
 		case LOCKDOWN_21:
 			get_kappa_LOCKDOWN_21(nodes, homes, workplaces, communities,cur_time);
 			break;
+		case LD_21_CI_HQ_SD70_SC_21_SC_42:
+			get_kappa_LD_21_CI_HQ_SD70_SC_21_SC_42(nodes, homes, workplaces, communities,cur_time);
+			break;
+		case LD_21_CI_HQ_SD70_SC_21:
+			get_kappa_LD_21_CI_HQ_SD70_SC_21(nodes, homes, workplaces, communities,cur_time);
+			break;
+		case LD_21_CI_HQ_SD70_SC_OE_30:
+			get_kappa_LD_21_CI_HQ_SD70_SC_OE_30(nodes, homes, workplaces, communities,cur_time);
+			break;
 		default:
 			break;
 	}
@@ -1338,9 +1365,10 @@ function run_simulation() {
 
 	//console.log(community_distance_matrix)
 	console.log(NUM_PEOPLE,NUM_HOMES, NUM_WORKPLACES,NUM_SCHOOLS,NUM_COMMUNITIES)
-
+	
 	assign_individual_home_community(nodes,homes,workplaces,communities);
 	assign_individual_public_transports(nodes,public_transports,workplaces);
+	compute_individual_community_distance(nodes,communities); //TODO: remove once distance to community center is provided in json.
 	
 	compute_scale_homes(homes);
 	compute_scale_workplaces(workplaces);
