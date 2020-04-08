@@ -12,7 +12,6 @@ import pandas as pd
 import warnings
 warnings.filterwarnings('ignore')
 import time
-import matplotlib.pyplot as plt
 
 #Data-processing Functions
 from modules.processDemographics import *
@@ -81,7 +80,7 @@ def instantiate(city, targetPopulation, averageStudents, averageWorkforce):
 
 	individuals.to_json(path+"/individuals.json", orient='records')
 	households[['id', 'wardNo' ,'lat', 'lon']].to_json(path+"/houses.json", orient='records')
-	exit()
+	individuals = individuals.drop_duplicates()
 
 	#split the individuals by workplace type
 	individuals = {name: individuals.loc[individuals['workplaceType'] == name, :] for name in individuals['workplaceType'].unique()}
@@ -103,15 +102,18 @@ def instantiate(city, targetPopulation, averageStudents, averageWorkforce):
 	print("additonal data processing...")
 	start = time.time()
 	
-	#associate individuals to common areas (by distance) and categorize workplace Type
+	#associate individuals to common areas (by distance) 
 	def getDistances(row, cc):
-		findCommunityCentre = cc[int(row["wardIndex"])]
+		houseNo = row['household']
 		lat1 = row['lat']
 		lon1 = row['lon']
-
-		lat2 = findCommunityCentre[1]
-		lon2 = findCommunityCentre[0]
-
+		# lat1 = households.loc[households['id']==houseNo, 'lat'].values[0]
+		# lon1 = households.loc[households['id']==houseNo, 'lon'].values[0]
+		
+		assignedWard = row["wardNo"]
+		lat2 = cc.loc[cc['wardNo']==assignedWard, 'lat'].values[0]
+		lon2 = cc.loc[cc['wardNo']==assignedWard, 'lon'].values[0]
+		
 		return distance(lat1, lon1, lat2, lon2)
 
 
@@ -122,11 +124,12 @@ def instantiate(city, targetPopulation, averageStudents, averageWorkforce):
 	
 
 	individuals = individuals.sort_values("id")
-	households = households.sort_values("id")
+	households = households.sort_values("wardIndex")
 	workplaces = workplaces.sort_values("ID")
 	schools = schools.sort_values("ID")
-	commonArea = commonArea.sort_values("ID")
+	commonArea = commonArea.sort_values("wardIndex")
 	
+	individuals['CommunityCentreDistance'] = individuals.apply(getDistances, axis=1, args=(commonArea,))
 	demographicsData['fracPopulation'] = demographicsData.apply(lambda row: row['totalPopulation']/demographicsData['totalPopulation'].values.sum(), axis=1)
 
 	print("additonal data processing completed in ", time.time() - start)
@@ -149,7 +152,66 @@ def instantiate(city, targetPopulation, averageStudents, averageWorkforce):
 		computeWardCentreDistance(cityGeoDF, path+"/wardCentreDistance.json")
 		demographicsData[['wardNo', 'totalPopulation', 'fracPopulation']].to_json(path+"/fractionPopulation.json", orient="records")
 		print("saving instantiations as JSON completed in ", time.time() - start)
+
+		#Get Distributions
+		age_values, age_distribution = compute_age_distribution(ageDistribution)
+		household_sizes, household_distribution = compute_household_size_distribution(householdSizes, householdDistribution)
+		schoolsize_values, schoolsize_distribution = extrapolate_school_size_distribution(schoolDistribution)
+		workplacesize_distribution = workplaces_size_distribution()
+
+
+		print(max(individuals['CommunityCentreDistance'].values))
+
+		#Age-Distribution fit
+		import matplotlib.pyplot as plt
+
+		plt.plot(individuals['age'].value_counts(normalize=True).sort_index(ascending=True), 'r')
+		plt.plot(age_distribution, 'b')
+		plt.xlabel('Age')
+		plt.ylabel('Density')
+		plt.title('Distribution of age')
+		plt.grid(True)
+		plt.xticks(np.arange(0,81,10), np.concatenate((age_values[np.arange(0,71,10)], ['80+'])))
+		plt.savefig(path+"/age.png")
+		plt.close()
+
+
+
+		x = np.unique(individuals['household'].values)
+		x = x[~np.isnan(x)]
+		households = {'id':x, 'number of people': [0 for i in range(0,len(x))] }
+		households = pd.DataFrame(households)
+    
+		for i in range(0,len(individuals)):
+				# print(i/len(individuals))
+				
+				households.at[households['id']==individuals.loc[i,'household'],'number of people'] = 1+households.loc[households['id']==individuals.loc[i,'household'],'number of people']
+    
+		#Household-size distribution fit
+		HH_ranges = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+		HH_numbers = np.array([len(households.loc[households['number of people']==HH_ranges[i]]) for i in range(0,len(HH_ranges))])
+		HH_output_distribution = HH_numbers/sum(HH_numbers)
+		plt.plot(HH_ranges,household_distribution)
+		plt.plot(HH_ranges,HH_output_distribution,'r')
+		plt.xticks(np.arange(1,16,1), np.concatenate((np.array(household_sizes)[np.arange(0,14,1)], ['15+'])) )
+
+		# plt.plot( households['people staying'].value_counts(normalize=True).sort_index(ascending=True), 'r')
+		# plt.plot(np.arange(1,len(household_distribution)+1), household_distribution, 'b')
+		plt.xlabel('Household size')
+		plt.ylabel('Density')
+		plt.title('Distribution of household size')
+		plt.grid(True)
+		plt.savefig(path+"/HH_size.png")
+		plt.close()
+
+
 	else:
 		print("instantiation failed, please re-run")
 	
+
+
+
+
+
+
 instantiate(city=sys.argv[1], targetPopulation=sys.argv[2], averageStudents=sys.argv[3], averageWorkforce=sys.argv[4])

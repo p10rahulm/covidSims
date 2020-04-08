@@ -76,7 +76,7 @@ def initialize_households(targetPopulation, wards, householdSizes, householdDist
 
     household_sizes, household_distribution = compute_household_size_distribution(householdSizes, householdDistribution)
     mean_household_size = np.matmul(household_sizes, household_distribution)    
-    
+    print("mean household size",  mean_household_size)
     H = int(targetPopulation/mean_household_size)
     
     households['id'] = np.arange(0,H)
@@ -84,6 +84,7 @@ def initialize_households(targetPopulation, wards, householdSizes, householdDist
     households['people staying'] = np.random.choice(household_sizes, H, p=household_distribution)
     households['individuals'] = [[] for value in range(H)]
     households['flag'] = 0
+    households = households.sort_values('people staying')
     return households
 
 # home-people assignment
@@ -97,83 +98,69 @@ def assign_individuals_to_houses(targetPopulation, wards, ageDistribution, house
     #assign workplace type by age
     individuals = split_individuals_by_age(individuals, unemployment_fraction)
 
-    #split households by the number of people staying
-    households = {name: households.loc[households['people staying'] == name, :] for name in households['people staying'].unique()}
-    individualsDict = {}
+    for i in range(len(households)):
+        houseSize = households.loc[i, 'people staying']
 
-    ## TODO: parallelize household assignment based on the number of people of staying
-    for houseSize in households:
         if houseSize == 1:
-            households[1], individualsDF = hh_1_person(households[1], individuals, targetPopulation)
-            individualsDict.update({1: individualsDF})
+            households, individuals = hh_1_person(households, individuals, targetPopulation, i)
+
+
         if houseSize == 2:
-            households[2], individualsDF = hh_2_person(households[2], individuals, targetPopulation)
-            individualsDict.update({2: individualsDF})
+            households, individuals = hh_2_person(households, individuals, targetPopulation, i)
+
 
         if houseSize == 3:
-            households[3], individualsDF = hh_3_person(households[3], individuals, targetPopulation)
-            individualsDict.update({3: individualsDF})
+            households, individuals = hh_3_person(households, individuals, targetPopulation, i)
+
 
         if houseSize == 4:
-            households[4], individualsDF = hh_4_person(households[4], individuals, targetPopulation)
-            individualsDict.update({4: individualsDF})
+            households, individuals = hh_4_person(households, individuals, targetPopulation, i)
+
 
         if houseSize == 5:
-            households[5], individualsDF = hh_5_person(households[5], individuals, targetPopulation)
-            individualsDict.update({5: individualsDF})
+            households, individuals = hh_5_person(households, individuals, targetPopulation, i)
+            
 
         if houseSize == 6:
-            households[6], individualsDF = hh_6_person(households[6], individuals, targetPopulation)
-            individualsDict.update({6: individualsDF})
+            households, individuals = hh_6_person(households, individuals, targetPopulation, i)
+
 
         if houseSize == 7:
-            households[7], individualsDF = hh_7_person(households[7], individuals, targetPopulation)
-            individualsDict.update({7: individualsDF})
+            households, individuals = hh_7_person(households, individuals, targetPopulation, i)
+
 
         if houseSize == 8:
-            households[8], individualsDF = hh_8_person(households[8], individuals, targetPopulation)
-            individualsDict.update({8: individualsDF})
+            households, individuals = hh_8_person(households, individuals, targetPopulation, i)
+            
 
         if houseSize == 9:
-            households[9], individualsDF = hh_9_person(households[9], individuals, targetPopulation)
-            individualsDict.update({9: individualsDF})
-
+            households, individuals = hh_9_person(households, individuals, targetPopulation, i)
+            
         if houseSize == 10:
-            households[10], individualsDF = hh_10_person(households[10], individuals, targetPopulation)
-            individualsDict.update({10: individualsDF})
-
+            households, individuals = hh_10_person(households, individuals, targetPopulation, i)
+            
         if houseSize == 11:
-            households[11], individualsDF = hh_11_person(households[11], individuals, targetPopulation)
-            individualsDict.update({11: individualsDF})
-
+            households, individuals = hh_11_person(households, individuals, targetPopulation, i)
+            
         if houseSize == 12:
-            households[12], individualsDF = hh_12_person(households[12], individuals, targetPopulation)
-            individualsDict.update({12: individualsDF})
+            households, individuals = hh_12_person(households, individuals, targetPopulation, i)
 
         if houseSize == 13:
-            households[13], individualsDF = hh_13_person(households[13], individuals, targetPopulation)
-            individualsDict.update({13: individualsDF})
-
+            households, individuals = hh_13_person(households, individuals, targetPopulation, i)
+    
         if houseSize == 14:
-            households[14], individualsDF = hh_14_person(households[14], individuals, targetPopulation)
-            individualsDict.update({14: individualsDF})
-
+            households, individuals = hh_14_person(households, individuals, targetPopulation, i)
+            
         if houseSize == 15:
-            households[15], individualsDF = hh_15_person(households[15], individuals, targetPopulation)
-            individualsDict.update({15: individualsDF})
-
-
-    #Join the  dict of dataframes
-    households = pd.concat(households.values(), ignore_index=True)
-    individuals = pd.concat(individualsDict.values(), ignore_index=False)
-
+            households, individuals = hh_15_person(households, individuals, targetPopulation, i)
+            
     #assign previously unassigned individuals  
     individuals, households = assign_unassigned_individuals(households, individuals)
     return households, individuals
 
-def hh_1_person(households, individuals, N):
-    global already_assigned
-    for i in households.index.values:
+def hh_1_person(households, individuals, N, i):
+        global already_assigned
+    # #for i in households.index.values:
         if len(already_assigned)<N-6:
             possible_list = individuals.iloc[np.setdiff1d(np.where(np.logical_and(individuals['age'].values>=22,individuals['age'].values<=30)),already_assigned)]
             if (len(possible_list)>0):
@@ -182,11 +169,11 @@ def hh_1_person(households, individuals, N):
                 individuals.at[int(possible_list.iloc[choose_index]['id']),'household']=int(i)
                 households.at[i,'individuals'].append(int(possible_list.iloc[choose_index]['id']))
                 households.at[i,'flag']=1
-    return households, individuals
+        return households, individuals
  
-def hh_2_person(households, individuals, N):
-    global already_assigned
-    for i in households.index.values:
+def hh_2_person(households, individuals, N, i):
+        global already_assigned
+    #for i in households.index.values:
         if len(already_assigned)<N-6:
             possible_list = individuals.iloc[np.setdiff1d(np.where(np.logical_and(individuals['age'].values>=22,individuals['age'].values<=30)),already_assigned)]
             if (len(possible_list)>=2):
@@ -196,12 +183,12 @@ def hh_2_person(households, individuals, N):
                     individuals.at[int(possible_list.iloc[choose_index[j]]['id']),'household']=int(i)
                     households.at[i,'individuals'].append(int(possible_list.iloc[choose_index[j]]['id']))
                     households.at[i,'flag']=1
-    return households, individuals
+        return households, individuals
 
 
-def hh_3_person(households, individuals, N):
-    global already_assigned
-    for i in households.index.values:
+def hh_3_person(households, individuals, N, i):
+        global already_assigned
+    #for i in households.index.values:
         if len(already_assigned)<N-6:
             possible_list1 = individuals.iloc[np.setdiff1d(np.where(np.logical_and(individuals['age'].values>=22,individuals['age'].values<=40)),already_assigned)]
             if np.random.choice(1)==1:
@@ -222,11 +209,11 @@ def hh_3_person(households, individuals, N):
                 individuals.at[int(possible_list2.iloc[choose_index]['id']),'household']=int(i)
                 households.at[i,'individuals'].append(int(possible_list2.iloc[choose_index]['id']))                    
                 households.at[i,'flag']=1
-    return households, individuals
+        return households, individuals
 
-def hh_4_person(households, individuals, N):
-    global already_assigned
-    for i in households.index.values:
+def hh_4_person(households, individuals, N, i):
+        global already_assigned
+    #for i in households.index.values:
         if len(already_assigned)<N-6:
             possible_list1 = individuals.iloc[np.setdiff1d(np.where(np.logical_and(individuals['age'].values>=30,individuals['age'].values<=55)),already_assigned)]
             possible_list2 = individuals.iloc[np.setdiff1d(np.where(np.logical_and(individuals['age'].values>=5,individuals['age'].values<=30)),already_assigned)]
@@ -245,12 +232,12 @@ def hh_4_person(households, individuals, N):
                     individuals.at[int(possible_list2.iloc[choose_index[j]]['id']),'household']=int(i)
                     households.at[i,'individuals'].append(int(possible_list2.iloc[choose_index[j]]['id']))
                     households.at[i,'flag']=1
-    return households, individuals
+        return households, individuals
 
 
-def hh_5_person(households, individuals, N):
-    global already_assigned
-    for i in households.index.values:
+def hh_5_person(households, individuals, N, i):
+        global already_assigned
+    #for i in households.index.values:
         if len(already_assigned)<N-6:
             possible_list1 = individuals.iloc[np.setdiff1d(np.where(np.logical_and(individuals['age'].values>=40,individuals['age'].values<=55)),already_assigned)]
             possible_list2 = individuals.iloc[np.setdiff1d(np.where(np.logical_and(individuals['age'].values>=5,individuals['age'].values<=21)),already_assigned)]
@@ -275,12 +262,12 @@ def hh_5_person(households, individuals, N):
                 individuals.at[int(possible_list3.iloc[choose_index]['id']),'household']=int(i)
                 households.at[i,'individuals'].append(int(possible_list3.iloc[choose_index]['id']))
                 households.at[i,'flag']=1
-    return households, individuals
+        return households, individuals
 
 
-def hh_6_person(households, individuals, N):
-    global already_assigned
-    for i in households.index.values:
+def hh_6_person(households, individuals, N, i):
+        global already_assigned
+    #for i in households.index.values:
         if len(already_assigned)<N-6:
             possible_list1 = individuals.iloc[np.setdiff1d(np.where(np.logical_and(individuals['age'].values>=21,individuals['age'].values<=30)),already_assigned)]
             possible_list2 = individuals.iloc[np.setdiff1d(np.where(np.logical_and(individuals['age'].values>=45,individuals['age'].values<=55)),already_assigned)]
@@ -306,11 +293,11 @@ def hh_6_person(households, individuals, N):
                     individuals.at[int(possible_list3.iloc[choose_index[j]]['id']),'household']=int(i)
                     households.at[i,'individuals'].append(int(possible_list3.iloc[choose_index[j]]['id']))
                     households.at[i,'flag']=1
-    return households, individuals
+        return households, individuals
 
-def hh_7_person(households, individuals, N):
-    global already_assigned
-    for i in households.index.values:
+def hh_7_person(households, individuals, N, i):
+        global already_assigned
+    #for i in households.index.values:
         if len(already_assigned)<N-6:
             possible_list1 = individuals.iloc[np.setdiff1d(np.where(np.logical_and(individuals['age'].values>=21,individuals['age'].values<=30)),already_assigned)]
             possible_list2 = individuals.iloc[np.setdiff1d(np.where(np.logical_and(individuals['age'].values>=45,individuals['age'].values<=55)),already_assigned)]
@@ -343,12 +330,12 @@ def hh_7_person(households, individuals, N):
                 individuals.at[int(possible_list4.iloc[choose_index]['id']),'household']=int(i)
                 households.at[i,'individuals'].append(int(possible_list4.iloc[choose_index]['id']))
                 households.at[i,'flag']=1
-    return households, individuals
+        return households, individuals
 
 
-def hh_8_person(households, individuals, N):
-    global already_assigned
-    for i in households.index.values:
+def hh_8_person(households, individuals, N, i):
+        global already_assigned
+    #for i in households.index.values:
         if len(already_assigned)<N-6:
             possible_list1 = individuals.iloc[np.setdiff1d(np.where(np.logical_and(individuals['age'].values>=21,individuals['age'].values<=30)),already_assigned)]
             possible_list2 = individuals.iloc[np.setdiff1d(np.where(np.logical_and(individuals['age'].values>=45,individuals['age'].values<=55)),already_assigned)]
@@ -382,12 +369,12 @@ def hh_8_person(households, individuals, N):
                     individuals.at[int(possible_list4.iloc[choose_index[j]]['id']),'household']=int(i)
                     households.at[i,'individuals'].append(int(possible_list4.iloc[choose_index[j]]['id']))
                     households.at[i,'flag']=1
-    return households, individuals
+        return households, individuals
 
 
-def hh_9_person(households, individuals, N):
-    global already_assigned
-    for i in households.index.values:
+def hh_9_person(households, individuals, N, i):
+        global already_assigned
+    #for i in households.index.values:
         if len(already_assigned)<N-6:
             possible_list1 = individuals.iloc[np.setdiff1d(np.where(np.logical_and(individuals['age'].values>=21,individuals['age'].values<=30)),already_assigned)]
             possible_list2 = individuals.iloc[np.setdiff1d(np.where(np.logical_and(individuals['age'].values>=45,individuals['age'].values<=55)),already_assigned)]
@@ -421,11 +408,11 @@ def hh_9_person(households, individuals, N):
                     individuals.at[int(possible_list4.iloc[choose_index[j]]['id']),'household']=int(i)
                     households.at[i,'individuals'].append(int(possible_list4.iloc[choose_index[j]]['id']))
                     households.at[i,'flag']=1
-    return households, individuals
+        return households, individuals
 
-def hh_10_person(households, individuals, N):
-    global already_assigned
-    for i in households.index.values:
+def hh_10_person(households, individuals, N, i):
+        global already_assigned
+    #for i in households.index.values:
         if len(already_assigned)<N-6:
             possible_list1 = individuals.iloc[np.setdiff1d(np.where(np.logical_and(individuals['age'].values>=21,individuals['age'].values<=30)),already_assigned)]
             possible_list2 = individuals.iloc[np.setdiff1d(np.where(np.logical_and(individuals['age'].values>=45,individuals['age'].values<=55)),already_assigned)]
@@ -459,12 +446,12 @@ def hh_10_person(households, individuals, N):
                     individuals.at[int(possible_list4.iloc[choose_index[j]]['id']),'household']=int(i)
                     households.at[i,'individuals'].append(int(possible_list4.iloc[choose_index[j]]['id']))
                     households.at[i,'flag']=1
-    return households, individuals
+        return households, individuals
 
 
-def hh_11_person(households, individuals, N):
-    global already_assigned
-    for i in households.index.values:
+def hh_11_person(households, individuals, N, i):
+        global already_assigned
+    #for i in households.index.values:
         if len(already_assigned)<N-6:
             possible_list1 = individuals.iloc[np.setdiff1d(np.where(np.logical_and(individuals['age'].values>=21,individuals['age'].values<=30)),already_assigned)]
             possible_list2 = individuals.iloc[np.setdiff1d(np.where(np.logical_and(individuals['age'].values>=45,individuals['age'].values<=55)),already_assigned)]
@@ -498,12 +485,12 @@ def hh_11_person(households, individuals, N):
                     individuals.at[int(possible_list4.iloc[choose_index[j]]['id']),'household']=int(i)
                     households.at[i,'individuals'].append(int(possible_list4.iloc[choose_index[j]]['id']))
                     households.at[i,'flag']=1
-    return households, individuals
+        return households, individuals
 
 
-def hh_12_person(households, individuals, N):
-    global already_assigned
-    for i in households.index.values:
+def hh_12_person(households, individuals, N, i):
+        global already_assigned
+    #for i in households.index.values:
         if len(already_assigned)<N-6:
             possible_list1 = individuals.iloc[np.setdiff1d(np.where(np.logical_and(individuals['age'].values>=21,individuals['age'].values<=30)),already_assigned)]
             possible_list2 = individuals.iloc[np.setdiff1d(np.where(np.logical_and(individuals['age'].values>=45,individuals['age'].values<=55)),already_assigned)]
@@ -537,12 +524,12 @@ def hh_12_person(households, individuals, N):
                     individuals.at[int(possible_list4.iloc[choose_index[j]]['id']),'household']=int(i)
                     households.at[i,'individuals'].append(int(possible_list4.iloc[choose_index[j]]['id']))
                     households.at[i,'flag']=1
-    return households, individuals
+        return households, individuals
 
 
-def hh_13_person(households, individuals, N):
-    global already_assigned
-    for i in households.index.values:
+def hh_13_person(households, individuals, N, i):
+        global already_assigned
+    #for i in households.index.values:
         if len(already_assigned)<N-6:
             possible_list1 = individuals.iloc[np.setdiff1d(np.where(np.logical_and(individuals['age'].values>=21,individuals['age'].values<=30)),already_assigned)]
             possible_list2 = individuals.iloc[np.setdiff1d(np.where(np.logical_and(individuals['age'].values>=45,individuals['age'].values<=55)),already_assigned)]
@@ -576,12 +563,12 @@ def hh_13_person(households, individuals, N):
                     individuals.at[int(possible_list4.iloc[choose_index[j]]['id']),'household']=int(i)
                     households.at[i,'individuals'].append(int(possible_list4.iloc[choose_index[j]]['id']))
                     households.at[i,'flag']=1
-    return households, individuals
+        return households, individuals
 
 
-def hh_14_person(households, individuals, N):
-    global already_assigned
-    for i in households.index.values:
+def hh_14_person(households, individuals, N, i):
+        global already_assigned
+    #for i in households.index.values:
         if len(already_assigned)<N-6:
             possible_list1 = individuals.iloc[np.setdiff1d(np.where(np.logical_and(individuals['age'].values>=21,individuals['age'].values<=30)),already_assigned)]
             possible_list2 = individuals.iloc[np.setdiff1d(np.where(np.logical_and(individuals['age'].values>=45,individuals['age'].values<=55)),already_assigned)]
@@ -616,12 +603,12 @@ def hh_14_person(households, individuals, N):
                     households.at[i,'individuals'].append(int(possible_list4.iloc[choose_index[j]]['id']))
                     households.at[i,'flag']=1
     
-    return households, individuals
+        return households, individuals
 
 
-def hh_15_person(households, individuals, N):
-    global already_assigned
-    for i in households.index.values:
+def hh_15_person(households, individuals, N, i):
+        global already_assigned
+    #for i in households.index.values:
         if len(already_assigned)<N-6:
             possible_list1 = individuals.iloc[np.setdiff1d(np.where(np.logical_and(individuals['age'].values>=21,individuals['age'].values<=30)),already_assigned)]
             possible_list2 = individuals.iloc[np.setdiff1d(np.where(np.logical_and(individuals['age'].values>=45,individuals['age'].values<=55)),already_assigned)]
@@ -656,7 +643,7 @@ def hh_15_person(households, individuals, N):
                     households.at[i,'individuals'].append(int(possible_list4.iloc[choose_index[j]]['id']))
                     households.at[i,'flag']=1     
 
-    return households, individuals
+        return households, individuals
 
 
 
