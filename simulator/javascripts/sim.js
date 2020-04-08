@@ -112,6 +112,8 @@ STATE_TRAN=[
 ]
 
 
+NUM_AFFECTED_COUNT = 0;
+
 // Beta values
 BETA_H = 0.67; //0.47 *1.0 //Thailand data
 BETA_W = 0.50; //0.47 *1.0//Thailand data
@@ -246,7 +248,7 @@ function init_nodes() {
 			'kappa_T': 1,
 			'psi_T': 0,
 			'public_transport': (Math.random() < PUBLIC_TRANSPORT_FRACTION)?0:null,
-			'funct_d_ck': 1,//f_kernel(individuals_json[i]['CommunityCentreDistance']), // TODO: need to use the kernel function. function of distance from community...f_kernel
+			'funct_d_ck': f_kernel(individuals_json[i]['CommunityCentreDistance']), // TODO: need to use the kernel function. function of distance from community...f_kernel
 			'dist_hw' : 1,
 			'workplace_type':  individuals_json[i]['workplaceType'], //either school or office
 			'lambda_incoming': [0,0,0,0], //infectiousness from home, workplace, community as seen by individual
@@ -799,11 +801,11 @@ function compute_community_distances(communities){
 function compute_individual_community_distance(nodes,communities){
 	//Assign individuals to homes, workplace, community
 	for (var i=0; i < nodes.length; i++) {
-		/*
+		
 		if(i < 100){
 			console.log("Current value: ", nodes[i]['funct_d_ck'], ". Computed Value = ",(euclidean(nodes[i]['loc'],communities[nodes[i]['community']]['loc'])));
 		}
-		*/
+		
 		nodes[i]['funct_d_ck'] = f_kernel(euclidean(nodes[i]['loc'],communities[nodes[i]['community']]['loc']));
 	}
 
@@ -908,7 +910,8 @@ function update_infection(node,cur_time){
 	else if(node['infection_status']==PRE_SYMPTOMATIC && (cur_time - node['time_of_infection'] >= (node['incubation_period']+node['asymptomatic_period']) )){
     	if(Math.random() < SYMPTOMATIC_FRACTION){
             	node['infection_status'] = SYMPTOMATIC;//move to symptomatic
-            	node['infective'] = 1;
+				node['infective'] = 1;
+				NUM_AFFECTED_COUNT ++;
     	}
     	else {
         	node['infection_status'] = RECOVERED;//move to recovered
@@ -1368,7 +1371,7 @@ function run_simulation() {
 	
 	assign_individual_home_community(nodes,homes,workplaces,communities);
 	assign_individual_public_transports(nodes,public_transports,workplaces);
-	compute_individual_community_distance(nodes,communities); //TODO: remove once distance to community center is provided in json.
+	//compute_individual_community_distance(nodes,communities); //TODO: remove once distance to community center is provided in json.
 	
 	compute_scale_homes(homes);
 	compute_scale_workplaces(workplaces);
@@ -1389,6 +1392,7 @@ function run_simulation() {
 	var lambda_evolution = []
 	LAMBDA_INFECTION_STATS=[] //global variable to track lambda evolution when a person gets infected
 	LAMBDA_INFECTION_MEAN = [0, 0, 0,0];
+	NUM_AFFECTED_COUNT = 0;
 	
 
 	for(var time_step = 0; time_step < NUM_TIMESTEPS; time_step++) {
@@ -1459,10 +1463,10 @@ function run_simulation() {
 		var n_recovered = nodes.reduce(function(partial_sum, node) {return partial_sum + ((node['infection_status']==RECOVERED) ? 1 : 0);}, 0);
 		days_num_recovered.push([time_step/SIM_STEPS_PER_DAY, n_recovered]);
 		
-		var n_affected = nodes.reduce(function(partial_sum, node) {return partial_sum + ((node['infection_status']) ? 1 : 0);}, 0);
-		days_num_affected.push([time_step/SIM_STEPS_PER_DAY, n_affected]);
+		//var n_affected = nodes.reduce(function(partial_sum, node) {return partial_sum + ((node['infection_status']) ? 1 : 0);}, 0);
+		days_num_affected.push([time_step/SIM_STEPS_PER_DAY, NUM_AFFECTED_COUNT]);
 
-		let row = [time_step/SIM_STEPS_PER_DAY,n_affected,n_recovered,n_infected,n_exposed,n_hospitalised,n_critical,n_fatalities,LAMBDA_INFECTION_MEAN[0],LAMBDA_INFECTION_MEAN[1],LAMBDA_INFECTION_MEAN[2]].join(",");
+		let row = [time_step/SIM_STEPS_PER_DAY,NUM_AFFECTED_COUNT,n_recovered,n_infected,n_exposed,n_hospitalised,n_critical,n_fatalities,LAMBDA_INFECTION_MEAN[0],LAMBDA_INFECTION_MEAN[1],LAMBDA_INFECTION_MEAN[2]].join(",");
 			csvContent_alltogether += row + "\r\n";
 		if(LAMBDA_INFECTION_STATS.length > 0){
 			lambda_evolution.push([time_step/SIM_STEPS_PER_DAY,[LAMBDA_INFECTION_MEAN[0],LAMBDA_INFECTION_MEAN[1],LAMBDA_INFECTION_MEAN[2],LAMBDA_INFECTION_MEAN[3]]])
@@ -1544,6 +1548,12 @@ function plot_lambda_evolution(data,plot_position,title_text,legends) {
 			}
 		  },
 		  range:[0,1]
+		},
+		showlegend: true,
+		legend: {
+			x: 1,
+			xanchor: 'right',
+			y: 1
 		}
 	  };
 	  
@@ -1589,12 +1599,12 @@ function run_and_plot(intervention) {
 	returned_values = run_simulation();
 	
 	plot_plotly([returned_values[6]],'num_affected_plot_2','Number Affected (cum.)','Evolution of Affected Population');
-	plot_plotly([returned_values[0]],'num_infected_plot_2','Number Infected (daily)','Evolution of Infected Population');
-	plot_plotly([returned_values[1]],'num_exposed_plot_2','Number Exposed (daily)','Evolution of Exposed Population');
+	plot_plotly([returned_values[0]],'num_infected_plot_2','Number Infectious (daily)','Evolution of Infected Population');
+	//plot_plotly([returned_values[1]],'num_exposed_plot_2','Number Exposed (daily)','Evolution of Exposed Population');
 	plot_plotly([returned_values[2]],'num_hospitalised_plot_2','Number Hospitalised (daily)','Evolution of Hospitalised Population');
 	plot_plotly([returned_values[3]],'num_critical_plot_2','Number Critical (daily)','Evolution of Critical Population');
 	plot_plotly([returned_values[4]],'num_fatalities_plot_2','Number Fatalities (cum.)','Evolution of Fatalities Population');
-	plot_plotly([returned_values[5]],'num_recovered_plot_2','Number Recovered (cum.)','Evolution of Recovered Population');
+	//plot_plotly([returned_values[5]],'num_recovered_plot_2','Number Recovered (cum.)','Evolution of Recovered Population');
 	plot_lambda_evolution([returned_values[7]],'lambda_evolution','Source of infection',['Home','School/Workplace','Community','Public Transport'])
 
 	var encodedUri = encodeURI(csvContent);
