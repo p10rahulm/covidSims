@@ -43,9 +43,9 @@ def validate_distributions(city):
     c_workplacesize = 0.97
     m_max_workplacesize = 2870
     
-    a_commuter_distance = 4
-    b_commuter_distance = 3.8 
-    m_max_commuter_distance = 130
+    a_commuter_distance = 10.751
+    b_commuter_distance = 5.384
+    m_max_commuter_distance = 35
  
     # create age values and expand the age distirution
     age_values = np.arange(0,81,1)
