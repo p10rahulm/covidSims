@@ -12,7 +12,16 @@ SEED_SCALING_FACTOR = 1.5;
 const RANDOM_SEEDING_WARDWISE = 0;
 const SEED_FROM_INDIVIDUALS_JSON = 1;
 const SEED_INFECTION_RATES = 2;
-SEEDING_MODE = RANDOM_SEEDING_WARDWISE;
+const SEED_EXP_RATE = 3;
+SEEDING_MODE = SEED_EXP_RATE;
+
+// Seeding parameters for exp rate seeding
+SEEDING_START_DATE = 0; // When to start seeding (with respect to simulator time)
+SEEDING_DURATION = 23;  // For how long to seed (days) (March 1 - March 23)
+SEEDING_DOUBLING_TIME = 4.18;	// Days after which the number of seeds double.
+SEEDING_RATE_SCALE = 1;
+CALIB_NO_INTERVENTION_DURATION = 24; // Lockdown starts from March 25
+CALIB_LOCKDOWN_DURATION = 21;
 
 //global variables. 
 NUM_PEOPLE = 100000; // Number of people. Will change once file is read.
@@ -24,6 +33,7 @@ NUM_SCHOOLS = 0;
 NUM_DISEASE_STATES = 7; //0-S, 1-E, 2-I, 3-Symp,4-R, 5-H, 6-C, 7-D
 
 //Various interventions. These will need to be generalised soon.
+const CALIBRATION = -1
 const NO_INTERVENTION = 0
 const CASE_ISOLATION = 1
 const HOME_QUARANTINE = 2
@@ -129,6 +139,9 @@ COMPLIANCE_PROBABILITY = set_compliance();
 function set_compliance(){
 	var val = 1;
 	switch(INTERVENTION) {
+		case CALIBRATION:
+			   val = 0.9; //No effect.
+		  break;
 		case NO_INTERVENTION:
 			   val = 0.9; //No effect.
 		  break;
@@ -324,6 +337,24 @@ function infection_seeding(nodes,seed_count,curr_time){
 	console.log(curr_time/SIM_STEPS_PER_DAY,num_individuals_to_seed);
 }
 
+function infection_seeding_exp_rate(nodes,curr_time){
+	if(curr_time >= SEEDING_START_DATE*SIM_STEPS_PER_DAY && curr_time < (SEEDING_START_DATE+SEEDING_DURATION)*SIM_STEPS_PER_DAY){
+		var time_since_seeding_start = curr_time-SEEDING_START_DATE*SIM_STEPS_PER_DAY;
+		var seed_doubling_time = SEEDING_DOUBLING_TIME*SIM_STEPS_PER_DAY;
+		var current_seeding_rate = SEEDING_RATE_SCALE*pow(2,time_since_seeding_start/seed_doubling_time);
+		var num_seeds_curr_time = d3.randomPoisson(current_seeding_rate)();
+		var num_seeded = 0;
+		console.log(curr_time, num_seeds_curr_time);
+		while(num_seeded < num_seeds_curr_time){
+			let individual_index = d3.randomInt(0,NUM_PEOPLE)();
+			if(nodes[individual_index]['infection_status']==SUSCEPTIBLE){
+				nodes[individual_index]['infection_status']=EXPOSED;
+				nodes[individual_index]['time_of_infection'] = curr_time; //*Math.random(); //TODO. Need to revisit.
+				num_seeded++;
+			}
+		}
+	}
+}
 
 // This is a multiplication factor that quantifies an individual's infective status given the infection state.
 function kappa_T(node, cur_time){
@@ -1313,6 +1344,9 @@ let csvContent_alltogether = "data:text/csv;charset=utf-8,";
 
 function update_all_kappa(nodes,homes,workplaces,communities,cur_time){
 	switch(INTERVENTION){
+		case CALIBRATION:
+			get_kappa_CALIBRATION(nodes, homes, workplaces, communities,cur_time);
+			break;
 		case NO_INTERVENTION:
 			get_kappa_no_intervention(nodes, homes, workplaces, communities,cur_time);
 			break;
@@ -1397,9 +1431,14 @@ function run_simulation() {
 
 	for(var time_step = 0; time_step < NUM_TIMESTEPS; time_step++) {
 		//console.log(time_step/SIM_STEPS_PER_DAY);
+		
+		//seeding strategies
 		if(SEEDING_MODE == SEED_INFECTION_RATES && time_step < seed_array.length){
 			infection_seeding(nodes,seed_array[time_step],time_step);
+		} else if(SEEDING_MODE == SEED_EXP_RATE){
+			infection_seeding_exp_rate( nodes, time_step);
 		}
+
 		for (var j=0; j<NUM_PEOPLE; j++){
 			update_infection(nodes[j],time_step);
 			//update_kappa(nodes[j], time_step);
@@ -1464,7 +1503,7 @@ function run_simulation() {
 		days_num_recovered.push([time_step/SIM_STEPS_PER_DAY, n_recovered]);
 		
 		//var n_affected = nodes.reduce(function(partial_sum, node) {return partial_sum + ((node['infection_status']) ? 1 : 0);}, 0);
-		days_num_affected.push([time_step/SIM_STEPS_PER_DAY, NUM_AFFECTED_COUNT]);
+		days_num_affected.push([time_step/SIM_STEPS_PER_DAY, (NUM_AFFECTED_COUNT)]);
 
 		let row = [time_step/SIM_STEPS_PER_DAY,NUM_AFFECTED_COUNT,n_recovered,n_infected,n_exposed,n_hospitalised,n_critical,n_fatalities,LAMBDA_INFECTION_MEAN[0],LAMBDA_INFECTION_MEAN[1],LAMBDA_INFECTION_MEAN[2]].join(",");
 			csvContent_alltogether += row + "\r\n";
@@ -1491,6 +1530,10 @@ function update_sim_progress_status(time_step,num_time_steps){
 */
 
 function plot_lambda_evolution(data,plot_position,title_text,legends) {
+	if(data[0] == undefined){
+		//If there is no data to plot, return.
+		return;
+	}
 	var trace = [];
 
 	for (var count = 0; count < data.length;count++){

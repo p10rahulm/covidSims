@@ -412,3 +412,15 @@ function get_kappa_LD_21_CI_HQ_SD70_SC_OE_30(nodes, homes, workplaces, communiti
 		get_kappa_no_intervention(nodes, homes, workplaces, communities,cur_time);
 	}
 }
+
+function get_kappa_CALIBRATION(nodes, homes, workplaces, communities,cur_time){
+	const FIRST_PERIOD = CALIB_NO_INTERVENTION_DURATION;
+	const SECOND_PERIOD = CALIB_LOCKDOWN_DURATION;
+	if(cur_time < FIRST_PERIOD*SIM_STEPS_PER_DAY){
+		get_kappa_no_intervention(nodes, homes, workplaces, communities,cur_time);
+	}else if(cur_time < (FIRST_PERIOD+SECOND_PERIOD)*SIM_STEPS_PER_DAY){
+		get_kappa_lockdown(nodes, homes, workplaces, communities,cur_time);
+	} else {
+		get_kappa_lockdown(nodes, homes, workplaces, communities,cur_time);
+	}
+}
