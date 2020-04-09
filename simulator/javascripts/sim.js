@@ -17,10 +17,10 @@ SEEDING_MODE = SEED_EXP_RATE;
 
 // Seeding parameters for exp rate seeding
 SEEDING_START_DATE = 0; // When to start seeding (with respect to simulator time)
-SEEDING_DURATION = 24;  // For how long to seed (days) (March 1 - March 23)
-SEEDING_DOUBLING_RATE = 4.18;	// Days after which the number of seeds double.
+SEEDING_DURATION = 23;  // For how long to seed (days) (March 1 - March 23)
+SEEDING_DOUBLING_TIME = 4.18;	// Days after which the number of seeds double.
 SEEDING_RATE_SCALE = 1;
-CALIB_NO_INTERVENTION_DURATION = SEEDING_DURATION;
+CALIB_NO_INTERVENTION_DURATION = 24; // Lockdown starts from March 25
 CALIB_LOCKDOWN_DURATION = 21;
 
 //global variables. 
@@ -337,11 +337,11 @@ function infection_seeding(nodes,seed_count,curr_time){
 	console.log(curr_time/SIM_STEPS_PER_DAY,num_individuals_to_seed);
 }
 
-function infection_seeding_constant_rate(nodes,curr_time){
-	if(curr_time >= SEEDING_START_DATE*SIM_STEPS_PER_DAY && curr_time < SEEDING_DURATION*SIM_STEPS_PER_DAY){
+function infection_seeding_exp_rate(nodes,curr_time){
+	if(curr_time >= SEEDING_START_DATE*SIM_STEPS_PER_DAY && curr_time < (SEEDING_START_DATE+SEEDING_DURATION)*SIM_STEPS_PER_DAY){
 		var time_since_seeding_start = curr_time-SEEDING_START_DATE*SIM_STEPS_PER_DAY;
-		var seed_doubling_rate = SEEDING_DOUBLING_RATE*SIM_STEPS_PER_DAY;
-		var current_seeding_rate = (time_since_seeding_start+1)*SEEDING_RATE_SCALE*(2/seed_doubling_rate);
+		var seed_doubling_time = SEEDING_DOUBLING_TIME*SIM_STEPS_PER_DAY;
+		var current_seeding_rate = SEEDING_RATE_SCALE*pow(2,time_since_seeding_start/seed_doubling_time);
 		var num_seeds_curr_time = d3.randomPoisson(current_seeding_rate)();
 		var num_seeded = 0;
 		console.log(curr_time, num_seeds_curr_time);
@@ -1436,7 +1436,7 @@ function run_simulation() {
 		if(SEEDING_MODE == SEED_INFECTION_RATES && time_step < seed_array.length){
 			infection_seeding(nodes,seed_array[time_step],time_step);
 		} else if(SEEDING_MODE == SEED_EXP_RATE){
-			infection_seeding_constant_rate( nodes, time_step);
+			infection_seeding_exp_rate( nodes, time_step);
 		}
 
 		for (var j=0; j<NUM_PEOPLE; j++){
