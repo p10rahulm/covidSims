@@ -9,15 +9,16 @@ SIM_STEPS_PER_DAY = 4; //Number of simulation steps per day.
 NUM_TIMESTEPS = NUM_DAYS*SIM_STEPS_PER_DAY; //
 INIT_FRAC_INFECTED = 0.001; // Initial number of people infected
 SEED_SCALING_FACTOR = 1.5;
+SEED_WARD_FRACTION_UNIFORM = true
 const RANDOM_SEEDING_WARDWISE = 0;
 const SEED_FROM_INDIVIDUALS_JSON = 1;
 const SEED_INFECTION_RATES = 2;
 const SEED_EXP_RATE = 3;
-SEEDING_MODE = SEED_EXP_RATE;
+SEEDING_MODE = RANDOM_SEEDING_WARDWISE;
 
 // Seeding parameters for exp rate seeding
 SEEDING_START_DATE = 0; // When to start seeding (with respect to simulator time)
-SEEDING_DURATION = 23;  // For how long to seed (days) (March 1 - March 23)
+SEEDING_DURATION = 22;  // For how long to seed (days) (March 1 - March 23)
 SEEDING_DOUBLING_TIME = 4.18;	// Days after which the number of seeds double.
 SEEDING_RATE_SCALE = 1;
 CALIB_NO_INTERVENTION_DURATION = 24; // Lockdown starts from March 25
@@ -63,7 +64,7 @@ const DEAD = 7
 
 let csvContent = "data:text/csv;charset=utf-8,"; //for file dump
 
-INCUBATION_PERIOD = 2.25
+INCUBATION_PERIOD = 2.3
 MEAN_ASYMPTOMATIC_PERIOD = 0.5
 MEAN_SYMPTOMATIC_PERIOD = 5
 MEAN_HOSPITAL_REGULAR_PERIOD = 8
@@ -192,7 +193,10 @@ function compute_prob_infection_given_community(infection_probability,set_unifor
 
 	var prob_infec_given_community = [];
 	var communities_population_json = JSON.parse(loadJSON_001('input_files/fractionPopulation.json'));
-	var communities_frac_quarantined_json = JSON.parse(loadJSON_001('input_files/quarantinedPopulation.json'));
+	if(!set_uniform){
+		var communities_frac_quarantined_json = JSON.parse(loadJSON_001('input_files/quarantinedPopulation.json'));
+	}
+	
 	var num_communities = communities_population_json.length;
 	for (var w = 0; w < num_communities; w++){
 		if(SEEDING_MODE==RANDOM_SEEDING_WARDWISE){
@@ -231,7 +235,9 @@ function init_nodes() {
 	NUM_PEOPLE =individuals_json.length;
 	NUM_WORKPLACES = workplace_json.length;
 	//console.log("Num People", NUM_PEOPLE, "Num Workspaces",NUM_WORKPLACES)
-	COMMUNITY_INFECTION_PROB = compute_prob_infection_given_community(INIT_FRAC_INFECTED,false);
+	if(SEEDING_MODE==RANDOM_SEEDING_WARDWISE){
+		COMMUNITY_INFECTION_PROB = compute_prob_infection_given_community(INIT_FRAC_INFECTED,SEED_WARD_FRACTION_UNIFORM);
+	}
 	//console.log(COMMUNITY_INFECTION_PROB)
 	var nodes = [];
 	var stream1 = new Random(1234);
@@ -251,7 +257,7 @@ function init_nodes() {
 			'workplace': individuals_json[i]['workplaceType']==1? individuals_json[i]['workplace']:individuals_json[i]['school'],
 			'community': individuals_json[i]['wardNo']-1, //minus one is temporary as the ward number indexing starts from 1,
 			'time_of_infection': 0,
-			'infection_status': (Math.random() <COMMUNITY_INFECTION_PROB[individuals_json[i]['wardNo']-1])?1:0, //random seeding
+			'infection_status': 0, //
 			'infective': 0,
 			'lambda_h': 0, //individuals contribution to his home cluster
 			'lambda_w': 0, //individuals contribution to his workplace cluster
@@ -301,8 +307,13 @@ function init_nodes() {
 
 		if(SEEDING_MODE==SEED_FROM_INDIVIDUALS_JSON){
 			node['infection_status'] = individuals_json[i]['infection_status'];
-			node['time_of_infection'] = node['infection_status']==EXPOSED?(individuals_json[i]['time_since_infected']*SIM_STEPS_PER_DAY-node['incubation_period']):0;
-		}		
+			node['time_of_infection'] = node['infection_status']==EXPOSED?(individuals_json[i]['time_of_infection']*SIM_STEPS_PER_DAY-node['incubation_period']):0;
+			/*if(node['infection_status']==EXPOSED){
+				console.log(node['time_of_infection']);
+			}*/
+		} else if(SEEDING_MODE==RANDOM_SEEDING_WARDWISE){
+			node['infection_status'] = (Math.random() <COMMUNITY_INFECTION_PROB[individuals_json[i]['wardNo']-1])?1:0
+		}
 		nodes.push(node)
 	
 	}
@@ -330,7 +341,7 @@ function infection_seeding(nodes,seed_count,curr_time){
 		let individual_index = d3.randomInt(0,NUM_PEOPLE)();
 		if(nodes[individual_index]['infection_status']==SUSCEPTIBLE){
 			nodes[individual_index]['infection_status']=EXPOSED;
-			nodes[individual_index]['time_of_infection'] = curr_time-nodes[individual_index]['incubation_period']; //*Math.random(); //TODO. Need to revisit.
+			nodes[individual_index]['time_of_infection'] = curr_time; //*Math.random(); //TODO. Need to revisit.
 			num_seeded++;
 		}
 	}
@@ -341,7 +352,7 @@ function infection_seeding_exp_rate(nodes,curr_time){
 	if(curr_time >= SEEDING_START_DATE*SIM_STEPS_PER_DAY && curr_time < (SEEDING_START_DATE+SEEDING_DURATION)*SIM_STEPS_PER_DAY){
 		var time_since_seeding_start = curr_time-SEEDING_START_DATE*SIM_STEPS_PER_DAY;
 		var seed_doubling_time = SEEDING_DOUBLING_TIME*SIM_STEPS_PER_DAY;
-		var current_seeding_rate = SEEDING_RATE_SCALE*pow(2,time_since_seeding_start/seed_doubling_time);
+		var current_seeding_rate = SEEDING_RATE_SCALE*Math.pow(2,time_since_seeding_start/seed_doubling_time);
 		var num_seeds_curr_time = d3.randomPoisson(current_seeding_rate)();
 		var num_seeded = 0;
 		console.log(curr_time, num_seeds_curr_time);
@@ -1430,7 +1441,7 @@ function run_simulation() {
 	
 
 	for(var time_step = 0; time_step < NUM_TIMESTEPS; time_step++) {
-		//console.log(time_step/SIM_STEPS_PER_DAY);
+		console.log(time_step/SIM_STEPS_PER_DAY);
 		
 		//seeding strategies
 		if(SEEDING_MODE == SEED_INFECTION_RATES && time_step < seed_array.length){
