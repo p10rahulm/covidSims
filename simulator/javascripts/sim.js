@@ -1,7 +1,7 @@
 //Copyright [2020] [Indian Institute of Science, Bangalore]
 //SPDX-License-Identifier: Apache-2.0
 
-const WEBPAGE_VERSION = true;
+const WEBPAGE_VERSION = false;
 //simulation inputs
 
 NUM_DAYS = 120; //Number of days. Simulation duration
@@ -34,6 +34,8 @@ NUM_SCHOOLS = 0;
 NUM_DISEASE_STATES = 7; //0-S, 1-E, 2-I, 3-Symp,4-R, 5-H, 6-C, 7-D
 
 //Various interventions. These will need to be generalised soon.
+CALIBRATION_DELAY = 0; //// Assuming the simulator starts on March 1.
+NUM_DAYS_BEFORE_INTERVENTIONS = 24 + CALIBRATION_DELAY;
 const CALIBRATION = -1
 const NO_INTERVENTION = 0
 const CASE_ISOLATION = 1
@@ -1354,45 +1356,52 @@ function update_lambda_stats(node){
 let csvContent_alltogether = "data:text/csv;charset=utf-8,";
 
 function update_all_kappa(nodes,homes,workplaces,communities,cur_time){
-	switch(INTERVENTION){
-		case CALIBRATION:
-			get_kappa_CALIBRATION(nodes, homes, workplaces, communities,cur_time);
-			break;
-		case NO_INTERVENTION:
-			get_kappa_no_intervention(nodes, homes, workplaces, communities,cur_time);
-			break;
-		case CASE_ISOLATION:
-			get_kappa_case_isolation(nodes, homes, workplaces, communities,cur_time);
-			break;
-		case HOME_QUARANTINE:
-			get_kappa_home_quarantine(nodes, homes, workplaces, communities,cur_time);
-			break;
-		case LOCKDOWN:
-			get_kappa_lockdown(nodes, homes, workplaces, communities,cur_time);
-			break;
-		case CASE_ISOLATION_AND_HOME_QUARANTINE:
-			get_kappa_CI_HQ(nodes, homes, workplaces, communities,cur_time);
-			break;
-		case CASE_ISOLATION_AND_HOME_QUARANTINE_SD_70_PLUS:
-			get_kappa_CI_HQ_70P(nodes, homes, workplaces, communities,cur_time);
-			break;
-		case LOCKDOWN_21_CI_HQ_SD_70_PLUS_21_CI:
-			get_kappa_LOCKDOWN_21_CI_HQ_SD_70_PLUS_21_CI(nodes, homes, workplaces, communities,cur_time);
-			break;
-		case LOCKDOWN_21:
-			get_kappa_LOCKDOWN_21(nodes, homes, workplaces, communities,cur_time);
-			break;
-		case LD_21_CI_HQ_SD70_SC_21_SC_42:
-			get_kappa_LD_21_CI_HQ_SD70_SC_21_SC_42(nodes, homes, workplaces, communities,cur_time);
-			break;
-		case LD_21_CI_HQ_SD70_SC_21:
-			get_kappa_LD_21_CI_HQ_SD70_SC_21(nodes, homes, workplaces, communities,cur_time);
-			break;
-		case LD_21_CI_HQ_SD70_SC_OE_30:
-			get_kappa_LD_21_CI_HQ_SD70_SC_OE_30(nodes, homes, workplaces, communities,cur_time);
-			break;
-		default:
-			break;
+	var current_time = cur_time;
+	if(current_time < NUM_DAYS_BEFORE_INTERVENTIONS*SIM_STEPS_PER_DAY){
+		get_kappa_no_intervention(nodes, homes, workplaces, communities,current_time);
+	}
+	else{
+		//current_time = current_time - NUM_DAYS_BEFORE_INTERVENTIONS*SIM_STEPS_PER_DAY;
+		switch(INTERVENTION){
+			case CALIBRATION:
+				get_kappa_CALIBRATION(nodes, homes, workplaces, communities,current_time);
+				break;
+			case NO_INTERVENTION:
+				get_kappa_no_intervention(nodes, homes, workplaces, communities,current_time);
+				break;
+			case CASE_ISOLATION:
+				get_kappa_case_isolation(nodes, homes, workplaces, communities,current_time);
+				break;
+			case HOME_QUARANTINE:
+				get_kappa_home_quarantine(nodes, homes, workplaces, communities,current_time);
+				break;
+			case LOCKDOWN:
+				get_kappa_lockdown(nodes, homes, workplaces, communities,current_time);
+				break;
+			case CASE_ISOLATION_AND_HOME_QUARANTINE:
+				get_kappa_CI_HQ(nodes, homes, workplaces, communities,current_time);
+				break;
+			case CASE_ISOLATION_AND_HOME_QUARANTINE_SD_70_PLUS:
+				get_kappa_CI_HQ_70P(nodes, homes, workplaces, communities,current_time);
+				break;
+			case LOCKDOWN_21_CI_HQ_SD_70_PLUS_21_CI:
+				get_kappa_LOCKDOWN_21_CI_HQ_SD_70_PLUS_21_CI(nodes, homes, workplaces, communities,current_time);
+				break;
+			case LOCKDOWN_21:
+				get_kappa_LOCKDOWN_21(nodes, homes, workplaces, communities,current_time);
+				break;
+			case LD_21_CI_HQ_SD70_SC_21_SC_42:
+				get_kappa_LD_21_CI_HQ_SD70_SC_21_SC_42(nodes, homes, workplaces, communities,current_time);
+				break;
+			case LD_21_CI_HQ_SD70_SC_21:
+				get_kappa_LD_21_CI_HQ_SD70_SC_21(nodes, homes, workplaces, communities,current_time);
+				break;
+			case LD_21_CI_HQ_SD70_SC_OE_30:
+				get_kappa_LD_21_CI_HQ_SD70_SC_OE_30(nodes, homes, workplaces, communities,current_time);
+				break;
+			default:
+				break;
+		}
 	}
 }
 
@@ -1508,7 +1517,7 @@ function run_simulation() {
 		days_num_critical.push([time_step/SIM_STEPS_PER_DAY, n_critical]);
 		
 		var n_fatalities = nodes.reduce(function(partial_sum, node) {return partial_sum + ((node['infection_status']==DEAD) ? 1 : 0);}, 0);
-		days_num_fatalities.push([time_step/SIM_STEPS_PER_DAY, n_fatalities]);
+		days_num_fatalities.push([time_step/SIM_STEPS_PER_DAY, (n_fatalities)]);
 		
 		var n_recovered = nodes.reduce(function(partial_sum, node) {return partial_sum + ((node['infection_status']==RECOVERED) ? 1 : 0);}, 0);
 		days_num_recovered.push([time_step/SIM_STEPS_PER_DAY, n_recovered]);
