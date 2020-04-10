@@ -34,7 +34,7 @@ def click_on_button(driver, id_name):
     element.click()
     return (True)    
 
-download_dir = '/home/niheshkumarr/Documents/COVID-19/sim_data/temp_files/'
+download_dir = 'C:\temp'
 result_dir = './data/'
 
 options = Options()
@@ -58,7 +58,7 @@ CASE_ISOLATION_AND_HOME_QUARANTINE_SD_70_PLUS = 5
 LOCKDOWN_21_CI_HQ_SD_70_PLUS_21_CI = 6
 LOCKDOWN_21 = 7
 
-NUM_SIM = 100
+NUM_SIM = 2
 MULT_FACTOR = 1
 EPSILON = 0.025
 
@@ -93,10 +93,10 @@ while (continue_run):
         set_text_field(driver, 'symtomaticFraction', 0.5)
         set_text_field(driver, 'meanHospitalPeriod', 8)
         set_text_field(driver, 'meanICUPeriod', 8)
-        set_text_field(driver, 'betaHouse', BETA_HOUSE*BETA_SCALE_FACTOR)
-        set_text_field(driver, 'betaWork', BETA_WORK*BETA_SCALE_FACTOR)
-        set_text_field(driver, 'betaSchools', BETA_SCHOOL*BETA_SCALE_FACTOR)
-        set_text_field(driver, 'betaCommunity', BETA_COMMUNITY*BETA_SCALE_FACTOR)
+        set_text_field(driver, 'betaHouse', BETA_HOUSE)
+        set_text_field(driver, 'betaWork', BETA_WORK)
+        set_text_field(driver, 'betaSchools', BETA_SCHOOL)
+        set_text_field(driver, 'betaCommunity', BETA_COMMUNITY)
         set_text_field(driver, 'betaPT', 0)
         set_text_field(driver, 'initFrac', 0.0001*INIT_FRAC_SCALE_FACTOR)
         set_text_field(driver, 'compliance', 0.9)
@@ -118,18 +118,18 @@ while (continue_run):
     # error_r0 = target_r0 - sim_r0
     
     
-    [flag, init_frac_mult_factor, step_beta_h, step_beta_w, step_beta_c, delay] = calibrate(resolution,count)
+    [flag, BETA_SCALE_FACTOR, step_beta_h, step_beta_w, step_beta_c, delay] = calibrate(resolution,count)
     count+=1    
     if flag == True:
         continue_run = False
     else:
-        BETA_HOUSE = BETA_HOUSE + step_beta_h
-        BETA_WORK = BETA_WORK + step_beta_w
-        BETA_SCHOOL = BETA_SCHOOL + step_beta_w
-        BETA_COMMUNITY = BETA_COMMUNITY + step_beta_c
-        #BETA_SCALE_FACTOR = beta_mult_factor
-        INIT_FRAC_SCALE_FACTOR = INIT_FRAC_SCALE_FACTOR*init_frac_mult_factor
+        print ('Flag: ', flag, 'BETA_HOUSE ', BETA_HOUSE, 'BETA_WORK',BETA_WORK, 'BETA_SCHOOL:', BETA_SCHOOL, 'BETA_COMMUNITY:', BETA_COMMUNITY )
+        print ('Successfully created ', file_count, ' simulation files..')   
+ 
+        BETA_HOUSE = max(BETA_HOUSE + step_beta_h,0)*BETA_SCALE_FACTOR
+        BETA_WORK = max(BETA_WORK + step_beta_w,0)*BETA_SCALE_FACTOR
+        BETA_SCHOOL = max(BETA_SCHOOL + step_beta_w,0)*BETA_SCALE_FACTOR
+        BETA_COMMUNITY = max(BETA_COMMUNITY + step_beta_c,0)*BETA_SCALE_FACTOR
+        #INIT_FRAC_SCALE_FACTOR = INIT_FRAC_SCALE_FACTOR*init_frac_mult_factor
 
-    print ('Flag: ', flag, 'BETA_HOUSE ', BETA_HOUSE, 'BETA_WORK',BETA_WORK, 'BETA_SCHOOL:', BETA_SCHOOL, 'BETA_COMMUNITY:', BETA_COMMUNITY )
-    print ('Successfully created ', file_count, ' simulation files..')   
-    
+ 
