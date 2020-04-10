@@ -111,9 +111,9 @@ while (continue_run):
 
     driver.quit()
     
-    calculate_means(download_dir, result_dir)
-    sim_r0 = calculate_r0(10, 27, 4) 
-    error_r0 = target_r0 - sim_r0
+    # calculate_means(download_dir, result_dir)
+    # sim_r0 = calculate_r0(10, 27, 4) 
+    # error_r0 = target_r0 - sim_r0
     
     
     [flag, init_frac_mult_factor, step_beta_h, step_beta_w, step_beta_c, beta_mult_factor] = calibrate(4,number_of_days,count)
