@@ -3,6 +3,7 @@
 
 from calculate_means import calculate_means
 from calculate_r0 import calculate_r0
+from calibrate import calibrate
 import os
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -64,8 +65,18 @@ EPSILON = 0.025
 continue_run = True
 
 target_r0 = 2.473
+count = 1
 
+BETA_HOUSE = 0.47
+BETA_WORK = 0.47
+BETA_SCHOOL = 0.94
+BETA_COMMUNITY =  0.097*3.5
+BETA_SCALE_FACTOR = 1
+INIT_FRAC_SCALE_FACTOR = 1
+
+number_of_days = 27 # number of days to calibrate
 while (continue_run):
+    
     clear_dir(download_dir)
     driver = webdriver.Chrome(executable_path=driverLocation, options=options)
     driver.get('http://localhost:8000')
@@ -80,11 +91,12 @@ while (continue_run):
         set_text_field(driver, 'symtomaticFraction', 0.5)
         set_text_field(driver, 'meanHospitalPeriod', 8)
         set_text_field(driver, 'meanICUPeriod', 8)
-        set_text_field(driver, 'betaHouse', 0.47*MULT_FACTOR)
-        set_text_field(driver, 'betaWork', 0.47*MULT_FACTOR)
-        set_text_field(driver, 'betaSchools', 0.94*MULT_FACTOR)
-        set_text_field(driver, 'betaCommunity', 0.097*3.5*MULT_FACTOR)
-        set_text_field(driver, 'initFrac', 0.0001)
+        set_text_field(driver, 'betaHouse', BETA_HOUSE*BETA_SCALE_FACTOR)
+        set_text_field(driver, 'betaWork', BETA_WORK*BETA_SCALE_FACTOR)
+        set_text_field(driver, 'betaSchools', BETA_SCHOOL*BETA_SCALE_FACTOR)
+        set_text_field(driver, 'betaCommunity', BETA_COMMUNITY*BETA_SCALE_FACTOR)
+        set_text_field(driver, 'betaPT', 0)
+        set_text_field(driver, 'initFrac', 0.0001*INIT_FRAC_SCALE_FACTOR)
         set_text_field(driver, 'compliance', 0.9)
         set_drop_field(driver, 'interventions', NO_INTERVENTION)
         click_on_button(driver, 'run_button')
@@ -102,15 +114,19 @@ while (continue_run):
     calculate_means(download_dir, result_dir)
     sim_r0 = calculate_r0(10, 27, 4) 
     error_r0 = target_r0 - sim_r0
+    
+    
+    [flag, init_frac_mult_factor, step_beta_h, step_beta_w, step_beta_c, beta_mult_factor] = calibrate(4,number_of_days,count)
+    count+=1    
+    if flag == True:
+        continue_run = False
+    else:
+        BETA_HOUSE = (BETA_HOUSE + step_beta_h)*beta_mult_factor
+        BETA_WORK = (BETA_WORK + step_beta_w)*beta_mult_factor
+        BETA_SCHOOL = (BETA_SCHOOL + step_beta_w)*beta_mult_factor
+        BETA_COMMUNITY = (BETA_COMMUNITY + step_beta_c)*beta_mult_factor
+        INIT_FRAC_SCALE_FACTOR = INIT_FRAC_SCALE_FACTOR*init_frac_mult_factor
 
-    print ('Simulation R0: ', sim_r0, 'Multiplication factor: ', MULT_FACTOR)
+    print ('Flag: ', flag, 'INIT_FRAC_SCALE_FACTOR: ', INIT_FRAC_SCALE_FACTOR, 'BETA_MULT_FACTOR',beta_mult_factor)
     print ('Successfully created ', file_count, ' simulation files..')   
     
-    if (abs(error_r0)>EPSILON and error_r0>0):
-        MULT_FACTOR += 0.5*abs(error_r0)
-    elif (abs(error_r0)>EPSILON and error_r0<0):
-        MULT_FACTOR -= 0.5*abs(error_r0)
-    else:
-        continue_run = False
-
-
