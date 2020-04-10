@@ -75,6 +75,8 @@ BETA_SCALE_FACTOR = 1
 INIT_FRAC_SCALE_FACTOR = 1
 
 number_of_days = 27 # number of days to calibrate
+resolution = 4 # number of steps per day
+
 while (continue_run):
     
     clear_dir(download_dir)
@@ -111,22 +113,23 @@ while (continue_run):
 
     driver.quit()
     
-    # calculate_means(download_dir, result_dir)
+    calculate_means(download_dir, result_dir)
     # sim_r0 = calculate_r0(10, 27, 4) 
     # error_r0 = target_r0 - sim_r0
     
     
-    [flag, init_frac_mult_factor, step_beta_h, step_beta_w, step_beta_c, beta_mult_factor] = calibrate(4,number_of_days,count)
+    [flag, init_frac_mult_factor, step_beta_h, step_beta_w, step_beta_c, delay] = calibrate(resolution,count)
     count+=1    
     if flag == True:
         continue_run = False
     else:
-        BETA_HOUSE = (BETA_HOUSE + step_beta_h)*beta_mult_factor
-        BETA_WORK = (BETA_WORK + step_beta_w)*beta_mult_factor
-        BETA_SCHOOL = (BETA_SCHOOL + step_beta_w)*beta_mult_factor
-        BETA_COMMUNITY = (BETA_COMMUNITY + step_beta_c)*beta_mult_factor
+        BETA_HOUSE = BETA_HOUSE + step_beta_h
+        BETA_WORK = BETA_WORK + step_beta_w
+        BETA_SCHOOL = BETA_SCHOOL + step_beta_w
+        BETA_COMMUNITY = BETA_COMMUNITY + step_beta_c
+        #BETA_SCALE_FACTOR = beta_mult_factor
         INIT_FRAC_SCALE_FACTOR = INIT_FRAC_SCALE_FACTOR*init_frac_mult_factor
 
-    print ('Flag: ', flag, 'INIT_FRAC_SCALE_FACTOR: ', INIT_FRAC_SCALE_FACTOR, 'BETA_MULT_FACTOR',beta_mult_factor)
+    print ('Flag: ', flag, 'BETA_HOUSE ', BETA_HOUSE, 'BETA_WORK',BETA_WORK, 'BETA_SCHOOL:', BETA_SCHOOL, 'BETA_COMMUNITY:', BETA_COMMUNITY )
     print ('Successfully created ', file_count, ' simulation files..')   
     
