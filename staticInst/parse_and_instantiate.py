@@ -93,7 +93,7 @@ def instantiate(city, targetPopulation, averageStudents, averageWorkforce):
 	
 	print("instantiating individuals to schools...")
 	start = time.time()
-	individuals[2], schools = assign_schools(individuals[2], cityGeoDF,  schoolDistribution)
+	individuals[2], schools = assign_schools(individuals[2], cityGeoDF,  schoolDistribution,averageStudents)
 	print("instantiating individuals to schools completed in ", time.time() - start)
 	
 	
