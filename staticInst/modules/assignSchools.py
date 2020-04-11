@@ -31,7 +31,7 @@ def extrapolate_school_size_distribution(schoolDistribution,avgSchoolsize):
     schoolsize_distribution = np.array(schoolsize_distribution)
     schoolsize_distribution = schoolsize_distribution/np.sum(schoolsize_distribution)
     mean_school_size = np.dot(schoolsize_values,schoolsize_distribution)
-    schoolsize_values = np.floor((avgSchoolsize/mean_school_size)*schoolsize_values)
+    schoolsize_values = np.floor((avgSchoolsize/mean_school_size)*schoolsize_values).astype(int)
     
     return schoolsize_values, schoolsize_distribution
 
