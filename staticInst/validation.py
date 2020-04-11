@@ -10,6 +10,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import scipy.stats as stats
 import math
+from modules.assignSchools import *
+
 
 # compute haversine distance
 def distance(lat1, lon1, lat2, lon2):
@@ -31,13 +33,16 @@ def travel_distance_distribution(m_min,m_max,a,b):
     temp = np.array(temp)
     return temp/np.sum(temp)
 
-def validate_distributions(city):
+def validate_distributions(city,avgSchoolsize):
     # read parameters based on city
     cityprofile = pd.read_json('./data/base/'+city+'/cityProfile.json')
     m_max_commuter_distance = cityprofile['maxWorkplaceDistance'].values[1]
     ageDistribution = cityprofile['age']['weights']
     householdSizes = cityprofile['householdSize']['bins']
     householdDistribution = cityprofile['householdSize']['weights']
+    schoolsizeDistribution = cityprofile['schoolsSize']['weights']
+    [school_sizes, schoolsize_distiribution] = extrapolate_school_size_distribution(schoolsizeDistribution,avgSchoolsize)
+    
     
     a_workplacesize = 3.26
     c_workplacesize = 0.97
@@ -108,12 +113,17 @@ def validate_distributions(city):
     # household size
     full_frame = np.array([len(np.where(individuals['household'] == i)[0]) for i in np.unique(individuals['household'].values)])    
     householdsize_output = [len(np.where(full_frame == j)[0]) for j in household_sizes]/np.sum([len(np.where(full_frame == j)[0]) for j in household_sizes])    
+    # schoolsize
+    full_frame = np.floor(np.array([len(np.where(individuals['school'] == i)[0]) for i in np.unique(individuals['school'].values)[~np.isnan(np.unique(individuals['school'].values))]])/100).astype(int)
+    schoolsize_output = [len(np.where(full_frame == j)[0]) for j in np.arange(0,len(schoolsizeDistribution))] / np.sum([len(np.where(full_frame == j)[0]) for j in np.arange(0,len(schoolsizeDistribution))])
     # workplace size
     full_frame = np.array([len(np.where(individuals['workplace'] == i)[0]) for i in np.unique(individuals['workplace'].values)[~np.isnan(np.unique(individuals['workplace'].values))]])
     workplacesize_output = [len(np.where(full_frame == j)[0]) for j in workplace_sizes] / np.sum([len(np.where(full_frame == j)[0]) for j in workplace_sizes])    
     # commuter distance
     full_frame = np.array([distance(individuals.loc[i,'lat'],individuals.loc[i,'lon'],wp.loc[wp.index==int(individuals.loc[i,'workplace']),'lat'],wp.loc[wp.index==int(individuals.loc[i,'workplace']),'lon']) for i in np.where(individuals['workplaceType']==1)[0]])        
     commuter_distance_output = [len(np.where(np.array(np.floor(full_frame),dtype=int) ==i)[0]) for i in np.arange(0,m_max_commuter_distance)]/np.sum([len(np.where(np.array(np.floor(full_frame),dtype=int) ==i)[0]) for i in np.arange(0,m_max_commuter_distance)])
+    
+    
     
     # plots
     
@@ -144,6 +154,20 @@ def validate_distributions(city):
     plt.show()
     plt.close()
     
+
+    # plot  schoolsize  distribution
+    plt.plot(np.arange(0,len(schoolsizeDistribution)),schoolsize_output,'r',label='Instantiation')
+    plt.plot(np.arange(0,len(schoolsizeDistribution)),schoolsizeDistribution,label='Data')
+    xlabel = np.arange(0,len(schoolsizeDistribution))
+    plt.xticks(xlabel, np.concatenate((np.arange(1,10)*100, [str('901+')])))
+    plt.xlabel('School size')
+    plt.ylabel('Density')
+    plt.legend()
+    plt.title('Distribution of school size')
+    plt.grid(True)
+    plt.savefig('school_size')
+    plt.show()
+    plt.close()
     
     workplace_distribution = p_n
     plt.plot(np.log10(workplace_sizes),np.log10(workplacesize_output),'r',label='Instantiation')
