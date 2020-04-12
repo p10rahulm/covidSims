@@ -1406,6 +1406,11 @@ function update_all_kappa(nodes,homes,workplaces,communities,cur_time){
 }
 
 
+function runday(timestep){
+
+}
+
+
 function run_simulation() {
 	
 	var homes = init_homes();
@@ -1464,7 +1469,7 @@ function run_simulation() {
 			//update_kappa(nodes[j], time_step);
 			update_psi(nodes[j], time_step);
 		}
-		update_all_kappa(nodes,homes,workplaces,communities,time_step)
+		update_all_kappa(nodes,homes,workplaces,communities,time_step);
 		for (var h=0; h<NUM_HOMES; h++){
 			homes[h]['age_dependent_mixing'] = update_lambda_h(nodes, homes[h]);
 		}
@@ -1655,40 +1660,51 @@ function plot_simulation(days_num_infected,plot_element,title_1,title_2) {
 	}
 }
 */
+
+
+
+
+function call_plotly(data_tuple) {
+	var plot_values = data_tuple;
+
+	plot_plotly([plot_values[6]],'num_affected_plot_2','Number Affected (cum.)','Evolution of Affected Population');
+	plot_plotly([plot_values[0]],'num_infected_plot_2','Number Infectious (daily)','Evolution of Infected Population');
+	//plot_plotly([plot_values[1]],'num_exposed_plot_2','Number Exposed (daily)','Evolution of Exposed Population');
+	plot_plotly([plot_values[2]],'num_hospitalised_plot_2','Number Hospitalised (daily)','Evolution of Hospitalised Population');
+	plot_plotly([plot_values[3]],'num_critical_plot_2','Number Critical (daily)','Evolution of Critical Population');
+	plot_plotly([plot_values[4]],'num_fatalities_plot_2','Number Fatalities (cum.)','Evolution of Fatalities Population');
+	//plot_plotly([plot_values[5]],'num_recovered_plot_2','Number Recovered (cum.)','Evolution of Recovered Population');
+	plot_lambda_evolution([plot_values[7]],'lambda_evolution','Source of infection',['Home','School/Workplace','Community','Public Transport']);
+
+}
+
 function run_and_plot(intervention) {
-	var returned_values 
-	INTERVENTION = intervention
-	console.log(INTERVENTION, intervention)
+	var returned_values;
+	INTERVENTION = intervention;
+	console.log(INTERVENTION, intervention);
 	returned_values = run_simulation();
-	
-	plot_plotly([returned_values[6]],'num_affected_plot_2','Number Affected (cum.)','Evolution of Affected Population');
-	plot_plotly([returned_values[0]],'num_infected_plot_2','Number Infectious (daily)','Evolution of Infected Population');
-	//plot_plotly([returned_values[1]],'num_exposed_plot_2','Number Exposed (daily)','Evolution of Exposed Population');
-	plot_plotly([returned_values[2]],'num_hospitalised_plot_2','Number Hospitalised (daily)','Evolution of Hospitalised Population');
-	plot_plotly([returned_values[3]],'num_critical_plot_2','Number Critical (daily)','Evolution of Critical Population');
-	plot_plotly([returned_values[4]],'num_fatalities_plot_2','Number Fatalities (cum.)','Evolution of Fatalities Population');
-	//plot_plotly([returned_values[5]],'num_recovered_plot_2','Number Recovered (cum.)','Evolution of Recovered Population');
-	plot_lambda_evolution([returned_values[7]],'lambda_evolution','Source of infection',['Home','School/Workplace','Community','Public Transport'])
+	call_plotly(returned_values);
 
-	var encodedUri = encodeURI(csvContent);
-    var link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "my_data.csv");
-    document.body.appendChild(link); // Required for FF
-	if(!WEBPAGE_VERSION){
-		link.click();	//TODO: Instead of click link, add link for download on page.
-	}
-	
 
-	encodedUri = encodeURI(csvContent_alltogether);
-    link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "my_data_all_together.csv");
-    document.body.appendChild(link); // Required for FF
-	document.getElementById("status").innerHTML="Numbers plotted are per " + String(NUM_PEOPLE)+".";
-	if(!WEBPAGE_VERSION){
-		link.click();	//TODO: Instead of click link, add link for download on page.
-	}
+	// var encodedUri = encodeURI(csvContent);
+    // var link = document.createElement("a");
+    // link.setAttribute("href", encodedUri);
+    // link.setAttribute("download", "my_data.csv");
+    // document.body.appendChild(link); // Required for FF
+	// if(!WEBPAGE_VERSION){
+	// 	link.click();	//TODO: Instead of click link, add link for download on page.
+	// }
+	//
+	//
+	// encodedUri = encodeURI(csvContent_alltogether);
+    // link = document.createElement("a");
+    // link.setAttribute("href", encodedUri);
+    // link.setAttribute("download", "my_data_all_together.csv");
+    // document.body.appendChild(link); // Required for FF
+	// document.getElementById("status").innerHTML="Numbers plotted are per " + String(NUM_PEOPLE)+".";
+	// if(!WEBPAGE_VERSION){
+	// 	link.click();	//TODO: Instead of click link, add link for download on page.
+	// }
 	
 
 }
@@ -1829,7 +1845,7 @@ function runSimulations(){
 
 	INTERVENTION = parseInt(document.getElementById("interventions").value);
 
-	console.log(NUM_DAYS, INIT_FRAC_INFECTED, INTERVENTION)
+	console.log(NUM_DAYS, INIT_FRAC_INFECTED, INTERVENTION);
 	//where simulation starts
 	run_and_plot(INTERVENTION); //run_and_plot(LOCKDOWN_21_CI_HQ_SD_70_PLUS_21_CI);
 //run_and_plot_2();
@@ -1868,5 +1884,5 @@ function set_default_values_html(){
 	document.getElementById("interventions").value = "0";
 }
 
-set_default_values_html()
+set_default_values_html();
 
