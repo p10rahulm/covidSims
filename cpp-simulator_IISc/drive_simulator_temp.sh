@@ -17,8 +17,8 @@ HD_AREA_EXPONENT=0
 INTERVENTION=0
 output_directory_base="outputs/test_output_timing"
 input_directory="../simulator/input_files"
-CALIBRATION_DELAY=10
-DAYS_BEFORE_LOCKDOWN=0
+CALIBRATION_DELAY=22
+DAYS_BEFORE_LOCKDOWN=24
 # Set this to "--SEED_HD_AREA_POPULATION" to seed hd area population
 # as well.
 # SEED_HD_AREA_POPULATION="--SEED_HD_AREA_POPULATION"
