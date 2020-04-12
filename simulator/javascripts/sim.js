@@ -1407,7 +1407,97 @@ function update_all_kappa(nodes,homes,workplaces,communities,cur_time){
 
 
 function runday(timestep){
+	for(var time_step = 0; time_step < NUM_TIMESTEPS; time_step++) {
+		console.log(time_step/SIM_STEPS_PER_DAY);
 
+		//seeding strategies
+		if(SEEDING_MODE == SEED_INFECTION_RATES && time_step < seed_array.length){
+			infection_seeding(nodes,seed_array[time_step],time_step);
+		} else if(SEEDING_MODE == SEED_EXP_RATE){
+			infection_seeding_exp_rate( nodes, time_step);
+		}
+
+		for (var j=0; j<NUM_PEOPLE; j++){
+			update_infection(nodes[j],time_step);
+			//update_kappa(nodes[j], time_step);
+			update_psi(nodes[j], time_step);
+		}
+		update_all_kappa(nodes,homes,workplaces,communities,time_step);
+		for (var h=0; h<NUM_HOMES; h++){
+			homes[h]['age_dependent_mixing'] = update_lambda_h(nodes, homes[h]);
+		}
+		for (var w=0; w<NUM_SCHOOLS+NUM_WORKPLACES; w++){
+			workplaces[w]['age_dependent_mixing'] = update_lambda_w(nodes, workplaces[w]);
+		}
+
+		for (var c=0; c<NUM_COMMUNITIES; c++){
+			communities[c]['lambda_community'] = update_lambda_c_local(nodes, communities[c]);
+			///console.log("lambda_community:",c,communities[c]['lambda_community'])
+			var temp_stats = get_infected_community(nodes, communities[c]);
+
+			//infection_status_community.push([]);
+			let row = [time_step/SIM_STEPS_PER_DAY,c,temp_stats[0],temp_stats[1],temp_stats[2],temp_stats[3],temp_stats[4]].join(",");
+			csvContent += row + "\r\n";
+		}
+		for (var pt=0; pt<NUM_PUBLIC_TRANSPORT; pt++){
+			public_transports[pt]['lambda_PT'] = update_lambda_public_transport(nodes, public_transports[pt]);
+		}
+
+
+		update_lambda_c_global(communities,community_distance_matrix);
+
+
+
+
+		for (var j=0; j<NUM_PEOPLE; j++){
+			var lambda_current_stats = [];
+			update_lambdas(nodes[j],homes,workplaces,communities,public_transports,nodes,time_step);
+			//get_lambda_stats(i,j,lambda_current_stats);
+		}
+
+		//lambda_current_stats_avg = math.mean(math.mean(lambda_current_stats, 0));
+		//lambda_evolution.push([i/SIM_STEPS_PER_DAY,lambda_current_stats_avg[2],lambda_current_stats_avg[3],lambda_current_stats_avg[4],lambda_current_stats_avg[5]]);
+
+		var n_infected_wardwise = nodes.reduce(function(partial_sum, node) {return partial_sum + ((node['infection_status']==PRE_SYMPTOMATIC||node['infection_status']==SYMPTOMATIC||node['infection_status']==HOSPITALISED||node['infection_status']==CRITICAL) ? 1 : 0);}, 0);
+		days_num_infected.push([time_step/SIM_STEPS_PER_DAY, n_infected]);
+		csvContent_ninfected = [time_step/SIM_STEPS_PER_DAY, n_infected].join(',')+"\r\n"
+
+		var n_infected = nodes.reduce(function(partial_sum, node) {return partial_sum + ((node['infection_status']==PRE_SYMPTOMATIC||node['infection_status']==SYMPTOMATIC||node['infection_status']==HOSPITALISED||node['infection_status']==CRITICAL) ? 1 : 0);}, 0);
+		days_num_infected.push([time_step/SIM_STEPS_PER_DAY, n_infected]);
+
+		var n_exposed = nodes.reduce(function(partial_sum, node) {return partial_sum + ((node['infection_status']==EXPOSED) ? 1 : 0);}, 0);
+		days_num_exposed.push([time_step/SIM_STEPS_PER_DAY, n_exposed]);
+
+		var n_hospitalised = nodes.reduce(function(partial_sum, node) {return partial_sum + ((node['infection_status']==HOSPITALISED) ? 1 : 0);}, 0);
+		days_num_hospitalised.push([time_step/SIM_STEPS_PER_DAY, n_hospitalised]);
+
+		var n_critical = nodes.reduce(function(partial_sum, node) {return partial_sum + ((node['infection_status']==CRITICAL) ? 1 : 0);}, 0);
+		days_num_critical.push([time_step/SIM_STEPS_PER_DAY, n_critical]);
+
+		var n_fatalities = nodes.reduce(function(partial_sum, node) {return partial_sum + ((node['infection_status']==DEAD) ? 1 : 0);}, 0);
+		days_num_fatalities.push([time_step/SIM_STEPS_PER_DAY, (n_fatalities)]);
+
+		var n_recovered = nodes.reduce(function(partial_sum, node) {return partial_sum + ((node['infection_status']==RECOVERED) ? 1 : 0);}, 0);
+		days_num_recovered.push([time_step/SIM_STEPS_PER_DAY, n_recovered]);
+
+		//var n_affected = nodes.reduce(function(partial_sum, node) {return partial_sum + ((node['infection_status']) ? 1 : 0);}, 0);
+		days_num_affected.push([time_step/SIM_STEPS_PER_DAY, (NUM_AFFECTED_COUNT)]);
+
+		let row = [time_step/SIM_STEPS_PER_DAY,NUM_AFFECTED_COUNT,n_recovered,n_infected,n_exposed,n_hospitalised,n_critical,n_fatalities,LAMBDA_INFECTION_MEAN[0],LAMBDA_INFECTION_MEAN[1],LAMBDA_INFECTION_MEAN[2]].join(",");
+		csvContent_alltogether += row + "\r\n";
+		if(LAMBDA_INFECTION_STATS.length > 0){
+			lambda_evolution.push([time_step/SIM_STEPS_PER_DAY,[LAMBDA_INFECTION_MEAN[0],LAMBDA_INFECTION_MEAN[1],LAMBDA_INFECTION_MEAN[2],LAMBDA_INFECTION_MEAN[3]]])
+		}
+
+		///update_sim_progress_status(time_step,NUM_TIMESTEPS);
+
+	}
+	if(LAMBDA_INFECTION_STATS.length > 0){
+		console.log(math.mean(LAMBDA_INFECTION_STATS,0));
+	}
+
+
+	return [days_num_infected,days_num_exposed,days_num_hospitalised,days_num_critical,days_num_fatalities,days_num_recovered,days_num_affected,lambda_evolution];
 }
 
 
