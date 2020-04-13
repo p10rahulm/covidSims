@@ -1615,6 +1615,7 @@ function run_simulation() {
         time_step = run_simday(time_step + 1, homes, workplaces, communities, public_transports, nodes, community_distance_matrix, seed_array,
             days_num_affected, days_num_critical, days_num_exposed, days_num_fatalities, days_num_hospitalised, days_num_infected, days_num_recovered, lambda_evolution);
         call_plotly(plot_tuple);
+        // extend_plotly(time_step, plot_tuple);
         // Plotly.extendTraces('graph', {
         //     x: [[cnt], [cnt]],
         //     y: [[rand()], [rand()]]
@@ -1749,6 +1750,34 @@ function call_plotly(data_tuple) {
 
 }
 
+function plotly_PlotExtend(div_id, x_value, y_value) {
+    Plotly.extendTraces(div_id, {
+        x: [[x_value]],
+        y: [[y_value]]
+    }, [0]);
+}
+
+function extend_plotly(last_timestep, current_timestep, data_tuple) {
+
+    for(let i  = last_timestep;i < current_timestep;i++){
+        plotly_PlotExtend("num_infected_plot_2",i/SIM_STEPS_PER_DAY,data_tuple[0][0]);
+
+    }
+
+
+    var plot_values = data_tuple;
+
+    plot_plotly([plot_values[0]], 'num_infected_plot_2', 'Number Infectious (daily)', 'Evolution of Infected Population');
+    //plot_plotly([plot_values[1]],'num_exposed_plot_2','Number Exposed (daily)','Evolution of Exposed Population');
+    plot_plotly([plot_values[2]], 'num_hospitalised_plot_2', 'Number Hospitalised (daily)', 'Evolution of Hospitalised Population');
+    plot_plotly([plot_values[3]], 'num_critical_plot_2', 'Number Critical (daily)', 'Evolution of Critical Population');
+    plot_plotly([plot_values[4]], 'num_fatalities_plot_2', 'Number Fatalities (cum.)', 'Evolution of Fatalities Population');
+    //plot_plotly([plot_values[5]],'num_recovered_plot_2','Number Recovered (cum.)','Evolution of Recovered Population');
+    plot_plotly([plot_values[6]], 'num_affected_plot_2', 'Number Affected (cum.)', 'Evolution of Affected Population');
+    plot_lambda_evolution([plot_values[7]], 'lambda_evolution', 'Source of infection', ['Home', 'School/Workplace', 'Community', 'Public Transport']);
+
+}
+
 function run_and_plot(intervention) {
     var returned_values;
 
@@ -1756,18 +1785,61 @@ function run_and_plot(intervention) {
     call_plotly(returned_values);
 }
 
-function plotly_extend(div_id, x_value, y_value) {
-    Plotly.extendTraces(div_id, {
-        x: [[x_value]],
-        y: [[y_value]]
-    }, [0]);
-}
-
 
 function plot_plotly(data, plot_position, title_text, legends) {
     var trace = [];
+    const trace1 = {
+        x: [],
+        y: [],
+        mode: 'lines',
+        name: legends[count],
+        line: {
+            color: 'rgb(219, 64, 82)',
+            width: 3
+        }
+    };
+    for (var count = 0; count < data[0].length; count++) {
+        trace1.x.push(data[0][count][0]);
+        trace1.y.push(data[0][count][1]);
+
+    }
+    trace.push(trace1)
+    const data_plot = trace;
+
+    const layout = {
+
+        xaxis: {
+            title: {
+                text: 'Days',
+                font: {
+                    family: 'Courier New, monospace',
+                    size: 18,
+                    color: '#7f7f7f'
+                }
+            },
+        },
+        yaxis: {
+            title: {
+                text: title_text,
+                font: {
+                    family: 'Courier New, monospace',
+                    size: 18,
+                    color: '#7f7f7f'
+                }
+            }
+        }
+    };
+
+    Plotly.newPlot(plot_position, data_plot, layout);
+}
+
+function plot_plotly2(data, plot_position, title_text, legends) {
+    var trace = [];
+    // console.log("data = ",data);
 
     for (var count = 0; count < data.length; count++) {
+        // console.log("count = ",count);
+        // console.log("data[count] = ",data[count]);
         var trace1 = {
             x: [],
             y: [],
@@ -1785,7 +1857,7 @@ function plot_plotly(data, plot_position, title_text, legends) {
         }
         trace.push(trace1)
     }
-
+    // console.log("trace = ",trace);
 
     var data_plot = trace;
 
