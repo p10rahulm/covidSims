@@ -1767,6 +1767,7 @@ function plotly_PlotExtendMulti(div_id, x_values, y_values) {
     }, [0]);
 }
 
+
 function extend_plotly(last_timestep, current_timestep, data_tuple) {
     // console.log("data_tuple[0] = ",data_tuple[0]);
     const data_len = data_tuple[0].length;
@@ -1797,14 +1798,6 @@ function extend_plotly(last_timestep, current_timestep, data_tuple) {
 
 
 }
-
-function run_and_plot(intervention) {
-    var returned_values;
-
-    returned_values = run_simulation();
-    call_plotly(returned_values);
-}
-
 
 function plot_plotly(data, plot_position, title_text, legends) {
     var trace = [];
