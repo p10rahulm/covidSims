@@ -109,45 +109,45 @@ SPDX-License-Identifier: Apache-2.0-->
                 <img src="images/bangalore-wards.png" alt="city map" width="50%" height="50%">
 
                 <label  for="numDays">Number of Days to Simulate</label>
-                <input  type="number" min="1" max="600" value="200" id="numDays"><br>
+                <input  type="number" min="1" max="600" value="120"  step="1" id="numDays"><br>
 
                 <h3>Disease Progression</h3>
                 <label  for="Incubation">Mean Incubation Period (days)</label>
-                <input  type="number"  value="4.5"  id="Incubation"><br>
+                <input  type="number"  min="0" max="30" value="4.5"  step="0.25"  id="Incubation"><br>
               
                 <label  for="asymptomaticMean">Mean Asymptomatic/Pre-Symptomatic Period (days) </label>
-                <input type="number"  value="0.5"  id="asymptomaticMean"><br>
+                <input type="number"  min="0" max="30" value="0.5"  step="0.25"  id="asymptomaticMean"><br>
 
                 <label  for="symptomaticMean">Mean Symptomatic Period (days)</label>
-                <input type="number" value="5" id="symptomaticMean"><br>
+                <input type="number"  min="0" max="30" value="5"  step="0.25"  id="symptomaticMean"><br>
 
                 <label  for="symtomaticFraction">Symptomatic Fraction </label>
-                <input type="number"  min="0" max="1" value="0.66" value="0.5"  id="symtomaticFraction"><br>
+                <input type="number"  min="0" max="1" value="0.66"  step="0.01" id="symtomaticFraction"><br>
 
                 <label  for="meanHospitalPeriod">Mean Hospital Stay (days)</label>
-                <input type="number" value="8" id="meanHospitalPeriod" ><br>
+                <input type="number" min="0" max="30" value="8"  step="0.25"  id="meanHospitalPeriod" ><br>
 
                 <label  for="meanICUPeriod">Mean ICU Stay (days)</label>
-                <input type="number" value="8" id="meanICUPeriod" ><br>
+                <input type="number" min="0" max="30" value="8"  step="0.25" id="meanICUPeriod" ><br>
 
                 <h3>Transmission Coefficients</h3>
                 <label  for="betaHouse">Households</label>
-                <input type="number" min="0" value="0.47" id="betaHouse"><br>
+                <input type="number" min="0" max="2" value="0.47"  step="0.01" id="betaHouse"><br>
 
                 <label  for="betaWork">Workplaces</label>
-                <input type="number" min="0" value="0.376"  id="betaWork"><br>
+                <input type="number" min="0" max="2" value="0.376"  step="0.01" id="betaWork"><br>
 
                 <label  for="betaSchools">Schools</label>
-                <input type="number" min="0" value="0.752"  id="betaSchools"><br>
+                <input type="number"  min="0" max="2" value="0.752"  step="0.01" id="betaSchools"><br>
 
                 <label  for="betaCommunity">Community</label>
-                <input type="number" min="0" value="0.3395" id="betaCommunity"> <br>
+                <input type="number"   min="0" max="2" value="0.3395"  step="0.01" id="betaCommunity"> <br>
                 
                 <label  for="betaPT">Public Transport</label>
-                <input type="number" min="0" value="0.1" id="betaPT"> <br> 
+                <input type="number"   min="0" max="2" value="0.1"  step="0.01" id="betaPT"> <br>
 	
-                <label  for="simNum">Simulations Number</label>
-                <input type="number" min="0" value="0" id="simNum"> <br> 
+                <!--<label  for="simNum">Simulations Number</label>
+                <input type="number" min="0" value="0" id="simNum"> <br> -->
                 
 		<h3>Initialisation</h3>
                 <label  for="initFrac">Fraction Infected</label>

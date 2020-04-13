@@ -132,7 +132,7 @@ BETA_H = 0.67; //0.47 *1.0 //Thailand data
 BETA_W = 0.50; //0.47 *1.0//Thailand data
 BETA_S = 1.00; //0.94 *1.0//Thailand data
 BETA_C = 0.15; //0.097*1// Thailand data. Product  = 0.47
-BETA_PT = 0;
+BETA_PT = 0.1;
 
 ALPHA = 0.8 //exponent of number of people in a household while normalising infection rate in a household.
 
@@ -1766,7 +1766,7 @@ function plotly_extend(div_id, x_value, y_value) {
 
 
 function plot_plotly(data, plot_position, title_text, legends) {
-    var trace = [];
+    const trace = [];
 
     for (var count = 0; count < data.length; count++) {
         var trace1 = {
@@ -1775,7 +1775,7 @@ function plot_plotly(data, plot_position, title_text, legends) {
             mode: 'lines',
             name: legends[count],
             line: {
-                //color: 'rgb(219, 64, 82)',
+                // color: 'rgb(219, 64, 82)',
                 width: 3
             }
         };
@@ -1788,9 +1788,9 @@ function plot_plotly(data, plot_position, title_text, legends) {
     }
 
 
-    var data_plot = trace;
+    const data_plot = trace;
 
-    var layout = {
+    const layout = {
 
         xaxis: {
             title: {
