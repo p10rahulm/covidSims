@@ -5,7 +5,6 @@ const WEBPAGE_VERSION = true;
 //simulation inputs
 
 
-
 NUM_DAYS = 120; //Number of days. Simulation duration
 SIM_STEPS_PER_DAY = 4; //Number of simulation steps per day.
 NUM_TIMESTEPS = NUM_DAYS * SIM_STEPS_PER_DAY; //
@@ -833,7 +832,6 @@ function compute_community_distances(communities) {
          }
      }
     */
-<<<<<<< HEAD
 
     for (var c1 = 0; c1 < inter_ward_distances_json.length; c1++) {
         for (var c2 = c1 + 1; c2 < inter_ward_distances_json.length; c2++) {
@@ -845,19 +843,6 @@ function compute_community_distances(communities) {
     }
 
 
-=======
-
-    for (var c1 = 0; c1 < inter_ward_distances_json.length; c1++) {
-        for (var c2 = c1 + 1; c2 < inter_ward_distances_json.length; c2++) {
-            /// console.log(communities[c1]['loc'],communities[c2]['loc'])
-            community_dist_matrix[c1][c2] = inter_ward_distances_json[c1][(c2 + 1).toString()];
-            community_dist_matrix[c2][c1] = community_dist_matrix[c1][c2];
-
-        }
-    }
-
-
->>>>>>> 6f6441383e0c70d41f94d88ea347bcaf439d9eb7
     return community_dist_matrix;
 }
 
@@ -1532,16 +1517,9 @@ function run_simday(time_step, homes, workplaces, communities, public_transports
     ///update_sim_progress_status(time_step,NUM_TIMESTEPS);
 
     // }
-<<<<<<< HEAD
-    //REMOVING LOG AS IT SLOWS PERF
-    // if (LAMBDA_INFECTION_STATS.length > 0) {
-    //     console.log(math.mean(LAMBDA_INFECTION_STATS, 0));
-    // }
-=======
     if (LAMBDA_INFECTION_STATS.length > 0) {
         console.log(math.mean(LAMBDA_INFECTION_STATS, 0));
     }
->>>>>>> 6f6441383e0c70d41f94d88ea347bcaf439d9eb7
     if (time_step % SIM_STEPS_PER_DAY == 0 && time_step > 0) {
         document.getElementById("status").innerHTML = "Simulation Complete for " + time_step / SIM_STEPS_PER_DAY + " Days";
         return time_step;
@@ -1611,9 +1589,11 @@ function initialize_simulation() {
 }
 
 SIMULATION_STOP = false;
-function stop_sim(){
+
+function stop_sim() {
     SIMULATION_STOP = true;
 }
+
 function run_simulation() {
     document.getElementById("run_button").style.display = "none";
     document.getElementById("sim_stop").style.display = "inline";
@@ -1622,11 +1602,7 @@ function run_simulation() {
     const [homes, workplaces, communities, public_transports, nodes, community_distance_matrix, seed_array,
         days_num_affected, days_num_critical, days_num_exposed, days_num_fatalities, days_num_hospitalised, days_num_infected, days_num_recovered, lambda_evolution] = initialize_simulation();
     document.getElementById("status").innerHTML = "Starting to run Simulation...";
-<<<<<<< HEAD
-    let time_step = 0, last_timestep = 0;
-=======
     let time_step = 0;
->>>>>>> 6f6441383e0c70d41f94d88ea347bcaf439d9eb7
     time_step = run_simday(time_step, homes, workplaces, communities, public_transports, nodes, community_distance_matrix, seed_array,
         days_num_affected, days_num_critical, days_num_exposed, days_num_fatalities, days_num_hospitalised, days_num_infected, days_num_recovered, lambda_evolution);
 
@@ -1637,15 +1613,6 @@ function run_simulation() {
     const interval = setInterval(function () {
         console.log("inside the interval stuff. time_step = ", time_step);
         document.getElementById("status").innerHTML = "Calculating Simulation for Day: " + time_step / SIM_STEPS_PER_DAY;
-<<<<<<< HEAD
-        last_timestep=time_step;
-        time_step = run_simday(time_step + 1, homes, workplaces, communities, public_transports, nodes, community_distance_matrix, seed_array,
-            days_num_affected, days_num_critical, days_num_exposed, days_num_fatalities, days_num_hospitalised, days_num_infected, days_num_recovered, lambda_evolution);
-        // call_plotly(plot_tuple);
-        extend_plotly(last_timestep, time_step, plot_tuple);
-
-
-=======
         time_step = run_simday(time_step + 1, homes, workplaces, communities, public_transports, nodes, community_distance_matrix, seed_array,
             days_num_affected, days_num_critical, days_num_exposed, days_num_fatalities, days_num_hospitalised, days_num_infected, days_num_recovered, lambda_evolution);
         call_plotly(plot_tuple);
@@ -1653,7 +1620,6 @@ function run_simulation() {
         //     x: [[cnt], [cnt]],
         //     y: [[rand()], [rand()]]
         // }, [0, 1])
->>>>>>> 6f6441383e0c70d41f94d88ea347bcaf439d9eb7
 
         if (time_step >= NUM_TIMESTEPS || SIMULATION_STOP) {
             console.log("time_step = ", time_step);
@@ -1718,188 +1684,6 @@ function plot_lambda_evolution(data, plot_position, title_text, legends) {
             trace.push(trace1)
 
         }
-<<<<<<< HEAD
-
-    }
-
-
-    var data_plot = trace;
-
-    var layout = {
-
-        barmode: 'stack',
-        title: {
-            text: title_text,
-            font: {
-                family: 'Courier New, monospace',
-                size: 24
-            },
-            xref: 'paper',
-            x: 0.05,
-        },
-        xaxis: {
-            title: {
-                text: 'Days',
-                font: {
-                    family: 'Courier New, monospace',
-                    size: 18,
-                    color: '#7f7f7f'
-                }
-            },
-        },
-        yaxis: {
-            title: {
-                text: title_text,
-                font: {
-                    family: 'Courier New, monospace',
-                    size: 18,
-                    color: '#7f7f7f'
-                }
-            },
-            range: [0, 1]
-        },
-        showlegend: true,
-        legend: {
-            x: 1,
-            xanchor: 'right',
-            y: 1
-        }
-    };
-
-
-    Plotly.newPlot(plot_position, data_plot, layout);
-}
-
-
-function call_plotly(data_tuple) {
-    var plot_values = data_tuple;
-
-    plot_plotly([plot_values[0]], 'num_infected_plot_2', 'Number Infectious (daily)', 'Evolution of Infected Population');
-    //plot_plotly([plot_values[1]],'num_exposed_plot_2','Number Exposed (daily)','Evolution of Exposed Population');
-    plot_plotly([plot_values[2]], 'num_hospitalised_plot_2', 'Number Hospitalised (daily)', 'Evolution of Hospitalised Population');
-    plot_plotly([plot_values[3]], 'num_critical_plot_2', 'Number Critical (daily)', 'Evolution of Critical Population');
-    plot_plotly([plot_values[4]], 'num_fatalities_plot_2', 'Number Fatalities (cum.)', 'Evolution of Fatalities Population');
-    //plot_plotly([plot_values[5]],'num_recovered_plot_2','Number Recovered (cum.)','Evolution of Recovered Population');
-    plot_plotly([plot_values[6]], 'num_affected_plot_2', 'Number Affected (cum.)', 'Evolution of Affected Population');
-    plot_lambda_evolution([plot_values[7]], 'lambda_evolution', 'Source of infection', ['Home', 'School/Workplace', 'Community', 'Public Transport']);
-
-}
-
-function plotly_PlotExtend(div_id, x_value, y_value) {
-    Plotly.extendTraces(div_id, {
-        x: [[x_value]],
-        y: [[y_value]]
-    }, [0]);
-}
-
-function plotly_PlotExtendMulti(div_id, x_values, y_values) {
-    Plotly.extendTraces(div_id, {
-        x: [x_values],
-        y: [y_values]
-    }, [0]);
-}
-
-
-function extend_plotly(last_timestep, current_timestep, data_tuple) {
-    // console.log("data_tuple[0] = ",data_tuple[0]);
-    const data_len = data_tuple[0].length;
-    const num_updates = current_timestep-last_timestep;
-    const infected = data_tuple[0].slice(Math.max(data_len - num_updates, 0));
-    plotly_PlotExtendMulti("num_infected_plot_2",infected.flatMap(x=>x[0]),infected.flatMap(x=>x[1]));
-
-    const hospitalized = data_tuple[2].slice(Math.max(data_len - num_updates, 0));
-    plotly_PlotExtendMulti("num_hospitalised_plot_2",hospitalized.flatMap(x=>x[0]),hospitalized.flatMap(x=>x[1]));
-
-    const critical = data_tuple[3].slice(Math.max(data_len - num_updates, 0));
-    plotly_PlotExtendMulti("num_critical_plot_2",critical.flatMap(x=>x[0]),critical.flatMap(x=>x[1]));
-
-    const fatalities = data_tuple[4].slice(Math.max(data_len - num_updates, 0));
-    plotly_PlotExtendMulti("num_fatalities_plot_2",fatalities.flatMap(x=>x[0]),fatalities.flatMap(x=>x[1]));
-
-    const affected = data_tuple[6].slice(Math.max(data_len - num_updates, 0));
-    plotly_PlotExtendMulti("num_affected_plot_2",affected.flatMap(x=>x[0]),affected.flatMap(x=>x[1]));
-
-
-    // EXTENDING ONE BY ONE: ABOVE IS FASTER
-    // for(let i  = 0;i < num_updates;i++){        plotly_PlotExtend("num_infected_plot_2",infected,data_tuple[0][data_len-num_updates+i][1]);    }
-    // for(let i  = 0;i < num_updates;i++){        plotly_PlotExtend("num_hospitalised_plot_2",(last_timestep+i)/SIM_STEPS_PER_DAY,data_tuple[2][data_len-num_updates+i][1]);    }
-    // for(let i  = 0;i < num_updates;i++){        plotly_PlotExtend("num_critical_plot_2",(last_timestep+i)/SIM_STEPS_PER_DAY,data_tuple[3][data_len-num_updates+i][1]);    }
-    // for(let i  = 0;i < num_updates;i++){        plotly_PlotExtend("num_fatalities_plot_2",(last_timestep+i)/SIM_STEPS_PER_DAY,data_tuple[4][data_len-num_updates+i][1]);    }
-    // for(let i  = 0;i < num_updates;i++){        plotly_PlotExtend("num_affected_plot_2",(last_timestep+i)/SIM_STEPS_PER_DAY,data_tuple[6][data_len-num_updates+i][1]);    }
-    plot_lambda_evolution([data_tuple[7]], 'lambda_evolution', 'Source of infection', ['Home', 'School/Workplace', 'Community', 'Public Transport']);
-
-
-}
-
-function plot_plotly(data, plot_position, title_text, legends) {
-    var trace = [];
-    const trace1 = {
-        x: [],
-        y: [],
-        mode: 'lines',
-        name: legends[count],
-        line: {
-            color: 'rgb(219, 64, 82)',
-            width: 3
-        }
-    };
-    for (var count = 0; count < data[0].length; count++) {
-        trace1.x.push(data[0][count][0]);
-        trace1.y.push(data[0][count][1]);
-
-    }
-    trace.push(trace1)
-    const data_plot = trace;
-
-    const layout = {
-
-        xaxis: {
-            title: {
-                text: 'Days',
-                font: {
-                    family: 'Courier New, monospace',
-                    size: 18,
-                    color: '#7f7f7f'
-                }
-            },
-        },
-        yaxis: {
-            title: {
-                text: title_text,
-                font: {
-                    family: 'Courier New, monospace',
-                    size: 18,
-                    color: '#7f7f7f'
-                }
-            }
-        }
-    };
-
-    Plotly.newPlot(plot_position, data_plot, layout);
-}
-
-function plot_plotly_multi(data, plot_position, title_text, legends) {
-    var trace = [];
-
-    for (var count = 0; count < data.length; count++) {
-        var trace1 = {
-            x: [],
-            y: [],
-            mode: 'lines',
-            name: legends[count],
-            line: {
-                color: 'rgb(219, 64, 82)',
-                width: 3
-            }
-        };
-        for (var count2 = 0; count2 < data[count].length; count2++) {
-            trace1.x.push(data[count][count2][0]);
-            trace1.y.push(data[count][count2][1]);
-
-        }
-        trace.push(trace1)
-    }
-=======
 
     }
 
@@ -2003,7 +1787,6 @@ function plot_plotly(data, plot_position, title_text, legends) {
         trace.push(trace1)
     }
 
->>>>>>> 6f6441383e0c70d41f94d88ea347bcaf439d9eb7
 
     var data_plot = trace;
 
