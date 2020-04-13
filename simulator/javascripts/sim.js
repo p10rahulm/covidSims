@@ -1,7 +1,7 @@
 //Copyright [2020] [Indian Institute of Science, Bangalore]
 //SPDX-License-Identifier: Apache-2.0
 
-const WEBPAGE_VERSION = false;
+const WEBPAGE_VERSION = true;
 //simulation inputs
 
 
@@ -1619,10 +1619,7 @@ function run_simulation() {
         // call_plotly(plot_tuple);
         extend_plotly(last_timestep, time_step, plot_tuple);
 
-        // Plotly.extendTraces('graph', {
-        //     x: [[cnt], [cnt]],
-        //     y: [[rand()], [rand()]]
-        // }, [0, 1])
+
 
         if (time_step >= NUM_TIMESTEPS || SIMULATION_STOP) {
             console.log("time_step = ", time_step);
