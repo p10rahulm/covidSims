@@ -1415,144 +1415,118 @@ function update_all_kappa(nodes, homes, workplaces, communities, cur_time) {
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 function run_simday(time_step, homes, workplaces, communities, public_transports, nodes, community_distance_matrix, seed_array,
                     days_num_affected, days_num_critical, days_num_exposed, days_num_fatalities, days_num_hospitalised, days_num_infected, days_num_recovered, lambda_evolution) {
 
-    document.getElementById("status").innerHTML = "Computing Spread Rates: Day " + time_step / SIM_STEPS_PER_DAY;
+    console.log(time_step / SIM_STEPS_PER_DAY);
 
-    if(time_step > NUM_TIMESTEPS){
-        document.getElementById("status").innerHTML = "Spread Rate Computation Complete for " + NUM_TIMESTEPS/SIM_STEPS_PER_DAY + " Days";
-        return [days_num_infected, days_num_exposed, days_num_hospitalised, days_num_critical, days_num_fatalities, days_num_recovered, days_num_affected, lambda_evolution];
+    //seeding strategies
+    if (SEEDING_MODE == SEED_INFECTION_RATES && time_step < seed_array.length) {
+        infection_seeding(nodes, seed_array[time_step], time_step);
+    } else if (SEEDING_MODE == SEED_EXP_RATE) {
+        infection_seeding_exp_rate(nodes, time_step);
     }
 
-    // for (var time_step = 0; time_step < NUM_TIMESTEPS; time_step++) {
-        console.log(time_step / SIM_STEPS_PER_DAY);
+    for (var j = 0; j < NUM_PEOPLE; j++) {
+        update_infection(nodes[j], time_step);
+        //update_kappa(nodes[j], time_step);
+        update_psi(nodes[j], time_step);
+    }
+    update_all_kappa(nodes, homes, workplaces, communities, time_step);
+    for (var h = 0; h < NUM_HOMES; h++) {
+        homes[h]['age_dependent_mixing'] = update_lambda_h(nodes, homes[h]);
+    }
+    for (var w = 0; w < NUM_SCHOOLS + NUM_WORKPLACES; w++) {
+        workplaces[w]['age_dependent_mixing'] = update_lambda_w(nodes, workplaces[w]);
+    }
 
-        //seeding strategies
-        if (SEEDING_MODE == SEED_INFECTION_RATES && time_step < seed_array.length) {
-            infection_seeding(nodes, seed_array[time_step], time_step);
-        } else if (SEEDING_MODE == SEED_EXP_RATE) {
-            infection_seeding_exp_rate(nodes, time_step);
-        }
+    for (var c = 0; c < NUM_COMMUNITIES; c++) {
+        communities[c]['lambda_community'] = update_lambda_c_local(nodes, communities[c]);
+        ///console.log("lambda_community:",c,communities[c]['lambda_community'])
+        var temp_stats = get_infected_community(nodes, communities[c]);
 
-        for (var j = 0; j < NUM_PEOPLE; j++) {
-            update_infection(nodes[j], time_step);
-            //update_kappa(nodes[j], time_step);
-            update_psi(nodes[j], time_step);
-        }
-        update_all_kappa(nodes, homes, workplaces, communities, time_step);
-        for (var h = 0; h < NUM_HOMES; h++) {
-            homes[h]['age_dependent_mixing'] = update_lambda_h(nodes, homes[h]);
-        }
-        for (var w = 0; w < NUM_SCHOOLS + NUM_WORKPLACES; w++) {
-            workplaces[w]['age_dependent_mixing'] = update_lambda_w(nodes, workplaces[w]);
-        }
-
-        for (var c = 0; c < NUM_COMMUNITIES; c++) {
-            communities[c]['lambda_community'] = update_lambda_c_local(nodes, communities[c]);
-            ///console.log("lambda_community:",c,communities[c]['lambda_community'])
-            var temp_stats = get_infected_community(nodes, communities[c]);
-
-            //infection_status_community.push([]);
-            let row = [time_step / SIM_STEPS_PER_DAY, c, temp_stats[0], temp_stats[1], temp_stats[2], temp_stats[3], temp_stats[4]].join(",");
-            csvContent += row + "\r\n";
-        }
-        for (var pt = 0; pt < NUM_PUBLIC_TRANSPORT; pt++) {
-            public_transports[pt]['lambda_PT'] = update_lambda_public_transport(nodes, public_transports[pt]);
-        }
+        //infection_status_community.push([]);
+        let row = [time_step / SIM_STEPS_PER_DAY, c, temp_stats[0], temp_stats[1], temp_stats[2], temp_stats[3], temp_stats[4]].join(",");
+        csvContent += row + "\r\n";
+    }
+    for (var pt = 0; pt < NUM_PUBLIC_TRANSPORT; pt++) {
+        public_transports[pt]['lambda_PT'] = update_lambda_public_transport(nodes, public_transports[pt]);
+    }
 
 
-        update_lambda_c_global(communities, community_distance_matrix);
+    update_lambda_c_global(communities, community_distance_matrix);
 
 
-        for (var j = 0; j < NUM_PEOPLE; j++) {
-            var lambda_current_stats = [];
-            update_lambdas(nodes[j], homes, workplaces, communities, public_transports, nodes, time_step);
-            //get_lambda_stats(i,j,lambda_current_stats);
-        }
+    for (var j = 0; j < NUM_PEOPLE; j++) {
+        var lambda_current_stats = [];
+        update_lambdas(nodes[j], homes, workplaces, communities, public_transports, nodes, time_step);
+        //get_lambda_stats(i,j,lambda_current_stats);
+    }
 
-        //lambda_current_stats_avg = math.mean(math.mean(lambda_current_stats, 0));
-        //lambda_evolution.push([i/SIM_STEPS_PER_DAY,lambda_current_stats_avg[2],lambda_current_stats_avg[3],lambda_current_stats_avg[4],lambda_current_stats_avg[5]]);
+    //lambda_current_stats_avg = math.mean(math.mean(lambda_current_stats, 0));
+    //lambda_evolution.push([i/SIM_STEPS_PER_DAY,lambda_current_stats_avg[2],lambda_current_stats_avg[3],lambda_current_stats_avg[4],lambda_current_stats_avg[5]]);
 
-        var n_infected_wardwise = nodes.reduce(function (partial_sum, node) {
-            return partial_sum + ((node['infection_status'] == PRE_SYMPTOMATIC || node['infection_status'] == SYMPTOMATIC || node['infection_status'] == HOSPITALISED || node['infection_status'] == CRITICAL) ? 1 : 0);
-        }, 0);
-        days_num_infected.push([time_step / SIM_STEPS_PER_DAY, n_infected]);
-        csvContent_ninfected = [time_step / SIM_STEPS_PER_DAY, n_infected].join(',') + "\r\n"
+    var n_infected_wardwise = nodes.reduce(function (partial_sum, node) {
+        return partial_sum + ((node['infection_status'] == PRE_SYMPTOMATIC || node['infection_status'] == SYMPTOMATIC || node['infection_status'] == HOSPITALISED || node['infection_status'] == CRITICAL) ? 1 : 0);
+    }, 0);
+    //I don't know what to do with this. It is not an initialized variable at start. Thus i'm commenting out
+    // days_num_infected.push([time_step / SIM_STEPS_PER_DAY, n_infected]);
+    csvContent_ninfected = [time_step / SIM_STEPS_PER_DAY, n_infected].join(',') + "\r\n"
 
-        var n_infected = nodes.reduce(function (partial_sum, node) {
-            return partial_sum + ((node['infection_status'] == PRE_SYMPTOMATIC || node['infection_status'] == SYMPTOMATIC || node['infection_status'] == HOSPITALISED || node['infection_status'] == CRITICAL) ? 1 : 0);
-        }, 0);
-        days_num_infected.push([time_step / SIM_STEPS_PER_DAY, n_infected]);
+    var n_infected = nodes.reduce(function (partial_sum, node) {
+        return partial_sum + ((node['infection_status'] == PRE_SYMPTOMATIC || node['infection_status'] == SYMPTOMATIC || node['infection_status'] == HOSPITALISED || node['infection_status'] == CRITICAL) ? 1 : 0);
+    }, 0);
+    //PLEASE CHECK BELOW LINE AS  n_infected_wardwise returns same thing
+    days_num_infected.push([time_step / SIM_STEPS_PER_DAY, n_infected]);
 
-        var n_exposed = nodes.reduce(function (partial_sum, node) {
-            return partial_sum + ((node['infection_status'] == EXPOSED) ? 1 : 0);
-        }, 0);
-        days_num_exposed.push([time_step / SIM_STEPS_PER_DAY, n_exposed]);
+    var n_exposed = nodes.reduce(function (partial_sum, node) {
+        return partial_sum + ((node['infection_status'] == EXPOSED) ? 1 : 0);
+    }, 0);
+    days_num_exposed.push([time_step / SIM_STEPS_PER_DAY, n_exposed]);
 
-        var n_hospitalised = nodes.reduce(function (partial_sum, node) {
-            return partial_sum + ((node['infection_status'] == HOSPITALISED) ? 1 : 0);
-        }, 0);
-        days_num_hospitalised.push([time_step / SIM_STEPS_PER_DAY, n_hospitalised]);
+    var n_hospitalised = nodes.reduce(function (partial_sum, node) {
+        return partial_sum + ((node['infection_status'] == HOSPITALISED) ? 1 : 0);
+    }, 0);
+    days_num_hospitalised.push([time_step / SIM_STEPS_PER_DAY, n_hospitalised]);
 
-        var n_critical = nodes.reduce(function (partial_sum, node) {
-            return partial_sum + ((node['infection_status'] == CRITICAL) ? 1 : 0);
-        }, 0);
-        days_num_critical.push([time_step / SIM_STEPS_PER_DAY, n_critical]);
+    var n_critical = nodes.reduce(function (partial_sum, node) {
+        return partial_sum + ((node['infection_status'] == CRITICAL) ? 1 : 0);
+    }, 0);
+    days_num_critical.push([time_step / SIM_STEPS_PER_DAY, n_critical]);
 
-        var n_fatalities = nodes.reduce(function (partial_sum, node) {
-            return partial_sum + ((node['infection_status'] == DEAD) ? 1 : 0);
-        }, 0);
-        days_num_fatalities.push([time_step / SIM_STEPS_PER_DAY, (n_fatalities)]);
+    var n_fatalities = nodes.reduce(function (partial_sum, node) {
+        return partial_sum + ((node['infection_status'] == DEAD) ? 1 : 0);
+    }, 0);
+    days_num_fatalities.push([time_step / SIM_STEPS_PER_DAY, (n_fatalities)]);
 
-        var n_recovered = nodes.reduce(function (partial_sum, node) {
-            return partial_sum + ((node['infection_status'] == RECOVERED) ? 1 : 0);
-        }, 0);
-        days_num_recovered.push([time_step / SIM_STEPS_PER_DAY, n_recovered]);
+    var n_recovered = nodes.reduce(function (partial_sum, node) {
+        return partial_sum + ((node['infection_status'] == RECOVERED) ? 1 : 0);
+    }, 0);
+    days_num_recovered.push([time_step / SIM_STEPS_PER_DAY, n_recovered]);
 
-        //var n_affected = nodes.reduce(function(partial_sum, node) {return partial_sum + ((node['infection_status']) ? 1 : 0);}, 0);
-        days_num_affected.push([time_step / SIM_STEPS_PER_DAY, (NUM_AFFECTED_COUNT)]);
+    //var n_affected = nodes.reduce(function(partial_sum, node) {return partial_sum + ((node['infection_status']) ? 1 : 0);}, 0);
+    days_num_affected.push([time_step / SIM_STEPS_PER_DAY, (NUM_AFFECTED_COUNT)]);
 
-        let row = [time_step / SIM_STEPS_PER_DAY, NUM_AFFECTED_COUNT, n_recovered, n_infected, n_exposed, n_hospitalised, n_critical, n_fatalities, LAMBDA_INFECTION_MEAN[0], LAMBDA_INFECTION_MEAN[1], LAMBDA_INFECTION_MEAN[2]].join(",");
-        csvContent_alltogether += row + "\r\n";
-        if (LAMBDA_INFECTION_STATS.length > 0) {
-            lambda_evolution.push([time_step / SIM_STEPS_PER_DAY, [LAMBDA_INFECTION_MEAN[0], LAMBDA_INFECTION_MEAN[1], LAMBDA_INFECTION_MEAN[2], LAMBDA_INFECTION_MEAN[3]]])
-        }
+    let row = [time_step / SIM_STEPS_PER_DAY, NUM_AFFECTED_COUNT, n_recovered, n_infected, n_exposed, n_hospitalised, n_critical, n_fatalities, LAMBDA_INFECTION_MEAN[0], LAMBDA_INFECTION_MEAN[1], LAMBDA_INFECTION_MEAN[2]].join(",");
+    csvContent_alltogether += row + "\r\n";
+    if (LAMBDA_INFECTION_STATS.length > 0) {
+        lambda_evolution.push([time_step / SIM_STEPS_PER_DAY, [LAMBDA_INFECTION_MEAN[0], LAMBDA_INFECTION_MEAN[1], LAMBDA_INFECTION_MEAN[2], LAMBDA_INFECTION_MEAN[3]]])
+    }
 
-        ///update_sim_progress_status(time_step,NUM_TIMESTEPS);
+    ///update_sim_progress_status(time_step,NUM_TIMESTEPS);
 
     // }
     if (LAMBDA_INFECTION_STATS.length > 0) {
         console.log(math.mean(LAMBDA_INFECTION_STATS, 0));
     }
-
-    return run_simday(time_step + 1, homes, workplaces, communities, public_transports, nodes, community_distance_matrix, seed_array,
-        days_num_affected, days_num_critical, days_num_exposed, days_num_fatalities, days_num_hospitalised, days_num_infected, days_num_recovered, lambda_evolution);
+    if (time_step % SIM_STEPS_PER_DAY == 0 && time_step > 0) {
+        document.getElementById("status").innerHTML = "Simulation Complete for " + time_step / SIM_STEPS_PER_DAY + " Days";
+        return time_step;
+        // return [time_step, days_num_infected, days_num_exposed, days_num_hospitalised, days_num_critical, days_num_fatalities, days_num_recovered, days_num_affected, lambda_evolution];
+    } else {
+        return run_simday(time_step + 1, homes, workplaces, communities, public_transports, nodes, community_distance_matrix, seed_array,
+            days_num_affected, days_num_critical, days_num_exposed, days_num_fatalities, days_num_hospitalised, days_num_infected, days_num_recovered, lambda_evolution);
+    }
 
 
 }
@@ -1617,126 +1591,62 @@ function run_simulation() {
     const [homes, workplaces, communities, public_transports, nodes, community_distance_matrix, seed_array,
         days_num_affected, days_num_critical, days_num_exposed, days_num_fatalities, days_num_hospitalised, days_num_infected, days_num_recovered, lambda_evolution] = initialize_simulation();
     document.getElementById("status").innerHTML = "Starting to run Simulation...";
-    run_simday(0, homes, workplaces, communities, public_transports, nodes, community_distance_matrix, seed_array,
+    let time_step = 0;
+    time_step = run_simday(time_step, homes, workplaces, communities, public_transports, nodes, community_distance_matrix, seed_array,
         days_num_affected, days_num_critical, days_num_exposed, days_num_fatalities, days_num_hospitalised, days_num_infected, days_num_recovered, lambda_evolution);
-    /*
-    for (var time_step = 0; time_step < NUM_TIMESTEPS; time_step++) {
-        console.log(time_step / SIM_STEPS_PER_DAY);
 
-        //seeding strategies
-        if (SEEDING_MODE == SEED_INFECTION_RATES && time_step < seed_array.length) {
-            infection_seeding(nodes, seed_array[time_step], time_step);
-        } else if (SEEDING_MODE == SEED_EXP_RATE) {
-            infection_seeding_exp_rate(nodes, time_step);
+    let plot_tuple = [days_num_infected, days_num_exposed, days_num_hospitalised, days_num_critical, days_num_fatalities, days_num_recovered, days_num_affected, lambda_evolution];
+    call_plotly(plot_tuple);
+
+
+    const interval = setInterval(function () {
+        console.log("inside the interval stuff. time_step = ", time_step);
+        document.getElementById("status").innerHTML = "Calculating Simulation for Day: " + time_step / SIM_STEPS_PER_DAY;
+        time_step = run_simday(time_step + 1, homes, workplaces, communities, public_transports, nodes, community_distance_matrix, seed_array,
+            days_num_affected, days_num_critical, days_num_exposed, days_num_fatalities, days_num_hospitalised, days_num_infected, days_num_recovered, lambda_evolution);
+        call_plotly(plot_tuple);
+        // Plotly.extendTraces('graph', {
+        //     x: [[cnt], [cnt]],
+        //     y: [[rand()], [rand()]]
+        // }, [0, 1])
+
+        if (time_step >= NUM_TIMESTEPS) {
+            console.log("time_step = ", time_step);
+            clearInterval(interval);
+            //Do some TASKS for output
+            var encodedUri = encodeURI(csvContent);
+            var link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "my_data.csv");
+            document.body.appendChild(link); // Required for FF
+            if (!WEBPAGE_VERSION) {
+                link.click();	//TODO: Instead of click link, add link for download on page.
+            }
+
+
+            encodedUri = encodeURI(csvContent_alltogether);
+            link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "my_data_all_together.csv");
+            document.body.appendChild(link); // Required for FF
+            document.getElementById("status").innerHTML = "Numbers plotted are per " + String(NUM_PEOPLE) + ".";
+            if (!WEBPAGE_VERSION) {
+                link.click();	//TODO: Instead of click link, add link for download on page.
+            }
+
         }
+    }, 150);
 
-        for (var j = 0; j < NUM_PEOPLE; j++) {
-            update_infection(nodes[j], time_step);
-            //update_kappa(nodes[j], time_step);
-            update_psi(nodes[j], time_step);
-        }
-        update_all_kappa(nodes, homes, workplaces, communities, time_step);
-        for (var h = 0; h < NUM_HOMES; h++) {
-            homes[h]['age_dependent_mixing'] = update_lambda_h(nodes, homes[h]);
-        }
-        for (var w = 0; w < NUM_SCHOOLS + NUM_WORKPLACES; w++) {
-            workplaces[w]['age_dependent_mixing'] = update_lambda_w(nodes, workplaces[w]);
-        }
-
-        for (var c = 0; c < NUM_COMMUNITIES; c++) {
-            communities[c]['lambda_community'] = update_lambda_c_local(nodes, communities[c]);
-            ///console.log("lambda_community:",c,communities[c]['lambda_community'])
-            var temp_stats = get_infected_community(nodes, communities[c]);
-
-            //infection_status_community.push([]);
-            let row = [time_step / SIM_STEPS_PER_DAY, c, temp_stats[0], temp_stats[1], temp_stats[2], temp_stats[3], temp_stats[4]].join(",");
-            csvContent += row + "\r\n";
-        }
-        for (var pt = 0; pt < NUM_PUBLIC_TRANSPORT; pt++) {
-            public_transports[pt]['lambda_PT'] = update_lambda_public_transport(nodes, public_transports[pt]);
-        }
-
-
-        update_lambda_c_global(communities, community_distance_matrix);
-
-
-        for (var j = 0; j < NUM_PEOPLE; j++) {
-            var lambda_current_stats = [];
-            update_lambdas(nodes[j], homes, workplaces, communities, public_transports, nodes, time_step);
-            //get_lambda_stats(i,j,lambda_current_stats);
-        }
-
-        //lambda_current_stats_avg = math.mean(math.mean(lambda_current_stats, 0));
-        //lambda_evolution.push([i/SIM_STEPS_PER_DAY,lambda_current_stats_avg[2],lambda_current_stats_avg[3],lambda_current_stats_avg[4],lambda_current_stats_avg[5]]);
-
-        var n_infected_wardwise = nodes.reduce(function (partial_sum, node) {
-            return partial_sum + ((node['infection_status'] == PRE_SYMPTOMATIC || node['infection_status'] == SYMPTOMATIC || node['infection_status'] == HOSPITALISED || node['infection_status'] == CRITICAL) ? 1 : 0);
-        }, 0);
-        days_num_infected.push([time_step / SIM_STEPS_PER_DAY, n_infected]);
-        csvContent_ninfected = [time_step / SIM_STEPS_PER_DAY, n_infected].join(',') + "\r\n"
-
-        var n_infected = nodes.reduce(function (partial_sum, node) {
-            return partial_sum + ((node['infection_status'] == PRE_SYMPTOMATIC || node['infection_status'] == SYMPTOMATIC || node['infection_status'] == HOSPITALISED || node['infection_status'] == CRITICAL) ? 1 : 0);
-        }, 0);
-        days_num_infected.push([time_step / SIM_STEPS_PER_DAY, n_infected]);
-
-        var n_exposed = nodes.reduce(function (partial_sum, node) {
-            return partial_sum + ((node['infection_status'] == EXPOSED) ? 1 : 0);
-        }, 0);
-        days_num_exposed.push([time_step / SIM_STEPS_PER_DAY, n_exposed]);
-
-        var n_hospitalised = nodes.reduce(function (partial_sum, node) {
-            return partial_sum + ((node['infection_status'] == HOSPITALISED) ? 1 : 0);
-        }, 0);
-        days_num_hospitalised.push([time_step / SIM_STEPS_PER_DAY, n_hospitalised]);
-
-        var n_critical = nodes.reduce(function (partial_sum, node) {
-            return partial_sum + ((node['infection_status'] == CRITICAL) ? 1 : 0);
-        }, 0);
-        days_num_critical.push([time_step / SIM_STEPS_PER_DAY, n_critical]);
-
-        var n_fatalities = nodes.reduce(function (partial_sum, node) {
-            return partial_sum + ((node['infection_status'] == DEAD) ? 1 : 0);
-        }, 0);
-        days_num_fatalities.push([time_step / SIM_STEPS_PER_DAY, (n_fatalities)]);
-
-        var n_recovered = nodes.reduce(function (partial_sum, node) {
-            return partial_sum + ((node['infection_status'] == RECOVERED) ? 1 : 0);
-        }, 0);
-        days_num_recovered.push([time_step / SIM_STEPS_PER_DAY, n_recovered]);
-
-        //var n_affected = nodes.reduce(function(partial_sum, node) {return partial_sum + ((node['infection_status']) ? 1 : 0);}, 0);
-        days_num_affected.push([time_step / SIM_STEPS_PER_DAY, (NUM_AFFECTED_COUNT)]);
-
-        let row = [time_step / SIM_STEPS_PER_DAY, NUM_AFFECTED_COUNT, n_recovered, n_infected, n_exposed, n_hospitalised, n_critical, n_fatalities, LAMBDA_INFECTION_MEAN[0], LAMBDA_INFECTION_MEAN[1], LAMBDA_INFECTION_MEAN[2]].join(",");
-        csvContent_alltogether += row + "\r\n";
-        if (LAMBDA_INFECTION_STATS.length > 0) {
-            lambda_evolution.push([time_step / SIM_STEPS_PER_DAY, [LAMBDA_INFECTION_MEAN[0], LAMBDA_INFECTION_MEAN[1], LAMBDA_INFECTION_MEAN[2], LAMBDA_INFECTION_MEAN[3]]])
-        }
-
-        ///update_sim_progress_status(time_step,NUM_TIMESTEPS);
-
-    }
-
-    */
     if (LAMBDA_INFECTION_STATS.length > 0) {
         console.log(math.mean(LAMBDA_INFECTION_STATS, 0));
     }
 
-    return [days_num_infected, days_num_exposed, days_num_hospitalised, days_num_critical, days_num_fatalities, days_num_recovered, days_num_affected, lambda_evolution];
+
 }
 
-/*
-function update_sim_progress_status(time_step,num_time_steps){
-	var elem = document.getElementById("myBar");
-	var width = time_step/num_time_steps;
-	elem.style.width = width + "%";
-	//document.getElementById("sim_progress").innerHTML="Simulation Progress: " + String(time_step/sim_steps_per_day)+ " days.";
-}
-*/
 
 function plot_lambda_evolution(data, plot_position, title_text, legends) {
-    if (data[0] == undefined) {
+    if (data[0] == undefined || data[0][0] == undefined) {
         //If there is no data to plot, return.
         return;
     }
@@ -1810,86 +1720,37 @@ function plot_lambda_evolution(data, plot_position, title_text, legends) {
     Plotly.newPlot(plot_position, data_plot, layout);
 }
 
-/*
-
-function plot_simulation(days_num_infected,plot_element,title_1,title_2) {
-	google.charts.load('current', {packages: ['corechart', 'line']});
-	google.charts.setOnLoadCallback(drawBasic);
-
-	function drawBasic() {
-	    var data = new google.visualization.DataTable();
-	    data.addColumn('number', 'X');
-	    data.addColumn('number', title_1);
-
-	    data.addRows(days_num_infected);
-
-	    var options = {
-	        hAxis: {
-	            title: 'Days'
-	        },
-	        vAxis: {
-	            title: title_1
-	        },
-			title: title_2,
-			legend: {position:'none'}
-	    };
-
-	    var chart = new google.visualization.LineChart(document.getElementById(plot_element));
-
-		chart.draw(data, options);
-
-	}
-}
-*/
-
 
 function call_plotly(data_tuple) {
     var plot_values = data_tuple;
 
-    plot_plotly([plot_values[6]], 'num_affected_plot_2', 'Number Affected (cum.)', 'Evolution of Affected Population');
     plot_plotly([plot_values[0]], 'num_infected_plot_2', 'Number Infectious (daily)', 'Evolution of Infected Population');
     //plot_plotly([plot_values[1]],'num_exposed_plot_2','Number Exposed (daily)','Evolution of Exposed Population');
     plot_plotly([plot_values[2]], 'num_hospitalised_plot_2', 'Number Hospitalised (daily)', 'Evolution of Hospitalised Population');
     plot_plotly([plot_values[3]], 'num_critical_plot_2', 'Number Critical (daily)', 'Evolution of Critical Population');
     plot_plotly([plot_values[4]], 'num_fatalities_plot_2', 'Number Fatalities (cum.)', 'Evolution of Fatalities Population');
     //plot_plotly([plot_values[5]],'num_recovered_plot_2','Number Recovered (cum.)','Evolution of Recovered Population');
+    plot_plotly([plot_values[6]], 'num_affected_plot_2', 'Number Affected (cum.)', 'Evolution of Affected Population');
     plot_lambda_evolution([plot_values[7]], 'lambda_evolution', 'Source of infection', ['Home', 'School/Workplace', 'Community', 'Public Transport']);
 
 }
 
 function run_and_plot(intervention) {
     var returned_values;
-    INTERVENTION = intervention;
-    console.log(INTERVENTION, intervention);
+
     returned_values = run_simulation();
     call_plotly(returned_values);
-
-
-    // var encodedUri = encodeURI(csvContent);
-    // var link = document.createElement("a");
-    // link.setAttribute("href", encodedUri);
-    // link.setAttribute("download", "my_data.csv");
-    // document.body.appendChild(link); // Required for FF
-    // if(!WEBPAGE_VERSION){
-    // 	link.click();	//TODO: Instead of click link, add link for download on page.
-    // }
-    //
-    //
-    // encodedUri = encodeURI(csvContent_alltogether);
-    // link = document.createElement("a");
-    // link.setAttribute("href", encodedUri);
-    // link.setAttribute("download", "my_data_all_together.csv");
-    // document.body.appendChild(link); // Required for FF
-    // document.getElementById("status").innerHTML="Numbers plotted are per " + String(NUM_PEOPLE)+".";
-    // if(!WEBPAGE_VERSION){
-    // 	link.click();	//TODO: Instead of click link, add link for download on page.
-    // }
-
-
 }
 
-function plot_plotly(data, plot_position, title_text, legends) {
+function plotly_extend(div_id, x_value, y_value) {
+    Plotly.extendTraces(div_id, {
+        x: [[x_value]],
+        y: [[y_value]]
+    }, [0]);
+}
 
+
+function plot_plotly(data, plot_position, title_text, legends) {
     var trace = [];
 
     for (var count = 0; count < data.length; count++) {
@@ -1897,7 +1758,11 @@ function plot_plotly(data, plot_position, title_text, legends) {
             x: [],
             y: [],
             mode: 'lines',
-            name: legends[count]
+            name: legends[count],
+            line: {
+                color: 'rgb(219, 64, 82)',
+                width: 3
+            }
         };
         for (var count2 = 0; count2 < data[count].length; count2++) {
             trace1.x.push(data[count][count2][0]);
@@ -1911,15 +1776,7 @@ function plot_plotly(data, plot_position, title_text, legends) {
     var data_plot = trace;
 
     var layout = {
-        // title: {
-        //   text: "Numbers plotted are per " + String(NUM_PEOPLE)+".",
-        //   font: {
-        // 	family: 'Courier New, monospace',
-        // 	size: 24
-        //   },
-        //   xref: 'paper',
-        //   x: 0.05,
-        // },
+
         xaxis: {
             title: {
                 text: 'Days',
@@ -1942,45 +1799,7 @@ function plot_plotly(data, plot_position, title_text, legends) {
         }
     };
 
-
     Plotly.newPlot(plot_position, data_plot, layout);
-}
-
-function run_and_plot_2() {
-    var interventions = [NO_INTERVENTION, CASE_ISOLATION, HOME_QUARANTINE]
-    var returned_values = []
-    var legends = ['No Intervention', 'Case Isolation', 'Home Quarantine'];
-
-    for (var count = 0; count < interventions.length; count++) {
-        INTERVENTION = interventions[count];
-        returned_values.push(run_simulation());
-    }
-
-
-    plot_plotly([returned_values[0][6], returned_values[1][6], returned_values[2][6]], 'num_affected_plot', 'Number Affected', legends);
-    plot_plotly([returned_values[0][0], returned_values[1][0], returned_values[2][0]], 'num_infected_plot', 'Number Infected', legends);
-    plot_plotly([returned_values[0][1], returned_values[1][1], returned_values[2][1]], 'num_exposed_plot', 'Number Exposed', legends);
-    plot_plotly([returned_values[0][2], returned_values[1][2], returned_values[2][2]], 'num_hospitalised_plot', 'Number Hospitalised', legends);
-    plot_plotly([returned_values[0][3], returned_values[1][3], returned_values[2][3]], 'num_critical_plot', 'Number Critical', legends);
-    plot_plotly([returned_values[0][4], returned_values[1][4], returned_values[2][4]], 'num_fatalities_plot', 'Number Fatalities', legends);
-    plot_plotly([returned_values[0][5], returned_values[1][5], returned_values[2][5]], 'num_recovered_plot', 'Number Recovered', legends);
-
-    var encodedUri = encodeURI(csvContent);
-    var link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "my_data.csv");
-    document.body.appendChild(link); // Required for FF
-
-    link.click();	//TODO: Instead of click link, add link for download on page.
-
-    encodedUri = encodeURI(csvContent_alltogether);
-    link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "my_data_all_together.csv");
-    document.body.appendChild(link); // Required for FF
-
-    link.click();
-
 }
 
 
@@ -2022,10 +1841,14 @@ function runSimulations() {
     INTERVENTION = parseInt(document.getElementById("interventions").value);
 
     console.log(NUM_DAYS, INIT_FRAC_INFECTED, INTERVENTION);
+    console.log("INTERVENTION = ", INTERVENTION);
+
     //where simulation starts
-    run_and_plot(INTERVENTION); //run_and_plot(LOCKDOWN_21_CI_HQ_SD_70_PLUS_21_CI);
-//run_and_plot_2();
+    run_simulation();
+
+
 }
+
 
 function clear_plots() {
     //clear previous plots
@@ -2058,6 +1881,10 @@ function set_default_values_html() {
     document.getElementById("betaSchools").value = BETA_S;
     document.getElementById("betaPT").value = BETA_PT;
     document.getElementById("interventions").value = "0";
+}
+
+function clear_variables() {
+
 }
 
 set_default_values_html();
