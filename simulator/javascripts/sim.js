@@ -4,6 +4,8 @@
 const WEBPAGE_VERSION = false;
 //simulation inputs
 
+
+
 NUM_DAYS = 120; //Number of days. Simulation duration
 SIM_STEPS_PER_DAY = 4; //Number of simulation steps per day.
 NUM_TIMESTEPS = NUM_DAYS * SIM_STEPS_PER_DAY; //
@@ -1587,7 +1589,15 @@ function initialize_simulation() {
 
 }
 
+SIMULATION_STOP = false;
+function stop_sim(){
+    SIMULATION_STOP = true;
+}
 function run_simulation() {
+    document.getElementById("run_button").style.display = "none";
+    document.getElementById("sim_stop").style.display = "inline";
+
+
     const [homes, workplaces, communities, public_transports, nodes, community_distance_matrix, seed_array,
         days_num_affected, days_num_critical, days_num_exposed, days_num_fatalities, days_num_hospitalised, days_num_infected, days_num_recovered, lambda_evolution] = initialize_simulation();
     document.getElementById("status").innerHTML = "Starting to run Simulation...";
@@ -1610,9 +1620,13 @@ function run_simulation() {
         //     y: [[rand()], [rand()]]
         // }, [0, 1])
 
-        if (time_step >= NUM_TIMESTEPS) {
+        if (time_step >= NUM_TIMESTEPS || SIMULATION_STOP) {
             console.log("time_step = ", time_step);
             clearInterval(interval);
+            //Get Run working again
+            document.getElementById("run_button").style.display = "inline";
+            document.getElementById("sim_stop").style.display = "none";
+            SIMULATION_STOP = false;
             //Do some TASKS for output
             var encodedUri = encodeURI(csvContent);
             var link = document.createElement("a");
