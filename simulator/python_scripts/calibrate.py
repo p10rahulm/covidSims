@@ -65,7 +65,7 @@ def calibrate(resolution,count):
     plt.grid(True)
     plt.xlabel('Days (starting March 1st)')
     plt.ylabel('Deceased Population')
-    plt.savefig('combined_plot_linear_scale')
+    plt.savefig('./data/combined_plot_linear_scale')
     plt.close()
 
     plt.plot(np.log10(dead_data[61:len(dead_data)]),label='India Data')
@@ -74,10 +74,10 @@ def calibrate(resolution,count):
     plt.grid(True)
     plt.xlabel('Days (starting March 1st)')
     plt.ylabel('log_10 Deceased Population')
-    plt.savefig('combined_plot_log_scale')
+    plt.savefig('./data/combined_plot_log_scale')
     plt.close()      
     # consider data of interest based on threshold
-    dead_data = dead_data[dead_data>=threshold]
+    dead_data = dead_data[dead_data>=threshold] #Add [0:10] for NY and wuhan!
      
     indices_of_interest = np.where(np.logical_and(dead_simulation>=lower_threshold, dead_simulation<=upper_threshold))
     dead_simulation = dead_simulation[indices_of_interest]
