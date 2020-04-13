@@ -1760,15 +1760,39 @@ function plotly_PlotExtend(div_id, x_value, y_value) {
     }, [0]);
 }
 
+function plotly_PlotExtendMulti(div_id, x_values, y_values) {
+    Plotly.extendTraces(div_id, {
+        x: [x_values],
+        y: [y_values]
+    }, [0]);
+}
+
 function extend_plotly(last_timestep, current_timestep, data_tuple) {
     // console.log("data_tuple[0] = ",data_tuple[0]);
     const data_len = data_tuple[0].length;
     const num_updates = current_timestep-last_timestep;
-    for(let i  = 0;i < num_updates;i++){        plotly_PlotExtend("num_infected_plot_2",(last_timestep+i)/SIM_STEPS_PER_DAY,data_tuple[0][data_len-num_updates+i][1]);    }
-    for(let i  = 0;i < num_updates;i++){        plotly_PlotExtend("num_hospitalised_plot_2",(last_timestep+i)/SIM_STEPS_PER_DAY,data_tuple[2][data_len-num_updates+i][1]);    }
-    for(let i  = 0;i < num_updates;i++){        plotly_PlotExtend("num_critical_plot_2",(last_timestep+i)/SIM_STEPS_PER_DAY,data_tuple[3][data_len-num_updates+i][1]);    }
-    for(let i  = 0;i < num_updates;i++){        plotly_PlotExtend("num_fatalities_plot_2",(last_timestep+i)/SIM_STEPS_PER_DAY,data_tuple[4][data_len-num_updates+i][1]);    }
-    for(let i  = 0;i < num_updates;i++){        plotly_PlotExtend("num_affected_plot_2",(last_timestep+i)/SIM_STEPS_PER_DAY,data_tuple[6][data_len-num_updates+i][1]);    }
+    const infected = data_tuple[0].slice(Math.max(data_len - num_updates, 0));
+    plotly_PlotExtendMulti("num_infected_plot_2",infected.flatMap(x=>x[0]),infected.flatMap(x=>x[1]));
+
+    const hospitalized = data_tuple[2].slice(Math.max(data_len - num_updates, 0));
+    plotly_PlotExtendMulti("num_hospitalised_plot_2",hospitalized.flatMap(x=>x[0]),hospitalized.flatMap(x=>x[1]));
+
+    const critical = data_tuple[3].slice(Math.max(data_len - num_updates, 0));
+    plotly_PlotExtendMulti("num_critical_plot_2",critical.flatMap(x=>x[0]),critical.flatMap(x=>x[1]));
+
+    const fatalities = data_tuple[4].slice(Math.max(data_len - num_updates, 0));
+    plotly_PlotExtendMulti("num_fatalities_plot_2",fatalities.flatMap(x=>x[0]),fatalities.flatMap(x=>x[1]));
+
+    const affected = data_tuple[6].slice(Math.max(data_len - num_updates, 0));
+    plotly_PlotExtendMulti("num_affected_plot_2",affected.flatMap(x=>x[0]),affected.flatMap(x=>x[1]));
+
+
+    // EXTENDING ONE BY ONE: ABOVE IS FASTER
+    // for(let i  = 0;i < num_updates;i++){        plotly_PlotExtend("num_infected_plot_2",infected,data_tuple[0][data_len-num_updates+i][1]);    }
+    // for(let i  = 0;i < num_updates;i++){        plotly_PlotExtend("num_hospitalised_plot_2",(last_timestep+i)/SIM_STEPS_PER_DAY,data_tuple[2][data_len-num_updates+i][1]);    }
+    // for(let i  = 0;i < num_updates;i++){        plotly_PlotExtend("num_critical_plot_2",(last_timestep+i)/SIM_STEPS_PER_DAY,data_tuple[3][data_len-num_updates+i][1]);    }
+    // for(let i  = 0;i < num_updates;i++){        plotly_PlotExtend("num_fatalities_plot_2",(last_timestep+i)/SIM_STEPS_PER_DAY,data_tuple[4][data_len-num_updates+i][1]);    }
+    // for(let i  = 0;i < num_updates;i++){        plotly_PlotExtend("num_affected_plot_2",(last_timestep+i)/SIM_STEPS_PER_DAY,data_tuple[6][data_len-num_updates+i][1]);    }
     plot_lambda_evolution([data_tuple[7]], 'lambda_evolution', 'Source of infection', ['Home', 'School/Workplace', 'Community', 'Public Transport']);
 
 
