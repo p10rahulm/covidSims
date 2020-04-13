@@ -133,6 +133,8 @@ while (continue_run):
                'symtomaticFraction': SYMTOMATIC_FRACTION, 'meanHospitalPeriod': MEAN_HOSPITAL_PERIOD, 'meanICUPeriod': MEAN_ICU_PERIOD,
                'betaHouse': BETA_HOUSE, 'betaWork': BETA_WORK, 'betaSchools': BETA_SCHOOL, 'betaCommunity': BETA_COMMUNITY, 'betaPT': BETA_PT,
                'initFrac': INIT_FRAC, 'initFracScaleFactor': INIT_FRAC_SCALE_FACTOR, 'compliance': COMPLIANCE, 'interventions': INTERVENTION }   
+    
+    print ('Parameter:', params)    
 
     processed_list = Parallel(n_jobs=num_cores)(delayed(run_sim)(driverLocation, options, simNum, params) for simNum in range(NUM_SIM))
      
@@ -143,7 +145,7 @@ while (continue_run):
     if flag == True:
         continue_run = False
     else:
-        print ('Flag: ', flag, 'BETA_HOUSE ', BETA_HOUSE, 'BETA_WORK',BETA_WORK, 'BETA_SCHOOL:', BETA_SCHOOL, 'BETA_COMMUNITY:', BETA_COMMUNITY )
+        print ('BETA_HOUSE ', BETA_HOUSE, 'BETA_WORK',BETA_WORK, 'BETA_SCHOOL:', BETA_SCHOOL, 'BETA_COMMUNITY:', BETA_COMMUNITY )
  
         BETA_HOUSE = max(BETA_HOUSE + step_beta_h,0)*BETA_SCALE_FACTOR
         BETA_WORK = max(BETA_WORK + step_beta_w,0)*BETA_SCALE_FACTOR

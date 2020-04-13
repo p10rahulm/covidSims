@@ -34,7 +34,7 @@ def calibrate(resolution,count):
     lambda_c_target = 0.333334
 
     # read data from ecdp file
-    country='China'
+    country='India'
     infected = pd.read_csv('./data/ecdp.csv')
     infected.fillna('Nodata')
     infected = infected.iloc[::-1]
@@ -77,7 +77,7 @@ def calibrate(resolution,count):
     plt.savefig('./data/combined_plot_log_scale')
     plt.close()      
     # consider data of interest based on threshold
-    dead_data = dead_data[dead_data>=threshold][0:10] #For NY it is also 10!
+    dead_data = dead_data[dead_data>=threshold] #Add [0:10] for NY and wuhan!
      
     indices_of_interest = np.where(np.logical_and(dead_simulation>=lower_threshold, dead_simulation<=upper_threshold))
     dead_simulation = dead_simulation[indices_of_interest]
