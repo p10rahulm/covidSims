@@ -120,5 +120,5 @@ def calculate_r0(threshold,number_of_days,resolution):
     
     return (res_nointervention.x[0]/mu)
 
-sim_r0 = calculate_r0(10, 27, 4)
-print ('Simulated R0: ', sim_r0)
+#sim_r0 = calculate_r0(10, 27, 4)
+#print ('Simulated R0: ', sim_r0)

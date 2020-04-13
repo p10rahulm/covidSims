@@ -1655,7 +1655,7 @@ function plot_simulation(days_num_infected,plot_element,title_1,title_2) {
 	}
 }
 */
-function run_and_plot(intervention) {
+function run_and_plot(intervention, simNum) {
 	var returned_values 
 	INTERVENTION = intervention
 	console.log(INTERVENTION, intervention)
@@ -1670,10 +1670,10 @@ function run_and_plot(intervention) {
 	//plot_plotly([returned_values[5]],'num_recovered_plot_2','Number Recovered (cum.)','Evolution of Recovered Population');
 	plot_lambda_evolution([returned_values[7]],'lambda_evolution','Source of infection',['Home','School/Workplace','Community','Public Transport'])
 
-	var encodedUri = encodeURI(csvContent);
+    var encodedUri = encodeURI(csvContent);
     var link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "my_data.csv");
+    link.setAttribute("download", "my_data_"+simNum.toString()+".csv");
     document.body.appendChild(link); // Required for FF
 	if(!WEBPAGE_VERSION){
 		link.click();	//TODO: Instead of click link, add link for download on page.
@@ -1683,7 +1683,7 @@ function run_and_plot(intervention) {
 	encodedUri = encodeURI(csvContent_alltogether);
     link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "my_data_all_together.csv");
+    link.setAttribute("download", "my_data_all_together_"+simNum.toString()+".csv");
     document.body.appendChild(link); // Required for FF
 	document.getElementById("status").innerHTML="Numbers plotted are per " + String(NUM_PEOPLE)+".";
 	if(!WEBPAGE_VERSION){
@@ -1805,16 +1805,13 @@ function runSimulations(){
 
 	INCUBATION_PERIOD = parseFloat(document.getElementById("Incubation").value)/2;
 	INCUBATION_PERIOD_SCALE = INCUBATION_PERIOD*SIM_STEPS_PER_DAY; // 2.29 days
-
 	
 	MEAN_ASYMPTOMATIC_PERIOD = document.getElementById("asymptomaticMean").value;
 	MEAN_SYMPTOMATIC_PERIOD = document.getElementById("symptomaticMean").value;
 	SYMPTOMATIC_FRACTION = document.getElementById("symtomaticFraction").value;
 	MEAN_HOSPITAL_REGULAR_PERIOD = document.getElementById("meanHospitalPeriod").value;
 	MEAN_HOSPITAL_CRITICAL_PERIOD = document.getElementById("meanICUPeriod").value;
-	COMPLIANCE_PROBABILITY = document.getElementById("compliance").value;
-	
-
+	COMPLIANCE_PROBABILITY = document.getElementById("compliance").value;	
 
 	ASYMPTOMATIC_PERIOD = MEAN_ASYMPTOMATIC_PERIOD*SIM_STEPS_PER_DAY; 
 	SYMPTOMATIC_PERIOD = MEAN_SYMPTOMATIC_PERIOD*SIM_STEPS_PER_DAY; 
@@ -1826,12 +1823,13 @@ function runSimulations(){
 	BETA_C = document.getElementById("betaCommunity").value;
 	BETA_S = document.getElementById("betaSchools").value;
 	BETA_PT = document.getElementById("betaPT").value;
-
+	
+	SIM_NUM = document.getElementById("simNum").value;
 	INTERVENTION = parseInt(document.getElementById("interventions").value);
 
-	console.log(NUM_DAYS, INIT_FRAC_INFECTED, INTERVENTION)
+	console.log(SIM_NUM, NUM_DAYS, INIT_FRAC_INFECTED, INTERVENTION);
 	//where simulation starts
-	run_and_plot(INTERVENTION); //run_and_plot(LOCKDOWN_21_CI_HQ_SD_70_PLUS_21_CI);
+	run_and_plot(INTERVENTION,SIM_NUM); //run_and_plot(LOCKDOWN_21_CI_HQ_SD_70_PLUS_21_CI);
 //run_and_plot_2();
 }
 
@@ -1865,6 +1863,7 @@ function set_default_values_html(){
 	document.getElementById("betaCommunity").value =BETA_C;
 	document.getElementById("betaSchools").value = BETA_S;
 	document.getElementById("betaPT").value = BETA_PT;
+	document.getElementById("simNum").value = 1;
 	document.getElementById("interventions").value = "0";
 }
 

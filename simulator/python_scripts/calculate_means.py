@@ -4,8 +4,6 @@
 import numpy as np
 import os
 import pandas as pd
-import seaborn as sns 
-import matplotlib.pyplot as plt
 
 def calculate_means(data_dir, result_dir):
 
@@ -14,7 +12,6 @@ def calculate_means(data_dir, result_dir):
     if not (os.path.exists(result_dir)):
         os.mkdir(result_dir)    
     
-    print (data_dir)
     column_names = ['timestep', 'affected', 'recovered', 'infected', 'exposed', 'hospitalised', 'critical', 'dead', 'lambda H', 'lambda W', 'lambda C']
     master_df = pd.DataFrame(columns=column_names)
 
@@ -39,8 +36,6 @@ def calculate_means(data_dir, result_dir):
 
     for i in range(len(plot_values)):
         val = plot_values[i]
-        plt.figure(figsize=(13,5))
-        sns.set()
         df = master_df[['timestep', val]]
         df_mean = df.groupby(['timestep']).mean()
         df_mean.to_csv(result_dir+val+'_mean.csv')
