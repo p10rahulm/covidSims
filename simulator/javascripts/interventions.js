@@ -1,7 +1,7 @@
 
 
 function get_kappa_no_intervention(nodes, homes, workplaces, communities,cur_time){
-	for (var count = 0; count < nodes.length;count ++){
+	for (let count = 0; count < nodes.length; count ++){
 		nodes[count]['kappa_T'] = kappa_T(nodes[count], cur_time);
 		nodes[count]['kappa_H'] = 1;
 		nodes[count]['kappa_W'] = 1;
@@ -17,7 +17,7 @@ function get_kappa_no_intervention(nodes, homes, workplaces, communities,cur_tim
 }
 
 function get_kappa_SC(nodes, homes, workplaces, communities,cur_time){
-	for (var count = 0; count < nodes.length;count ++){
+	for (let count = 0; count < nodes.length; count ++){
 		nodes[count]['kappa_T'] = kappa_T(nodes[count], cur_time);
 		nodes[count]['kappa_H'] = 1;
 		nodes[count]['kappa_W'] = 1;
@@ -39,8 +39,8 @@ function get_kappa_SC(nodes, homes, workplaces, communities,cur_time){
 }
 
 function get_kappa_case_isolation(nodes, homes, workplaces, communities,cur_time){
-	for (var count = 0; count < nodes.length;count ++){
-		var time_since_symptoms = cur_time - (nodes[count]['time_of_infection']+nodes[count]['incubation_period']+nodes[count]['asymptomatic_period']);
+	for (let count = 0; count < nodes.length; count ++){
+		const time_since_symptoms = cur_time - (nodes[count]['time_of_infection'] + nodes[count]['incubation_period'] + nodes[count]['asymptomatic_period']);
 		nodes[count]['kappa_T'] = kappa_T(nodes[count], cur_time);
 		nodes[count]['kappa_H'] = 1;
 		nodes[count]['kappa_W'] = 1;
@@ -75,7 +75,7 @@ function get_kappa_home_quarantine(nodes, homes, workplaces, communities,cur_tim
 	}
 
 	for (var count = 0; count < nodes.length;count++){
-		var time_since_symptoms = cur_time - (nodes[count]['time_of_infection']+nodes[count]['incubation_period']+nodes[count]['asymptomatic_period'])
+		const time_since_symptoms = cur_time - (nodes[count]['time_of_infection'] + nodes[count]['incubation_period'] + nodes[count]['asymptomatic_period']);
 		if((nodes[count]['compliant']) && 
 		 (time_since_symptoms > NUM_DAYS_TO_RECOG_SYMPTOMS*SIM_STEPS_PER_DAY) && 
 		 (time_since_symptoms <= (NUM_DAYS_TO_RECOG_SYMPTOMS+HOME_QUARANTINE_DAYS)*SIM_STEPS_PER_DAY)){ //The magic number 1 = time to recognise symptoms. 
@@ -109,7 +109,7 @@ function get_kappa_home_quarantine(nodes, homes, workplaces, communities,cur_tim
 }
 
 function get_kappa_lockdown(nodes, homes, workplaces, communities,cur_time){
-	for (var count = 0; count < nodes.length;count ++){
+	for (let count = 0; count < nodes.length; count ++){
 		nodes[count]['kappa_T'] = kappa_T(nodes[count], cur_time);
 		if(nodes[count]['compliant']){
 			nodes[count]['kappa_H'] = 2;
@@ -161,7 +161,7 @@ function get_kappa_CI_HQ(nodes, homes, workplaces, communities,cur_time){
 	}
 
 	for (var count = 0; count < nodes.length;count++){
-		var time_since_symptoms = cur_time - (nodes[count]['time_of_infection']+nodes[count]['incubation_period']+nodes[count]['asymptomatic_period'])
+		const time_since_symptoms = cur_time - (nodes[count]['time_of_infection'] + nodes[count]['incubation_period'] + nodes[count]['asymptomatic_period']);
 		if((nodes[count]['compliant']) && 
 		 (time_since_symptoms > NUM_DAYS_TO_RECOG_SYMPTOMS*SIM_STEPS_PER_DAY) && 
 		 (time_since_symptoms <= (NUM_DAYS_TO_RECOG_SYMPTOMS+HOME_QUARANTINE_DAYS)*SIM_STEPS_PER_DAY)){ //The magic number 1 = time to recognise symptoms. 
@@ -202,7 +202,7 @@ function get_kappa_CI_HQ_70P(nodes, homes, workplaces, communities,cur_time){
 	}
 
 	for (var count = 0; count < nodes.length;count++){
-		var time_since_symptoms = cur_time - (nodes[count]['time_of_infection']+nodes[count]['incubation_period']+nodes[count]['asymptomatic_period'])
+		const time_since_symptoms = cur_time - (nodes[count]['time_of_infection'] + nodes[count]['incubation_period'] + nodes[count]['asymptomatic_period']);
 		if((nodes[count]['compliant']) && 
 		 (time_since_symptoms > NUM_DAYS_TO_RECOG_SYMPTOMS*SIM_STEPS_PER_DAY) && 
 		 (time_since_symptoms <= (NUM_DAYS_TO_RECOG_SYMPTOMS+HOME_QUARANTINE_DAYS)*SIM_STEPS_PER_DAY)){ //The magic number 1 = time to recognise symptoms. 
@@ -248,7 +248,7 @@ function get_kappa_CI_HQ_70P_SC(nodes, homes, workplaces, communities,cur_time){
 	}
 
 	for (var count = 0; count < nodes.length;count++){
-		var time_since_symptoms = cur_time - (nodes[count]['time_of_infection']+nodes[count]['incubation_period']+nodes[count]['asymptomatic_period'])
+		const time_since_symptoms = cur_time - (nodes[count]['time_of_infection'] + nodes[count]['incubation_period'] + nodes[count]['asymptomatic_period']);
 		if((nodes[count]['compliant']) && 
 		 (time_since_symptoms > NUM_DAYS_TO_RECOG_SYMPTOMS*SIM_STEPS_PER_DAY) && 
 		 (time_since_symptoms <= (NUM_DAYS_TO_RECOG_SYMPTOMS+HOME_QUARANTINE_DAYS)*SIM_STEPS_PER_DAY)){ //The magic number 1 = time to recognise symptoms. 
@@ -300,7 +300,7 @@ function get_kappa_CI_HQ_70P_SC_OE(nodes, homes, workplaces, communities,cur_tim
 	}
 
 	for (var count = 0; count < nodes.length;count++){
-		var time_since_symptoms = cur_time - (nodes[count]['time_of_infection']+nodes[count]['incubation_period']+nodes[count]['asymptomatic_period'])
+		const time_since_symptoms = cur_time - (nodes[count]['time_of_infection'] + nodes[count]['incubation_period'] + nodes[count]['asymptomatic_period']);
 		if((nodes[count]['compliant']) && 
 		 (time_since_symptoms > NUM_DAYS_TO_RECOG_SYMPTOMS*SIM_STEPS_PER_DAY) && 
 		 (time_since_symptoms <= (NUM_DAYS_TO_RECOG_SYMPTOMS+HOME_QUARANTINE_DAYS)*SIM_STEPS_PER_DAY)){ //The magic number 1 = time to recognise symptoms. 
@@ -377,7 +377,7 @@ function get_kappa_LOCKDOWN_21(nodes, homes, workplaces, communities,cur_time){
 function get_kappa_LD_21_CI_HQ_SD70_SC_21_SC_42(nodes, homes, workplaces, communities,cur_time){
 	const FIRST_PERIOD = 21;
 	const SECOND_PERIOD = 21;
-	const THIRD_PERIOD = 42
+	const THIRD_PERIOD = 42;
 	if(cur_time < (NUM_DAYS_BEFORE_INTERVENTIONS + FIRST_PERIOD)*SIM_STEPS_PER_DAY){
 		get_kappa_lockdown(nodes, homes, workplaces, communities,cur_time);
 	} else if(cur_time < (NUM_DAYS_BEFORE_INTERVENTIONS + FIRST_PERIOD + SECOND_PERIOD)*SIM_STEPS_PER_DAY){
