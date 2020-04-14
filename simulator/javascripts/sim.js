@@ -1419,7 +1419,7 @@ function update_all_kappa(nodes, homes, workplaces, communities, cur_time) {
 function run_simday(time_step, homes, workplaces, communities, public_transports, nodes, community_distance_matrix, seed_array,
                     days_num_affected, days_num_critical, days_num_exposed, days_num_fatalities, days_num_hospitalised, days_num_infected, days_num_recovered, lambda_evolution) {
 
-    console.log(time_step / SIM_STEPS_PER_DAY);
+    console.log("time_step = " + time_step + "time_step / SIM_STEPS_PER_DAY" + time_step / SIM_STEPS_PER_DAY);
 
     //seeding strategies
     if (SEEDING_MODE == SEED_INFECTION_RATES && time_step < seed_array.length) {
@@ -1478,35 +1478,35 @@ function run_simday(time_step, homes, workplaces, communities, public_transports
         return partial_sum + ((node['infection_status'] == PRE_SYMPTOMATIC || node['infection_status'] == SYMPTOMATIC || node['infection_status'] == HOSPITALISED || node['infection_status'] == CRITICAL) ? 1 : 0);
     }, 0);
     //PLEASE CHECK BELOW LINE AS  n_infected_wardwise returns same thing
-    days_num_infected.push([time_step / SIM_STEPS_PER_DAY, n_infected]);
+    days_num_infected[time_step] = [time_step / SIM_STEPS_PER_DAY, n_infected];
 
     var n_exposed = nodes.reduce(function (partial_sum, node) {
         return partial_sum + ((node['infection_status'] == EXPOSED) ? 1 : 0);
     }, 0);
-    days_num_exposed.push([time_step / SIM_STEPS_PER_DAY, n_exposed]);
+    days_num_exposed[time_step] = [time_step / SIM_STEPS_PER_DAY, n_exposed];
 
     var n_hospitalised = nodes.reduce(function (partial_sum, node) {
         return partial_sum + ((node['infection_status'] == HOSPITALISED) ? 1 : 0);
     }, 0);
-    days_num_hospitalised.push([time_step / SIM_STEPS_PER_DAY, n_hospitalised]);
+    days_num_hospitalised[time_step] = [time_step / SIM_STEPS_PER_DAY, n_hospitalised];
 
     var n_critical = nodes.reduce(function (partial_sum, node) {
         return partial_sum + ((node['infection_status'] == CRITICAL) ? 1 : 0);
     }, 0);
-    days_num_critical.push([time_step / SIM_STEPS_PER_DAY, n_critical]);
+    days_num_critical[time_step] = [time_step / SIM_STEPS_PER_DAY, n_critical];
 
     var n_fatalities = nodes.reduce(function (partial_sum, node) {
         return partial_sum + ((node['infection_status'] == DEAD) ? 1 : 0);
     }, 0);
-    days_num_fatalities.push([time_step / SIM_STEPS_PER_DAY, (n_fatalities)]);
+    days_num_fatalities[time_step] = [time_step / SIM_STEPS_PER_DAY, (n_fatalities)];
 
     var n_recovered = nodes.reduce(function (partial_sum, node) {
         return partial_sum + ((node['infection_status'] == RECOVERED) ? 1 : 0);
     }, 0);
-    days_num_recovered.push([time_step / SIM_STEPS_PER_DAY, n_recovered]);
+    days_num_recovered[time_step] = [time_step / SIM_STEPS_PER_DAY, n_recovered];
 
     //var n_affected = nodes.reduce(function(partial_sum, node) {return partial_sum + ((node['infection_status']) ? 1 : 0);}, 0);
-    days_num_affected.push([time_step / SIM_STEPS_PER_DAY, (NUM_AFFECTED_COUNT)]);
+    days_num_affected[time_step] = [time_step / SIM_STEPS_PER_DAY, (NUM_AFFECTED_COUNT)];
 
     let row = [time_step / SIM_STEPS_PER_DAY, NUM_AFFECTED_COUNT, n_recovered, n_infected, n_exposed, n_hospitalised, n_critical, n_fatalities, LAMBDA_INFECTION_MEAN[0], LAMBDA_INFECTION_MEAN[1], LAMBDA_INFECTION_MEAN[2]].join(",");
     csvContent_alltogether += row + "\r\n";
@@ -1611,13 +1611,13 @@ function run_simulation() {
 
 
     const interval = setInterval(function () {
-        console.log("inside the interval stuff. time_step = ", time_step);
+        // console.log("inside the interval stuff. time_step = ", time_step);
         document.getElementById("status").innerHTML = "Calculating Simulation for Day: " + time_step / SIM_STEPS_PER_DAY;
         const last_time_step = time_step;
         time_step = run_simday(time_step + 1, homes, workplaces, communities, public_transports, nodes, community_distance_matrix, seed_array,
             days_num_affected, days_num_critical, days_num_exposed, days_num_fatalities, days_num_hospitalised, days_num_infected, days_num_recovered, lambda_evolution);
 
-        extend_plotly(last_time_step,time_step,plot_tuple);
+        extend_plotlyDay(last_time_step,time_step,plot_tuple);
         // call_plotly(plot_tuple);
         // Plotly.extendTraces('graph', {
         //     x: [[cnt], [cnt]],
@@ -1625,12 +1625,14 @@ function run_simulation() {
         // }, [0, 1])
 
         if (time_step >= NUM_TIMESTEPS || SIMULATION_STOP) {
-            console.log("time_step = ", time_step);
+            // console.log("time_step = ", time_step);
             clearInterval(interval);
             //Get Run working again
             document.getElementById("run_button").style.display = "inline";
             document.getElementById("sim_stop").style.display = "none";
             SIMULATION_STOP = false;
+            //Ensure last data point plotted
+            extend_plotlyLast(time_step, plot_tuple);
             //Do some TASKS for output
             var encodedUri = encodeURI(csvContent);
             var link = document.createElement("a");
@@ -1780,23 +1782,28 @@ function plotly_PlotExtendMulti(div_id, x_values, y_values) {
     }, [0]);
 }
 
-function extend_plotly(last_timestep, current_timestep, data_tuple) {
+function extend_plotlyDay(last_timestep, current_timestep, data_tuple) {
     // console.log("data_tuple[0] = ",data_tuple[0]);
     const data_len = data_tuple[0].length;
     const num_updates = current_timestep-last_timestep;
-    const infected = data_tuple[0].slice(Math.max(data_len - num_updates, 0));
+    // const infected = data_tuple[0].slice(Math.max(data_len - num_updates, 0));
+    const infected = data_tuple[0].slice(last_timestep,current_timestep);
     plotly_PlotExtendMulti("num_infected_plot_2",infected.flatMap(x=>x[0]),infected.flatMap(x=>x[1]));
 
-    const hospitalized = data_tuple[2].slice(Math.max(data_len - num_updates, 0));
+    // const hospitalized = data_tuple[2].slice(Math.max(data_len - num_updates, 0));
+    const hospitalized = data_tuple[2].slice(last_timestep,current_timestep);
     plotly_PlotExtendMulti("num_hospitalised_plot_2",hospitalized.flatMap(x=>x[0]),hospitalized.flatMap(x=>x[1]));
 
-    const critical = data_tuple[3].slice(Math.max(data_len - num_updates, 0));
+    // const critical = data_tuple[3].slice(Math.max(data_len - num_updates, 0));
+    const critical = data_tuple[3].slice(last_timestep,current_timestep);
     plotly_PlotExtendMulti("num_critical_plot_2",critical.flatMap(x=>x[0]),critical.flatMap(x=>x[1]));
 
-    const fatalities = data_tuple[4].slice(Math.max(data_len - num_updates, 0));
+    // const fatalities = data_tuple[4].slice(Math.max(data_len - num_updates, 0));
+    const fatalities = data_tuple[4].slice(last_timestep,current_timestep);
     plotly_PlotExtendMulti("num_fatalities_plot_2",fatalities.flatMap(x=>x[0]),fatalities.flatMap(x=>x[1]));
 
-    const affected = data_tuple[6].slice(Math.max(data_len - num_updates, 0));
+    // const affected = data_tuple[6].slice(Math.max(data_len - num_updates, 0));
+    const affected = data_tuple[6].slice(last_timestep,current_timestep);
     plotly_PlotExtendMulti("num_affected_plot_2",affected.flatMap(x=>x[0]),affected.flatMap(x=>x[1]));
 
 
@@ -1811,6 +1818,17 @@ function extend_plotly(last_timestep, current_timestep, data_tuple) {
 
 }
 
+function extend_plotlyLast(time_step, data_tuple) {
+
+    plotly_PlotExtend("num_infected_plot_2",data_tuple[0][time_step][0],data_tuple[0][time_step][1]);
+    plotly_PlotExtend("num_hospitalised_plot_2",data_tuple[2][time_step][0],data_tuple[0][time_step][1]);
+    plotly_PlotExtend("num_critical_plot_2",data_tuple[3][time_step][0],data_tuple[0][time_step][1]);
+    plotly_PlotExtend("num_fatalities_plot_2",data_tuple[4][time_step][0],data_tuple[0][time_step][1]);
+    plotly_PlotExtend("num_affected_plot_2",data_tuple[5][time_step][0],data_tuple[0][time_step][1]);
+    plot_lambda_evolution([data_tuple[7]], 'lambda_evolution', 'Source of infection', ['Home', 'School/Workplace', 'Community', 'Public Transport']);
+
+
+}
 function plot_plotly_SingleLine(data, plot_position, title_text, legends) {
     var trace = [];
 
