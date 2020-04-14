@@ -1742,13 +1742,13 @@ function plot_lambda_evolution(data, plot_position, title_text, legends) {
 function call_plotly(data_tuple) {
     var plot_values = data_tuple;
 
-    plot_plotly([plot_values[0]], 'num_infected_plot_2', 'Number Infectious (daily)', 'Evolution of Infected Population');
-    //plot_plotly([plot_values[1]],'num_exposed_plot_2','Number Exposed (daily)','Evolution of Exposed Population');
-    plot_plotly([plot_values[2]], 'num_hospitalised_plot_2', 'Number Hospitalised (daily)', 'Evolution of Hospitalised Population');
-    plot_plotly([plot_values[3]], 'num_critical_plot_2', 'Number Critical (daily)', 'Evolution of Critical Population');
-    plot_plotly([plot_values[4]], 'num_fatalities_plot_2', 'Number Fatalities (cum.)', 'Evolution of Fatalities Population');
-    //plot_plotly([plot_values[5]],'num_recovered_plot_2','Number Recovered (cum.)','Evolution of Recovered Population');
-    plot_plotly([plot_values[6]], 'num_affected_plot_2', 'Number Affected (cum.)', 'Evolution of Affected Population');
+    plot_plotly_SingleLine([plot_values[0]], 'num_infected_plot_2', 'Number Infectious (daily)', 'Evolution of Infected Population');
+    //plot_plotly_SingleLine([plot_values[1]],'num_exposed_plot_2','Number Exposed (daily)','Evolution of Exposed Population');
+    plot_plotly_SingleLine([plot_values[2]], 'num_hospitalised_plot_2', 'Number Hospitalised (daily)', 'Evolution of Hospitalised Population');
+    plot_plotly_SingleLine([plot_values[3]], 'num_critical_plot_2', 'Number Critical (daily)', 'Evolution of Critical Population');
+    plot_plotly_SingleLine([plot_values[4]], 'num_fatalities_plot_2', 'Number Fatalities (cum.)', 'Evolution of Fatalities Population');
+    //plot_plotly_SingleLine([plot_values[5]],'num_recovered_plot_2','Number Recovered (cum.)','Evolution of Recovered Population');
+    plot_plotly_SingleLine([plot_values[6]], 'num_affected_plot_2', 'Number Affected (cum.)', 'Evolution of Affected Population');
     plot_lambda_evolution([plot_values[7]], 'lambda_evolution', 'Source of infection', ['Home', 'School/Workplace', 'Community', 'Public Transport']);
 
 }
