@@ -1613,9 +1613,12 @@ function run_simulation() {
     const interval = setInterval(function () {
         console.log("inside the interval stuff. time_step = ", time_step);
         document.getElementById("status").innerHTML = "Calculating Simulation for Day: " + time_step / SIM_STEPS_PER_DAY;
+        const last_time_step = time_step;
         time_step = run_simday(time_step + 1, homes, workplaces, communities, public_transports, nodes, community_distance_matrix, seed_array,
             days_num_affected, days_num_critical, days_num_exposed, days_num_fatalities, days_num_hospitalised, days_num_infected, days_num_recovered, lambda_evolution);
-        call_plotly(plot_tuple);
+
+        extend_plotly(last_time_step,time_step,plot_tuple);
+        // call_plotly(plot_tuple);
         // Plotly.extendTraces('graph', {
         //     x: [[cnt], [cnt]],
         //     y: [[rand()], [rand()]]
@@ -1650,7 +1653,7 @@ function run_simulation() {
             }
 
         }
-    }, 150);
+    }, 50);
 
     if (LAMBDA_INFECTION_STATS.length > 0) {
         console.log(math.mean(LAMBDA_INFECTION_STATS, 0));
@@ -1763,25 +1766,119 @@ function plotly_extend(div_id, x_value, y_value) {
         y: [[y_value]]
     }, [0]);
 }
+function plotly_PlotExtend(div_id, x_value, y_value) {
+    Plotly.extendTraces(div_id, {
+        x: [[x_value]],
+        y: [[y_value]]
+    }, [0]);
+}
+
+function plotly_PlotExtendMulti(div_id, x_values, y_values) {
+    Plotly.extendTraces(div_id, {
+        x: [x_values],
+        y: [y_values]
+    }, [0]);
+}
+
+function extend_plotly(last_timestep, current_timestep, data_tuple) {
+    // console.log("data_tuple[0] = ",data_tuple[0]);
+    const data_len = data_tuple[0].length;
+    const num_updates = current_timestep-last_timestep;
+    const infected = data_tuple[0].slice(Math.max(data_len - num_updates, 0));
+    plotly_PlotExtendMulti("num_infected_plot_2",infected.flatMap(x=>x[0]),infected.flatMap(x=>x[1]));
+
+    const hospitalized = data_tuple[2].slice(Math.max(data_len - num_updates, 0));
+    plotly_PlotExtendMulti("num_hospitalised_plot_2",hospitalized.flatMap(x=>x[0]),hospitalized.flatMap(x=>x[1]));
+
+    const critical = data_tuple[3].slice(Math.max(data_len - num_updates, 0));
+    plotly_PlotExtendMulti("num_critical_plot_2",critical.flatMap(x=>x[0]),critical.flatMap(x=>x[1]));
+
+    const fatalities = data_tuple[4].slice(Math.max(data_len - num_updates, 0));
+    plotly_PlotExtendMulti("num_fatalities_plot_2",fatalities.flatMap(x=>x[0]),fatalities.flatMap(x=>x[1]));
+
+    const affected = data_tuple[6].slice(Math.max(data_len - num_updates, 0));
+    plotly_PlotExtendMulti("num_affected_plot_2",affected.flatMap(x=>x[0]),affected.flatMap(x=>x[1]));
 
 
-function plot_plotly(data, plot_position, title_text, legends) {
-    const trace = [];
+    // EXTENDING ONE BY ONE: ABOVE IS FASTER
+    // for(let i  = 0;i < num_updates;i++){        plotly_PlotExtend("num_infected_plot_2",infected,data_tuple[0][data_len-num_updates+i][1]);    }
+    // for(let i  = 0;i < num_updates;i++){        plotly_PlotExtend("num_hospitalised_plot_2",(last_timestep+i)/SIM_STEPS_PER_DAY,data_tuple[2][data_len-num_updates+i][1]);    }
+    // for(let i  = 0;i < num_updates;i++){        plotly_PlotExtend("num_critical_plot_2",(last_timestep+i)/SIM_STEPS_PER_DAY,data_tuple[3][data_len-num_updates+i][1]);    }
+    // for(let i  = 0;i < num_updates;i++){        plotly_PlotExtend("num_fatalities_plot_2",(last_timestep+i)/SIM_STEPS_PER_DAY,data_tuple[4][data_len-num_updates+i][1]);    }
+    // for(let i  = 0;i < num_updates;i++){        plotly_PlotExtend("num_affected_plot_2",(last_timestep+i)/SIM_STEPS_PER_DAY,data_tuple[6][data_len-num_updates+i][1]);    }
+    plot_lambda_evolution([data_tuple[7]], 'lambda_evolution', 'Source of infection', ['Home', 'School/Workplace', 'Community', 'Public Transport']);
 
-    for (var count = 0; count < data.length; count++) {
+
+}
+
+function plot_plotly_SingleLine(data, plot_position, title_text, legends) {
+    var trace = [];
+
+    for(var count = 0; count < data.length; count++) {
         var trace1 = {
             x: [],
             y: [],
             mode: 'lines',
             name: legends[count],
             line: {
-                // color: 'rgb(219, 64, 82)',
+                //color: 'rgb(219, 64, 82)',
                 width: 3
             }
         };
         for (var count2 = 0; count2 < data[count].length; count2++) {
             trace1.x.push(data[count][count2][0]);
             trace1.y.push(data[count][count2][1]);
+
+        }
+        trace.push(trace1)
+    }
+
+    var data_plot = trace;
+
+    var layout = {
+
+        xaxis: {
+            title: {
+                text: 'Days',
+                font: {
+                    family: 'Courier New, monospace',
+                    size: 18,
+                    color: '#7f7f7f'
+                }
+            },
+        },
+        yaxis: {
+            title: {
+                text: title_text,
+                font: {
+                    family: 'Courier New, monospace',
+                    size: 18,
+                    color: '#7f7f7f'
+                }
+            }
+        }
+    };
+
+    Plotly.newPlot(plot_position, data_plot, layout);
+}
+
+function plot_plotly(data, plot_position, title_text, legends) {
+    const trace = [];
+
+    for (let columnNo = 0; columnNo < data.length; columnNo++) {
+        let trace1 = {
+            x: [],
+            y: [],
+            mode: 'lines',
+            name: legends[columnNo],
+            line: {
+                // color: 'rgb(219, 64, 82)',
+                width: 3
+            }
+        };
+        for (let rowNo = 0; rowNo < data[columnNo].length; rowNo++) {
+            trace1.x.push(data[columnNo][rowNo][0]);
+            trace1.y.push(data[columnNo][rowNo][1]);
 
         }
         trace.push(trace1)
