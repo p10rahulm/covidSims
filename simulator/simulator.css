@@ -1,0 +1,84 @@
+.container{
+    display: grid;
+    grid-template-rows: [header-top] 65px [header-bottom body-start] auto [body-end footer-start] 65px [footer-end];
+}
+
+
+.header{
+
+}
+body {
+    font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    line-height: 1.6;
+    margin-bottom: 50px;
+}
+
+#status {
+    text-align: center;
+}
+
+.content {
+    max-width: 35em;
+    margin: 0 auto;
+    padding: 0 10px;
+}
+
+.nav {
+    text-align: center;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+img {
+    max-width: 100%;
+    display: block;
+    margin: 0 auto;
+}
+
+a {
+    text-decoration: none;
+}
+
+a:link, .nav a, .nav a:visited {
+    color: #07C;
+}
+
+a:hover, a:active, .nav a:visited:active, .nav a:visited:hover {
+    color: #3af;
+}
+
+a:visited {
+    color: #005999;
+}
+
+.column {
+    float: left;
+    width: 40%;
+    padding: 15px;
+}
+
+@media screen and (max-width: 800px) {
+    .column {
+        float: left;
+        width: 90%;
+        padding: 15px;
+        margin: 0px 10px 0px 10px;
+    }
+}
+
+
+input[type="number"] {
+    width: 30%;
+    margin-left: 20px;
+}
+
+.flex-container {
+    display: flex;
+    justify-content: space-between;
+}
+#interventions{
+    width: 30%;
+    margin-left: 20px;
+}
