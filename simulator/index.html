@@ -16,182 +16,192 @@ SPDX-License-Identifier: Apache-2.0-->
 <div class="container">
     <div class="header">
         <div id="logo">
-            <a href="https://www.iisc.ac.in/"><img src="images/iisc_logo.png"></a>
-        </div>
-        <div id="logoText">
             <a href="https://www.iisc.ac.in/">
-                <div id="logol1">
-                    Epidemic Simulator City-Scale
-                </div>
-                <div id="logol2">
-                    <a href="https://cni.iisc.ac.in/">
-                        Center for Network Intelligence RBCCPS
-                    </a>
-                </div>
-                <div id="logol3">
-                    IISc Bangalore
-                </div>
+                <img src="images/iisc_logo.png">
             </a>
+            <div id="logoText">
+                <a href="https://www.iisc.ac.in/">
+                    <div id="logol1">
+                        <a href="https://cni.iisc.ac.in/">
+                            Center for Network Intelligence RBCCPS
+                        </a>
+                    </div>
+                    <div id="logol2">
+                        <a href="https://cni.iisc.ac.in/">
+                            IISc Bangalore
+                        </a>
+                    </div>
+                </a>
+            </div>
+        </div>
+        <div id="HeaderTitle">
+            <h1>Epidemic Simulator City-Scale</h1>
         </div>
 
-
-        <div class="header-right">
+        <div id="navbar">
             <a class="active" href="#home">Home</a>
             <a href="#contact">Contact</a>
             <a href="#about">About</a>
         </div>
-
     </div>
+    <div class="main">
 
-    <h1>Epidemic Simulator (City-Scale)</h1>
+        <h1>Epidemic Simulator (City-Scale)</h1>
 
-    <p>
-        This is a city-scale agent-based simulator, built based on the descriptions given in this
-        <a href="https://www.imperial.ac.uk/mrc-global-infectious-disease-analysis/covid-19/report-9-impact-of-npis-on-covid-19/">
-            study</a> of non-pharmaceutical interventions (from the Imperial College, London), this
-        <a href="https://www.nature.com/articles/nature04017">paper</a> on pandemics in SE Asia, and its associated
-        <a href="https://static-content.springer.com/esm/art%3A10.1038%2Fnature04017/MediaObjects/41586_2005_BFnature04017_MOESM1_ESM.pdf">supplementary
-            material</a>. <br><br>
+        <p>
+            This is a city-scale agent-based simulator, built based on the descriptions given in this
+            <a href="https://www.imperial.ac.uk/mrc-global-infectious-disease-analysis/covid-19/report-9-impact-of-npis-on-covid-19/">
+                study</a> of non-pharmaceutical interventions (from the Imperial College, London), this
+            <a href="https://www.nature.com/articles/nature04017">paper</a> on pandemics in SE Asia, and its associated
+            <a href="https://static-content.springer.com/esm/art%3A10.1038%2Fnature04017/MediaObjects/41586_2005_BFnature04017_MOESM1_ESM.pdf">supplementary
+                material</a>. <br><br>
 
-        The simulator instantiates a smaller scale Bengaluru with population 100,000 across its
-        198 wards. The population distribution, employed fraction, age distribution, and
-        household size distribution are based on 2011 census data (with scaling for population growth).
-        Commute distances and workplace sizes are based on Thailand data given in the aforementioned
-        <A HREF="https://static-content.springer.com/esm/art%3A10.1038%2Fnature04017/MediaObjects/41586_2005_BFnature04017_MOESM1_ESM.pdf">supplementary
-            material</A>.
-        Average school size is kept at 300.<br><br>
+            The simulator instantiates a smaller scale Bengaluru with population 100,000 across its
+            198 wards. The population distribution, employed fraction, age distribution, and
+            household size distribution are based on 2011 census data (with scaling for population growth).
+            Commute distances and workplace sizes are based on Thailand data given in the aforementioned
+            <A HREF="https://static-content.springer.com/esm/art%3A10.1038%2Fnature04017/MediaObjects/41586_2005_BFnature04017_MOESM1_ESM.pdf">supplementary
+                material</A>.
+            Average school size is kept at 300.<br><br>
 
-        Interventions implemented include:
-    <UL>
-        (a) case isolation,<br>
-        (b) home quarantine,<br>
-        (c) lockdown,<br>
-        (d) case isolation and home quarantine,<br>
-        (e) these two along with social distancing of
-        those above 70 years of age,<br>
-        (f) 21 days of lockdown, followed by 21 days of (e),
-        followed by case isolation.<br>
-    </UL>
-    A description of the simulator and its implementation is under preparation.
-    </p><br>
-    <div class="column" id="controls">
-        <img src="images/bangalore-wards.png" alt="city map" width="50%" height="50%">
-        <div class="flex-container">
-            <label for="numDays">Number of Days to Simulate</label>
-            <input type="number" min="1" max="600" value="120" step="1" id="numDays">
-        </div>
+            Interventions implemented include:
+        <UL>
+            (a) case isolation,<br>
+            (b) home quarantine,<br>
+            (c) lockdown,<br>
+            (d) case isolation and home quarantine,<br>
+            (e) these two along with social distancing of
+            those above 70 years of age,<br>
+            (f) 21 days of lockdown, followed by 21 days of (e),
+            followed by case isolation.<br>
+        </UL>
+        A description of the simulator and its implementation is under preparation.
+        </p><br>
+        <div class="column" id="controls">
+            <img src="images/bangalore-wards.png" alt="city map" width="50%" height="50%">
+            <div class="flex-container">
+                <label for="numDays">Number of Days to Simulate</label>
+                <input type="number" min="1" max="600" value="120" step="1" id="numDays">
+            </div>
 
-        <h3>Disease Progression</h3>
-        <div class="flex-container">
-            <label for="Incubation">Mean Incubation Period (days)</label>
-            <input type="number" min="0" max="30" value="4.5" step="0.25" id="Incubation">
-        </div>
-        <div class="flex-container">
-            <label for="asymptomaticMean">Mean Asymptomatic Period (days) </label>
-            <input type="number" min="0" max="30" value="0.5" step="0.25" id="asymptomaticMean">
-        </div>
-        <div class="flex-container">
-            <label for="symptomaticMean">Mean Symptomatic Period (days)</label>
-            <input type="number" min="0" max="30" value="5" step="0.25" id="symptomaticMean">
-        </div>
-        <div class="flex-container">
-            <label for="symtomaticFraction">Symptomatic Fraction </label>
-            <input type="number" min="0" max="1" value="0.66" step="0.01" id="symtomaticFraction">
-        </div>
-        <div class="flex-container">
-            <label for="meanHospitalPeriod">Mean Hospital Stay (days)</label>
-            <input type="number" min="0" max="30" value="8" step="0.25" id="meanHospitalPeriod">
-        </div>
-        <div class="flex-container">
-            <label for="meanICUPeriod">Mean ICU Stay (days)</label>
-            <input type="number" min="0" max="30" value="8" step="0.25" id="meanICUPeriod">
-        </div>
+            <h3>Disease Progression</h3>
+            <div class="flex-container">
+                <label for="Incubation">Mean Incubation Period (days)</label>
+                <input type="number" min="0" max="30" value="4.5" step="0.25" id="Incubation">
+            </div>
+            <div class="flex-container">
+                <label for="asymptomaticMean">Mean Asymptomatic Period (days) </label>
+                <input type="number" min="0" max="30" value="0.5" step="0.25" id="asymptomaticMean">
+            </div>
+            <div class="flex-container">
+                <label for="symptomaticMean">Mean Symptomatic Period (days)</label>
+                <input type="number" min="0" max="30" value="5" step="0.25" id="symptomaticMean">
+            </div>
+            <div class="flex-container">
+                <label for="symtomaticFraction">Symptomatic Fraction </label>
+                <input type="number" min="0" max="1" value="0.66" step="0.01" id="symtomaticFraction">
+            </div>
+            <div class="flex-container">
+                <label for="meanHospitalPeriod">Mean Hospital Stay (days)</label>
+                <input type="number" min="0" max="30" value="8" step="0.25" id="meanHospitalPeriod">
+            </div>
+            <div class="flex-container">
+                <label for="meanICUPeriod">Mean ICU Stay (days)</label>
+                <input type="number" min="0" max="30" value="8" step="0.25" id="meanICUPeriod">
+            </div>
 
-        <h3>Transmission Coefficients</h3>
-        <div class="flex-container">
-            <label for="betaHouse">Households</label>
-            <input type="number" min="0" max="2" value="0.47" step="0.01" id="betaHouse">
-        </div>
-        <div class="flex-container">
-            <label for="betaWork">Workplaces</label>
-            <input type="number" min="0" max="2" value="0.376" step="0.01" id="betaWork">
-        </div>
-        <div class="flex-container">
-            <label for="betaSchools">Schools</label>
-            <input type="number" min="0" max="2" value="0.752" step="0.01" id="betaSchools">
-        </div>
-        <div class="flex-container">
-            <label for="betaCommunity">Community</label>
-            <input type="number" min="0" max="2" value="0.3395" step="0.01" id="betaCommunity">
-        </div>
-        <div class="flex-container">
-            <label for="betaPT">Public Transport</label>
-            <input type="number" min="0" max="2" value="0.01" step="0.01" id="betaPT">
-        </div>
-        <div class="flex-container">
-            <label for="simNum" style="display: none">Simulations Number</label>
-            <input type="number" style="display: none" min="0" step="1" max="1000" value="0" id="simNum">
-        </div>
-
-
-        <h3>Initialisation</h3>
-        <div class="flex-container">
-            <label for="initFrac">Fraction Infected</label>
-            <input type="number" min="0" max="1" value="0.001" step="0.01" id="initFrac">
-        </div>
-
-        <h3>Intervention</h3>
-        <div class="flex-container">
-            <label for="intervention">Select Intervention Method</label>
-            <select id="interventions" name="interventions">
-                <option value="0">NO_INTERVENTION</option>
-                <option value="1">CASE_ISOLATION</option>
-                <option value="2">HOME_QUARANTINE</option>
-                <option value="3">LOCKDOWN</option>
-                <option value="4">CASE_ISOLATION_AND_HOME_QUARANTINE</option>
-                <option value="5">CASE_ISOLATION_AND_HOME_QUARANTINE_SD_70_PLUS</option>
-                <option value="6">LOCKDOWN_21_CI_HQ_SD_70_PLUS_21_CI</option>
-                <option value="7">LOCKDOWN_21</option>
-                <option value="9">LD_21_CI_HQ_SD70_SC_21_SC_42</option>
-                <option value="9">LD_21_CI_HQ_SD70_SC_21</option>
-                <option value="10">LD_21_CI_HQ_SD70_SC_OE_30</option>
-            </select>
-        </div>
-        <div class="flex-container">
-            <label for="compliance">Compliance Probability</label>
-            <input type="number" min="0" max="1" value="0.9" step="0.01" id="compliance">
-        </div>
+            <h3>Transmission Coefficients</h3>
+            <div class="flex-container">
+                <label for="betaHouse">Households</label>
+                <input type="number" min="0" max="2" value="0.47" step="0.01" id="betaHouse">
+            </div>
+            <div class="flex-container">
+                <label for="betaWork">Workplaces</label>
+                <input type="number" min="0" max="2" value="0.376" step="0.01" id="betaWork">
+            </div>
+            <div class="flex-container">
+                <label for="betaSchools">Schools</label>
+                <input type="number" min="0" max="2" value="0.752" step="0.01" id="betaSchools">
+            </div>
+            <div class="flex-container">
+                <label for="betaCommunity">Community</label>
+                <input type="number" min="0" max="2" value="0.3395" step="0.01" id="betaCommunity">
+            </div>
+            <div class="flex-container">
+                <label for="betaPT">Public Transport</label>
+                <input type="number" min="0" max="2" value="0.01" step="0.01" id="betaPT">
+            </div>
+            <div class="flex-container">
+                <label for="simNum" style="display: none">Simulations Number</label>
+                <input type="number" style="display: none" min="0" step="1" max="1000" value="0" id="simNum">
+            </div>
 
 
-        <input type="submit" value="Run" id="run_button" onclick="clear_plots();">
-        <button id="sim_stop" style="display: none" onclick="stop_sim();">Stop Simulation</button>
-        <div id="sim_progress"></div>
+            <h3>Initialisation</h3>
+            <div class="flex-container">
+                <label for="initFrac">Fraction Infected</label>
+                <input type="number" min="0" max="1" value="0.001" step="0.01" id="initFrac">
+            </div>
 
+            <h3>Intervention</h3>
+            <div class="flex-container">
+                <label for="intervention">Select Intervention Method</label>
+                <select id="interventions" name="interventions">
+                    <option value="0">NO_INTERVENTION</option>
+                    <option value="1">CASE_ISOLATION</option>
+                    <option value="2">HOME_QUARANTINE</option>
+                    <option value="3">LOCKDOWN</option>
+                    <option value="4">CASE_ISOLATION_AND_HOME_QUARANTINE</option>
+                    <option value="5">CASE_ISOLATION_AND_HOME_QUARANTINE_SD_70_PLUS</option>
+                    <option value="6">LOCKDOWN_21_CI_HQ_SD_70_PLUS_21_CI</option>
+                    <option value="7">LOCKDOWN_21</option>
+                    <option value="9">LD_21_CI_HQ_SD70_SC_21_SC_42</option>
+                    <option value="9">LD_21_CI_HQ_SD70_SC_21</option>
+                    <option value="10">LD_21_CI_HQ_SD70_SC_OE_30</option>
+                </select>
+            </div>
+            <div class="flex-container">
+                <label for="compliance">Compliance Probability</label>
+                <input type="number" min="0" max="1" value="0.9" step="0.01" id="compliance">
+            </div>
+
+
+            <input type="submit" value="Run" id="run_button" onclick="clear_plots();">
+            <button id="sim_stop" style="display: none" onclick="stop_sim();">Stop Simulation</button>
+            <div id="sim_progress"></div>
+
+        </div>
+        <!-- <div class="column">
+
+            <div id="status"></div>
+
+            <div id="num_affected_plot"></div>
+            <div id="num_infected_plot"></div>
+            <div id="num_exposed_plot"></div>
+            <div id="num_hospitalised_plot"></div>
+            <div id="num_critical_plot"></div>
+            <div id="num_fatalities_plot"></div>
+            <div id="num_recovered_plot"></div>
+
+        </div> -->
+        <div class="column">
+
+            <div id="status"></div>
+            <div id="num_affected_plot_2"></div>
+            <div id="num_infected_plot_2"></div>
+            <div id="num_exposed_plot_2"></div>
+            <div id="num_hospitalised_plot_2"></div>
+            <div id="num_critical_plot_2"></div>
+            <div id="num_fatalities_plot_2"></div>
+            <div id="num_recovered_plot_2"></div>
+            <div id="lambda_evolution"></div>
+
+        </div>
     </div>
-    <!-- <div class="column">
-
-        <div id="status"></div>
-
-        <div id="num_affected_plot"></div>
-        <div id="num_infected_plot"></div>
-        <div id="num_exposed_plot"></div>
-        <div id="num_hospitalised_plot"></div>
-        <div id="num_critical_plot"></div>
-        <div id="num_fatalities_plot"></div>
-        <div id="num_recovered_plot"></div>
-
-    </div> -->
-    <div class="column">
-
-        <div id="status"></div>
-        <div id="num_affected_plot_2"></div>
-        <div id="num_infected_plot_2"></div>
-        <div id="num_exposed_plot_2"></div>
-        <div id="num_hospitalised_plot_2"></div>
-        <div id="num_critical_plot_2"></div>
-        <div id="num_fatalities_plot_2"></div>
-        <div id="num_recovered_plot_2"></div>
-        <div id="lambda_evolution"></div>
+    <div class="footer">
+        <div id="copyright">
+            &copy; 2020 Indian Institute of Science, Bangalore
+        </div>
 
     </div>
 </div>
