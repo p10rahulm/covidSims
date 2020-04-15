@@ -1821,10 +1821,10 @@ function extend_plotlyDay(last_timestep, current_timestep, data_tuple) {
 function extend_plotlyLast(time_step, data_tuple) {
 
     plotly_PlotExtend("num_infected_plot_2",data_tuple[0][time_step][0],data_tuple[0][time_step][1]);
-    plotly_PlotExtend("num_hospitalised_plot_2",data_tuple[2][time_step][0],data_tuple[0][time_step][1]);
-    plotly_PlotExtend("num_critical_plot_2",data_tuple[3][time_step][0],data_tuple[0][time_step][1]);
-    plotly_PlotExtend("num_fatalities_plot_2",data_tuple[4][time_step][0],data_tuple[0][time_step][1]);
-    plotly_PlotExtend("num_affected_plot_2",data_tuple[5][time_step][0],data_tuple[0][time_step][1]);
+    plotly_PlotExtend("num_hospitalised_plot_2",data_tuple[2][time_step][0],data_tuple[2][time_step][1]);
+    plotly_PlotExtend("num_critical_plot_2",data_tuple[3][time_step][0],data_tuple[3][time_step][1]);
+    plotly_PlotExtend("num_fatalities_plot_2",data_tuple[4][time_step][0],data_tuple[4][time_step][1]);
+    plotly_PlotExtend("num_affected_plot_2",data_tuple[5][time_step][0],data_tuple[5][time_step][1]);
     plot_lambda_evolution([data_tuple[7]], 'lambda_evolution', 'Source of infection', ['Home', 'School/Workplace', 'Community', 'Public Transport']);
 
 
