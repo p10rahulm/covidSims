@@ -42,59 +42,61 @@ SPDX-License-Identifier: Apache-2.0-->
         </div>
 
         <div id="navbar">
-            <div class="active navbar_button">
+            <div id="navbar-home" class="navbar-active navbar_button" onclick="clickHome();">
                 <a href="#home">
                     Home
                 </a>
             </div>
-            <div class="navbar_button">
-                <a href="#contact">
-                    Contact
-                </a>
-            </div>
-            <div class="navbar_button">
+            <div id="navbar-about" class="navbar_button" onclick="clickAbout();">
                 <a href="#about">
                     About
                 </a>
             </div>
+            <div id="navbar-team" class="navbar_button" onclick="clickTeam();">
+                <a href="#team">
+                    Team
+                </a>
+            </div>
         </div>
     </div>
-    <div id="home" class="main">
+    <div id="home" class="main main-active">
 
         <div class="description">
             <div class="description-title">Introduction</div>
+            <div class="description-text">
+                This is a city-scale agent-based simulator, built based on the descriptions given in this
+                <a target="_blank"
+                   href="https://www.imperial.ac.uk/mrc-global-infectious-disease-analysis/covid-19/report-9-impact-of-npis-on-covid-19/">
+                    study</a> of non-pharmaceutical interventions (from the Imperial College, London), this
+                <a target="_blank" href="https://www.nature.com/articles/nature04017">paper</a> on pandemics in SE Asia,
+                and
+                its associated
+                <a target="_blank"
+                   href="https://static-content.springer.com/esm/art%3A10.1038%2Fnature04017/MediaObjects/41586_2005_BFnature04017_MOESM1_ESM.pdf">supplementary
+                    material</a>. <br><br>
 
-            This is a city-scale agent-based simulator, built based on the descriptions given in this
-            <a target="_blank"
-               href="https://www.imperial.ac.uk/mrc-global-infectious-disease-analysis/covid-19/report-9-impact-of-npis-on-covid-19/">
-                study</a> of non-pharmaceutical interventions (from the Imperial College, London), this
-            <a target="_blank" href="https://www.nature.com/articles/nature04017">paper</a> on pandemics in SE Asia, and
-            its associated
-            <a target="_blank"
-               href="https://static-content.springer.com/esm/art%3A10.1038%2Fnature04017/MediaObjects/41586_2005_BFnature04017_MOESM1_ESM.pdf">supplementary
-                material</a>. <br><br>
+                The simulator instantiates a smaller scale Bengaluru with population 100,000 across its
+                198 wards. The population distribution, employed fraction, age distribution, and
+                household size distribution are based on 2011 census data (with scaling for population growth).
+                Commute distances and workplace sizes are based on Thailand data given in the aforementioned
+                <a target="_blank"
+                   href="https://static-content.springer.com/esm/art%3A10.1038%2Fnature04017/MediaObjects/41586_2005_BFnature04017_MOESM1_ESM.pdf">supplementary
+                    material</a>.
+                Average school size is kept at 300.<br><br>
 
-            The simulator instantiates a smaller scale Bengaluru with population 100,000 across its
-            198 wards. The population distribution, employed fraction, age distribution, and
-            household size distribution are based on 2011 census data (with scaling for population growth).
-            Commute distances and workplace sizes are based on Thailand data given in the aforementioned
-            <a target="_blank"
-               href="https://static-content.springer.com/esm/art%3A10.1038%2Fnature04017/MediaObjects/41586_2005_BFnature04017_MOESM1_ESM.pdf">supplementary
-                material</a>.
-            Average school size is kept at 300.<br><br>
-
-            Interventions implemented include:
-            <UL>
-                (a) case isolation,<br>
-                (b) home quarantine,<br>
-                (c) lockdown,<br>
-                (d) case isolation and home quarantine,<br>
-                (e) these two along with social distancing of
-                those above 70 years of age,<br>
-                (f) 21 days of lockdown, followed by 21 days of (e),
-                followed by case isolation.<br>
-            </UL>
-            A description of the simulator and its implementation is under preparation.
+                Interventions implemented include:
+                <ul>
+                    (a) case isolation,<br>
+                    (b) home quarantine,<br>
+                    (c) lockdown,<br>
+                    (d) case isolation and home quarantine,<br>
+                    (e) these two along with social distancing of
+                    those above 70 years of age,<br>
+                    (f) 21 days of lockdown, followed by 21 days of (e),
+                    followed by case isolation.<br>
+                </ul>
+                A description of the simulator and its implementation is under preparation.
+            </div>
         </div>
         <div class="main-io">
             <div class="column" id="io-inputs">
@@ -217,6 +219,101 @@ SPDX-License-Identifier: Apache-2.0-->
         </div>
 
     </div>
+    <div id="about" class="main main-inactive">
+        <div class="description">
+            <div class="description-title">Summary</div>
+            <div class="description-text">
+                This project aims to model the epidemic spread taking Indian urban conditions into account.
+                The goal is to assist epidemiologists and decision makers with
+                <ul>
+                    <li>
+                        Understanding the effectiveness of imposing and lifting various kinds of restrictions
+                    </li>
+                    <li>
+                        Anticipating hospital needs
+                    </li>
+                    <li>
+                        Devising testing strategies
+                    </li>
+
+                </ul>
+            </div>
+            <div class="description-title">Current Status</div>
+            <div class="description-text">
+                <ul>
+                    <li>
+                        Agent-based simulator with several interventions has already been implemented at the level of
+                        200,000
+                        residents in 1/50 version of Bangalore.
+                    </li>
+                    <li>
+                        Scaling up, connecting multiple cities, testing strategies and
+                        assessment of hospital needs, are in progress.
+                    </li>
+                </ul>
+
+            </div>
+            <div class="description-title">Support Required</div>
+            <div class="description-text">
+                <ul>
+                    <li>
+                        People with experience in visualisation, user interface development
+                    </li>
+                    <li>
+                        Epidemiologists and social scientists who can suggest novel strategies for lifting of
+                        interventions
+                    </li>
+                    <li>
+                        Coders familiar with Python scripting and Java scripting
+                    </li>
+                </ul>
+
+            </div>
+        </div>
+    </div>
+    <div id="team" class="main main-inactive">
+        <div class="description">
+            <div class="description-title">Project Head</div>
+            <div class="description-text">
+                Team Lead: Rajesh Sundaresan
+                Email: rajeshs@iisc.ac.in
+            </div>
+            <div class="description-title">Core Team</div>
+            <div class="description-text">
+                <ul>
+                    <li>
+                        Rajesh Sundaresan
+                    </li>
+                    <li>
+                        Preetam Patil
+                    </li>
+                    <li>
+                        Nihesh Rathod
+                    </li>
+                    <li>
+                        A.Y.Sarath
+                    </li>
+                    <li>
+                        Sharad Sriram
+                    </li>
+                    <li>
+                        Nidhin Koshy Vaidhiyan
+                    </li>
+                </ul>
+            </div>
+            <div class="description-title">Other Team Members</div>
+            <div class="description-text">
+                <ul>
+                    <li>
+                        Rahul Madhavan
+                    </li>
+                    <li>
+                        Arpit Agarwal
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
     <div class="footer">
         <div id="copyright">
             &copy; 2020 <a href="https://www.iisc.ac.in" target="_blank">Indian Institute of Science, Bangalore</a>
@@ -233,6 +330,7 @@ SPDX-License-Identifier: Apache-2.0-->
 <script type="text/javascript" src="javascripts/interventions.js"></script>
 <script type="text/javascript" src="javascripts/initialise_network.js"></script>
 <script type="text/javascript" src="javascripts/sim.js"></script>
+<script type="text/javascript" src="javascripts/ui_elements.js"></script>
 </body>
 </html>
 <!-- <div class="column">

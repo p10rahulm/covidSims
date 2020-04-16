@@ -113,7 +113,7 @@ body {
     color: #cc009f;
 }
 
-.header #navbar .active {
+.header #navbar .navbar-active {
     box-shadow: 0px 8px 6px -4px #c39fff;
 }
 
@@ -131,12 +131,7 @@ body {
 
 }
 
-.main .description .description-title {
-    font-family: "Lora";
-    font-size: 2em;
-    font-weight: bold;
 
-}
 
 .main .main-io {
     display: flex;
@@ -177,18 +172,39 @@ body {
 .main .main-io #io-outputs #status {
     text-align: center;
 }
-.main .main-io #io-outputs .chart-container{
+
+.main .main-io #io-outputs .chart-container {
     display: flex;
     justify-content: space-around;
     align-items: center;
     flex-wrap: wrap;
     flex-direction: row;
 }
-.main .main-io #io-outputs .chart-container .output-chart{
-    flex-basis: 15em;
+
+.main .main-io #io-outputs .chart-container .output-chart {
+    flex-basis: 18em;
     flex-grow: 1;
     flex-shrink: 0;
 }
+.main-inactive {
+    display: none;
+}
+
+
+.main .description-title{
+    font-family: "Lora";
+    font-size: 1.5em;
+    font-weight: bold;
+    margin-top: 15px;
+}
+.main .description-text ul{
+    list-style: square;
+}
+
+#about .description-text {
+    margin-bottom: 25px;
+}
+
 .footer {
     grid-area: footer;
     border-top: 1px solid #eceefb;
@@ -205,12 +221,6 @@ body {
     color: #005999;
 }
 
-
-.content {
-    max-width: 35em;
-    margin: 0 auto;
-    padding: 0 10px;
-}
 
 
 a {
