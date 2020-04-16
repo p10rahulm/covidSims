@@ -1,25 +1,22 @@
 body {
-    font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
+    font-family: "Lora", "Playfair Display", "Times New Roman", serif;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
     line-height: 1.6;
     margin-bottom: 50px;
 }
 
-.container{
+.container {
     display: grid;
-    grid-template-rows: minmax(65px,auto) minmax(100px, auto) 65px [footer-end];
-    grid-template-columns: 50px repeat(4, 1fr) 50px;
-    grid-gap: 10px;
-    grid-template-areas:
-            ". header header header header  ."
-            ". mainer mainer mainer mainer ."
-            ". footer footer footer footer .";
+    grid-template-rows: minmax(65px, auto) minmax(100px, auto) 65px [footer-end];
+    grid-template-columns: 2vw repeat(4, 1fr) 2vw;
+    grid-row-gap: 20px;
+    grid-template-areas: ". header header header header  ." ". mainer mainer mainer mainer ." ". footer footer footer footer .";
 
 }
 
 
-.header{
+.header {
     top: 0px;
     grid-area: header;
 
@@ -36,7 +33,7 @@ body {
     z-index: 100;
 }
 
-.header #logo{
+.header #logo {
     height: auto;
     flex-basis: 0;
     flex-grow: 1;
@@ -45,7 +42,8 @@ body {
     justify-content: left;
     align-items: center;
 }
-.header #logo a{
+
+.header #logo a {
     width: fit-content;
     height: auto;
     flex-basis: 100px;
@@ -53,28 +51,33 @@ body {
     flex-shrink: 1;
 
 }
-.header #logo img{
+
+.header #logo img {
     height: 60px;
     padding-right: 10px;
     width: 60px;
 
 }
 
-.header #logo #logoText{
+.header #logo #logoText {
     flex-basis: 100%;
     flex-grow: 0;
     flex-shrink: 1;
 }
-.header #logo #logoText .logoLine a{
+
+.header #logo #logoText .logoLine a {
     font-family: "Alegreya SC";
     font-size: max(1em, 12px);
     color: #cc009f;
 }
-.header #logo #logoText #logol1 a{
+
+.header #logo #logoText #logol1 a {
 }
-.header #logo #logoText #logol2 a{
+
+.header #logo #logoText #logol2 a {
 }
-.header #HeaderTitle{
+
+.header #HeaderTitle {
     flex-basis: 0;
     flex-grow: 1;
     flex-shrink: 1;
@@ -89,7 +92,8 @@ body {
 
     line-height: 1;
 }
-.header #navbar{
+
+.header #navbar {
     flex-basis: 0;
     flex-grow: 1;
     flex-shrink: 1;
@@ -98,33 +102,94 @@ body {
     display: flex;
     justify-content: flex-end;
 }
-.header #navbar .navbar_button{
+
+.header #navbar .navbar_button {
     padding: 10px;
 }
 
-.header #navbar .navbar_button a{
+.header #navbar .navbar_button a {
     font-family: "Alegreya SC";
     font-size: max(1em, 12px);
-    font-family: "Cinzel";
     color: #cc009f;
 }
-.header #navbar .active{
+
+.header #navbar .active {
     box-shadow: 0px 8px 6px -4px #c39fff;
 }
 
-.main{
+.main {
     grid-area: mainer;
     margin-top: 25px;
 
 }
 
-.main .form-input-container {
+.main .description {
+    font-family: "Playfair Display";
+    padding-bottom: 15px;
+    /*border-bottom: 1px solid rgb(200, 0, 160);*/
+    box-shadow: 0px 2px 6px -4px #c39fff;
+
+}
+
+.main .description .description-title {
+    font-family: "Lora";
+    font-size: 2em;
+    font-weight: bold;
+
+}
+
+.main .main-io {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    flex-direction: row;
+}
+
+.main .main-io .column {
+    flex-basis: 30em;
+    flex-grow: 1;
+    flex-shrink: 1;
+    padding: 15px 1vw;
+    height: max-content;
+}
+
+.main .main-io #io-inputs img {
+    max-width: 300px;
+    max-height: 300px;
+    width: 80%;
+    height: 80%;
+    display: block;
+    margin: 20px auto;
+}
+
+.main .main-io #io-inputs .form-input-container {
     display: flex;
     justify-content: space-between;
+    flex-wrap: wrap;
 }
 
 
-.footer{
+.main .main-io #io-inputs .form-input-container .input-window {
+    width: 30%;
+    margin-left: 20px;
+}
+
+.main .main-io #io-outputs #status {
+    text-align: center;
+}
+.main .main-io #io-outputs .chart-container{
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    flex-wrap: wrap;
+    flex-direction: row;
+}
+.main .main-io #io-outputs .chart-container .output-chart{
+    flex-basis: 15em;
+    flex-grow: 1;
+    flex-shrink: 0;
+}
+.footer {
     grid-area: footer;
     border-top: 1px solid #eceefb;
     box-shadow: 5px -10px 18px #f0eef9;
@@ -135,14 +200,11 @@ body {
     align-items: center;
 }
 
-#copyright{
+.footer #copyright {
     font-family: "Alegreya SC";
     color: #005999;
 }
 
-#status {
-    text-align: center;
-}
 
 .content {
     max-width: 35em;
@@ -150,14 +212,13 @@ body {
     padding: 0 10px;
 }
 
-.main img {
-    max-width: 100%;
-    display: block;
-    margin: 0 auto;
-}
 
 a {
     text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
 }
 
 a:link, .nav a, .nav a:visited {
@@ -172,29 +233,8 @@ a:visited {
     color: #005999;
 }
 
-.column {
-    float: left;
-    width: 40%;
-    padding: 15px;
-}
-
-@media screen and (max-width: 800px) {
-    .column {
-        float: left;
-        width: 90%;
-        padding: 15px;
-        margin: 0px 10px 0px 10px;
-    }
-}
 
 
-input[type="number"] {
-    width: 30%;
-    margin-left: 20px;
-}
 
 
-#interventions{
-    width: 30%;
-    margin-left: 20px;
-}
+
