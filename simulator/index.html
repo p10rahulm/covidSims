@@ -6,6 +6,8 @@ SPDX-License-Identifier: Apache-2.0-->
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href='https://fonts.googleapis.com/css?family=Alegreya SC' rel='stylesheet'>
+    <link href='https://fonts.googleapis.com/css?family=Lora' rel='stylesheet'>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <title>Epidemic Simulator (City-Scale)</title>
     <link rel="stylesheet" href="simulator.css">
@@ -16,18 +18,18 @@ SPDX-License-Identifier: Apache-2.0-->
 <div class="container">
     <div class="header">
         <div id="logo">
-            <a href="https://www.iisc.ac.in/">
+            <a href="https://www.iisc.ac.in/" target="_blank">
                 <img src="images/iisc_logo.png">
             </a>
             <div id="logoText">
-                <a href="https://www.iisc.ac.in/">
-                    <div id="logol1">
+                <a href="https://www.iisc.ac.in/" target="_blank">
+                    <div id="logol1" class="logoLine">
                         <a href="https://cni.iisc.ac.in/">
                             Center for Network Intelligence RBCCPS
                         </a>
                     </div>
-                    <div id="logol2">
-                        <a href="https://cni.iisc.ac.in/">
+                    <div id="logol2" class="logoLine" target="_blank">
+                        <a href="https://www.iisc.ac.in/">
                             IISc Bangalore
                         </a>
                     </div>
@@ -39,14 +41,26 @@ SPDX-License-Identifier: Apache-2.0-->
         </div>
 
         <div id="navbar">
-            <a class="active" href="#home">Home</a>
-            <a href="#contact">Contact</a>
-            <a href="#about">About</a>
+            <div class="active navbar_button">
+                <a href="#home">
+                    Home
+                </a>
+            </div>
+            <div class="navbar_button">
+                <a href="#contact">
+                    Contact
+                </a>
+            </div>
+            <div class="navbar_button">
+                <a href="#about">
+                    About
+                </a>
+            </div>
         </div>
     </div>
-    <div class="main">
+    <div id="home" class="main">
 
-        <h1>Epidemic Simulator (City-Scale)</h1>
+        <h1>Introduction</h1>
 
         <p>
             This is a city-scale agent-based simulator, built based on the descriptions given in this
@@ -76,75 +90,76 @@ SPDX-License-Identifier: Apache-2.0-->
             followed by case isolation.<br>
         </UL>
         A description of the simulator and its implementation is under preparation.
-        </p><br>
+        </p>
+
         <div class="column" id="controls">
             <img src="images/bangalore-wards.png" alt="city map" width="50%" height="50%">
-            <div class="flex-container">
+            <div class="form-input-container">
                 <label for="numDays">Number of Days to Simulate</label>
                 <input type="number" min="1" max="600" value="120" step="1" id="numDays">
             </div>
 
             <h3>Disease Progression</h3>
-            <div class="flex-container">
+            <div class="form-input-container">
                 <label for="Incubation">Mean Incubation Period (days)</label>
                 <input type="number" min="0" max="30" value="4.5" step="0.25" id="Incubation">
             </div>
-            <div class="flex-container">
+            <div class="form-input-container">
                 <label for="asymptomaticMean">Mean Asymptomatic Period (days) </label>
                 <input type="number" min="0" max="30" value="0.5" step="0.25" id="asymptomaticMean">
             </div>
-            <div class="flex-container">
+            <div class="form-input-container">
                 <label for="symptomaticMean">Mean Symptomatic Period (days)</label>
                 <input type="number" min="0" max="30" value="5" step="0.25" id="symptomaticMean">
             </div>
-            <div class="flex-container">
+            <div class="form-input-container">
                 <label for="symtomaticFraction">Symptomatic Fraction </label>
                 <input type="number" min="0" max="1" value="0.66" step="0.01" id="symtomaticFraction">
             </div>
-            <div class="flex-container">
+            <div class="form-input-container">
                 <label for="meanHospitalPeriod">Mean Hospital Stay (days)</label>
                 <input type="number" min="0" max="30" value="8" step="0.25" id="meanHospitalPeriod">
             </div>
-            <div class="flex-container">
+            <div class="form-input-container">
                 <label for="meanICUPeriod">Mean ICU Stay (days)</label>
                 <input type="number" min="0" max="30" value="8" step="0.25" id="meanICUPeriod">
             </div>
 
             <h3>Transmission Coefficients</h3>
-            <div class="flex-container">
+            <div class="form-input-container">
                 <label for="betaHouse">Households</label>
                 <input type="number" min="0" max="2" value="0.47" step="0.01" id="betaHouse">
             </div>
-            <div class="flex-container">
+            <div class="form-input-container">
                 <label for="betaWork">Workplaces</label>
                 <input type="number" min="0" max="2" value="0.376" step="0.01" id="betaWork">
             </div>
-            <div class="flex-container">
+            <div class="form-input-container">
                 <label for="betaSchools">Schools</label>
                 <input type="number" min="0" max="2" value="0.752" step="0.01" id="betaSchools">
             </div>
-            <div class="flex-container">
+            <div class="form-input-container">
                 <label for="betaCommunity">Community</label>
                 <input type="number" min="0" max="2" value="0.3395" step="0.01" id="betaCommunity">
             </div>
-            <div class="flex-container">
+            <div class="form-input-container">
                 <label for="betaPT">Public Transport</label>
                 <input type="number" min="0" max="2" value="0.01" step="0.01" id="betaPT">
             </div>
-            <div class="flex-container">
+            <div class="form-input-container">
                 <label for="simNum" style="display: none">Simulations Number</label>
                 <input type="number" style="display: none" min="0" step="1" max="1000" value="0" id="simNum">
             </div>
 
 
             <h3>Initialisation</h3>
-            <div class="flex-container">
+            <div class="form-input-container">
                 <label for="initFrac">Fraction Infected</label>
                 <input type="number" min="0" max="1" value="0.001" step="0.01" id="initFrac">
             </div>
 
             <h3>Intervention</h3>
-            <div class="flex-container">
+            <div class="form-input-container">
                 <label for="intervention">Select Intervention Method</label>
                 <select id="interventions" name="interventions">
                     <option value="0">NO_INTERVENTION</option>
@@ -160,7 +175,7 @@ SPDX-License-Identifier: Apache-2.0-->
                     <option value="10">LD_21_CI_HQ_SD70_SC_OE_30</option>
                 </select>
             </div>
-            <div class="flex-container">
+            <div class="form-input-container">
                 <label for="compliance">Compliance Probability</label>
                 <input type="number" min="0" max="1" value="0.9" step="0.01" id="compliance">
             </div>
